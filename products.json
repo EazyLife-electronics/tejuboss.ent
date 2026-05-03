@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1714770000001,
+    "name": "NBC Jelly Large",
+    "price": 3800,
+    "category": "Jelly",
+    "image": "https://via.placeholder.com/300?text=Jelly",
+    "inStock": true
+  },
+  {
+    "id": 1714770000002,
+    "name": "Organic CB Oil",
+    "price": 1200,
+    "category": "Oil",
+    "image": "https://via.placeholder.com/300?text=Oil",
+    "inStock": true
+  }
+]
