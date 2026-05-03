@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teju Boss Enterprise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .product { transition: 0.3s; }
+        .product:hover { transform: translateY(-4px); }
+        ::-webkit-scrollbar { height: 4px; }
+        ::-webkit-scrollbar-thumb { background: #000; border-radius: 10px; }
+    </style>
+</head>
+
+<body class="bg-gray-100 pb-20">
+
+<header class="bg-black text-white p-4 sticky top-0 z-40 flex justify-between items-center shadow-lg">
+    <h1 onclick="handleLogoTap()" class="font-bold text-xl cursor-pointer tracking-tight">
+        TEJU BOSS <span class="text-red-500 text-sm">ENT.</span>
+    </h1>
+    <button onclick="showCart()" class="bg-red-600 px-4 py-2 rounded-lg font-bold text-sm">
+        Cart (<span id="count">0</span>)
+    </button>
+</header>
+
+<main class="p-4 max-w-6xl mx-auto">
+    <div class="mb-6">
+        <input id="search" placeholder="Search products..." class="w-full p-4 rounded-xl border-none shadow-sm mb-4 outline-red-500" onkeyup="filterProducts()">
+        <div id="catFilters" class="flex gap-2 overflow-x-auto pb-2 italic text-sm"></div>
+    </div>
+
+    <div id="loader" class="text-center py-10 text-gray-500 font-bold">Loading Catalog...</div>
+    
+    <div id="grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+</main>
+
+<div id="adminPanel" class="hidden fixed bottom-5 left-5 bg-white p-5 shadow-2xl rounded-2xl w-80 border-2 border-black z-50">
+    <h2 class="font-bold mb-2">Admin Tools</h2>
+    <p class="text-[10px] mb-3 text-gray-500">Note: To make changes permanent for customers, you must edit <b>products.json</b> on GitHub.</p>
+    <button onclick="copyJSONTemplate()" class="bg-gray-800 text-white w-full p-2 rounded text-xs mb-4">Copy JSON Template</button>
+    <div class="bg-gray-100 p-3 rounded-lg text-sm">
+        <p class="flex justify-between font-bold">Total Sales: <span>₦<span id="sales">0</span></span></p>
+    </div>
+    <button onclick="closeAdmin()" class="w-full mt-2 text-xs text-red-500">Close</button>
+</div>
+
+<div id="cartModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white p-6 w-full max-w-md rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto">
+        <h2 class="font-bold text-2xl mb-4 italic">Your Cart</h2>
+        <div id="cartItems" class="space-y-3 mb-6"></div>
+        <div class="space-y-3 border-t pt-4">
+            <input id="custName" placeholder="Your Name" class="w-full border p-3 rounded-xl">
+            <input id="custPhone" placeholder="WhatsApp Number" class="w-full border p-3 rounded-xl">
+            <textarea id="custAddr" placeholder="Delivery Address" class="w-full border p-3 rounded-xl" rows="2"></textarea>
+        </div>
+        <div class="flex justify-between items-center mt-6 p-4 bg-gray-50 rounded-2xl">
+            <span class="font-bold text-gray-600">Total:</span>
+            <span class="text-2xl font-black text-red-600">₦<span id="total">0</span></span>
+        </div>
+        <button onclick="previewOrder()" class="bg-blue-600 text-white w-full p-4 mt-4 rounded-2xl font-bold shadow-lg">Send to WhatsApp</button>
+        <button onclick="hideCart()" class="w-full mt-4 text-gray-400 font-medium text-sm">Close</button>
+    </div>
+</div>
+
+<script>
+const CKEY = "teju_cart_v4";
+const SKEY = "teju_sales_v4";
+const UKEY = "teju_user_v4";
+
+let products = []; 
+let cart = JSON.parse(localStorage.getItem(CKEY)) || [];
+let sales = JSON.parse(localStorage.getItem(SKEY)) || [];
+let adminMode = false;
+let taps = 0;
+let tapTimer;
+
+window.onload = async () => {
+    await fetchProducts();
+    updateUI();
+    loadUser();
+};
+
+async function fetchProducts() {
+    try {
+        // Fetches from the same folder as index.html
+        const res = await fetch('products.json');
+        if(!res.ok) throw new Error("File not found");
+        products = await res.json();
+        document.getElementById("loader").classList.add("hidden");
+    } catch (e) {
+        document.getElementById("loader").textContent = "Error loading products. Check products.json file.";
+        console.error(e);
+    }
+}
+
+function updateUI() {
+    renderProducts(products);
+    renderCategoryButtons();
+    updateCount();
+    updateSalesDisplay();
+}
+
+function renderProducts(list) {
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    list.forEach(p => {
+        const inCart = cart.find(i => i.id === p.id);
+        grid.innerHTML += `
+            <div class="product bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+                <img src="${p.image || 'https://via.placeholder.com/300'}" class="h-36 w-full object-cover rounded-xl mb-3">
+                <span class="text-[10px] font-bold uppercase text-gray-400">${p.category}</span>
+                <h3 class="font-bold text-gray-800 leading-tight mb-1">${p.name}</h3>
+                <p class="text-red-600 font-black mb-3">₦${p.price.toLocaleString()}</p>
+                <div class="mt-auto">
+                    ${inCart ? `
+                        <div class="flex items-center justify-between bg-gray-100 rounded-lg p-1">
+                            <button onclick="changeQty(${p.id},-1)" class="w-8 h-8 bg-white rounded shadow-sm font-bold">-</button>
+                            <span class="font-bold">${inCart.quantity}</span>
+                            <button onclick="changeQty(${p.id},1)" class="w-8 h-8 bg-white rounded shadow-sm font-bold">+</button>
+                        </div>
+                    ` : `
+                        <button onclick="addToCart(${p.id})" class="bg-black text-white w-full py-2 rounded-lg font-bold text-sm">Add</button>
+                    `}
+                </div>
+            </div>`;
+    });
+}
+
+function renderCategoryButtons() {
+    const cats = ['All', ...new Set(products.map(p => p.category))];
+    document.getElementById("catFilters").innerHTML = cats.map(c => `
+        <button onclick="filterByCategory('${c}')" class="whitespace-nowrap px-4 py-2 rounded-full bg-white shadow-sm border font-medium hover:bg-black hover:text-white transition">
+            ${c}
+        </button>
+    `).join('');
+}
+
+function filterByCategory(cat) {
+    if (cat === 'All') renderProducts(products);
+    else renderProducts(products.filter(p => p.category === cat));
+}
+
+function filterProducts() {
+    const term = document.getElementById("search").value.toLowerCase();
+    renderProducts(products.filter(p => p.name.toLowerCase().includes(term)));
+}
+
+function addToCart(id) {
+    const p = products.find(i => i.id === id);
+    cart.push({...p, quantity: 1});
+    saveCart();
+}
+
+function changeQty(id, delta) {
+    const item = cart.find(i => i.id === id);
+    if (!item) return;
+    item.quantity += delta;
+    if (item.quantity <= 0) cart = cart.filter(i => i.id !== id);
+    saveCart();
+}
+
+function saveCart() {
+    localStorage.setItem(CKEY, JSON.stringify(cart));
+    updateCount();
+    renderProducts(products);
+    if (!document.getElementById("cartModal").classList.contains("hidden")) showCart();
+}
+
+function updateCount() {
+    document.getElementById("count").textContent = cart.reduce((a, b) => a + b.quantity, 0);
+}
+
+function showCart() {
+    if (cart.length === 0) return alert("Cart is empty");
+    document.getElementById("cartItems").innerHTML = cart.map(i => `
+        <div class="flex justify-between items-center border-b pb-2 text-sm">
+            <div><p class="font-bold">${i.name}</p><span>₦${i.price} x ${i.quantity}</span></div>
+            <p class="font-bold text-red-600">₦${(i.price * i.quantity).toLocaleString()}</p>
+        </div>
+    `).join('');
+    document.getElementById("total").textContent = cart.reduce((a, b) => a + b.price * b.quantity, 0).toLocaleString();
+    document.getElementById("cartModal").classList.remove("hidden");
+}
+
+function hideCart() { document.getElementById("cartModal").classList.add("hidden"); }
+
+function handleLogoTap() {
+    taps++;
+    clearTimeout(tapTimer);
+    tapTimer = setTimeout(() => taps = 0, 1000);
+    if (taps >= 5) {
+        if (prompt("Admin Password?") === "admin123") {
+            adminMode = true;
+            document.getElementById("adminPanel").classList.remove("hidden");
+        }
+    }
+}
+
+function closeAdmin() { adminMode = false; document.getElementById("adminPanel").classList.add("hidden"); }
+
+function copyJSONTemplate() {
+    const template = JSON.stringify([{id: Date.now(), name: "Sample Item", price: 1000, category: "General", image: "", inStock: true}], null, 2);
+    navigator.clipboard.writeText(template);
+    alert("JSON template copied to clipboard! Paste this into your products.json file.");
+}
+
+function loadUser() {
+    const u = JSON.parse(localStorage.getItem(UKEY)) || {};
+    document.getElementById("custName").value = u.name || "";
+    document.getElementById("custPhone").value = u.phone || "";
+    document.getElementById("custAddr").value = u.addr || "";
+}
+
+function previewOrder() {
+    const name = document.getElementById("custName").value;
+    const phone = document.getElementById("custPhone").value;
+    const addr = document.getElementById("custAddr").value;
+    if (!name || !phone || !addr) return alert("Fill delivery info");
+
+    localStorage.setItem(UKEY, JSON.stringify({name, phone, addr}));
+
+    let msg = `*NEW ORDER - TEJU BOSS ENT*%0A%0A`;
+    cart.forEach(i => msg += `• ${i.name} x${i.quantity} = ₦${(i.price * i.quantity).toLocaleString()}%0A`);
+    
+    const total = cart.reduce((a, b) => a + b.price * b.quantity, 0);
+    msg += `%0A*TOTAL: ₦${total.toLocaleString()}*%0A%0A*Customer:* ${name}%0A*Address:* ${addr}`;
+
+    sales.push({total, date: new Date().toISOString()});
+    localStorage.setItem(SKEY, JSON.stringify(sales));
+
+    window.open(`https://wa.me/2347079557886?text=${msg}`);
+    cart = []; saveCart(); hideCart(); updateSalesDisplay();
+}
+
+function updateSalesDisplay() {
+    document.getElementById("sales").textContent = sales.reduce((a, b) => a + b.total, 0).toLocaleString();
+}
+</script>
+</body>
+</html>
