@@ -13,6 +13,7 @@
         .promo-tag { position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 900; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         ::-webkit-scrollbar { height: 4px; width: 4px; }
         ::-webkit-scrollbar-thumb { background: #000; border-radius: 10px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 
@@ -30,14 +31,17 @@
 
 <main class="p-4 max-w-5xl mx-auto">
     <div class="mb-6 space-y-4">
-        <input id="search" placeholder="Search brands..." class="w-full p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-red-500 outline-none" onkeyup="filterProducts()">
+        <input id="search" placeholder="Search brands (Robb, Carex, Joy...)" 
+               class="w-full p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-red-500 outline-none" 
+               onkeyup="filterProducts()">
         
-        <div id="catFilters" class="flex gap-2 overflow-x-auto pb-2 no-scrollbar"></div>
+        <div id="catFilters" class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+            </div>
     </div>
 
     <div id="loader" class="flex flex-col items-center justify-center py-20 text-gray-400">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-2"></div>
-        <p class="font-medium">Loading Catalog...</p>
+        <p class="font-medium">Loading Teju Boss Catalog...</p>
     </div>
     
     <div id="grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
@@ -46,27 +50,32 @@
 <div id="cartModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end md:items-center justify-center">
     <div class="bg-white w-full max-w-md rounded-t-[32px] md:rounded-[32px] shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="font-extrabold text-2xl italic">Your Order</h2>
-            <button onclick="hideCart()" class="text-gray-400 p-2">&times;</button>
+            <h2 class="font-extrabold text-2xl italic text-gray-900">Your Order</h2>
+            <button onclick="hideCart()" class="text-gray-400 p-2 text-2xl">&times;</button>
         </div>
+
         <div id="cartItems" class="space-y-4 mb-8"></div>
+
         <div class="bg-gray-50 p-4 rounded-2xl mb-6 space-y-3">
-            <input id="custName" placeholder="Full Name" class="w-full p-3 rounded-xl shadow-sm text-sm border-none">
-            <input id="custPhone" placeholder="WhatsApp Number" class="w-full p-3 rounded-xl shadow-sm text-sm border-none">
-            <textarea id="custAddr" placeholder="Delivery Address" class="w-full p-3 rounded-xl shadow-sm text-sm border-none" rows="2"></textarea>
+            <input id="custName" placeholder="Full Name" class="w-full bg-white border-none p-3 rounded-xl shadow-sm text-sm">
+            <input id="custPhone" placeholder="WhatsApp Number" class="w-full bg-white border-none p-3 rounded-xl shadow-sm text-sm">
+            <textarea id="custAddr" placeholder="Delivery Address" class="w-full bg-white border-none p-3 rounded-xl shadow-sm text-sm" rows="2"></textarea>
         </div>
-        <div class="flex justify-between items-center">
+
+        <div class="flex justify-between items-center px-2">
             <span class="font-bold text-gray-500">Total Payable</span>
             <span class="text-2xl font-black text-red-600">₦<span id="total">0</span></span>
         </div>
-        <button onclick="previewOrder()" class="bg-blue-600 text-white w-full py-4 mt-6 rounded-2xl font-black text-lg">Send to WhatsApp</button>
+
+        <button onclick="previewOrder()" class="bg-blue-600 text-white w-full py-4 mt-6 rounded-2xl font-black text-lg shadow-xl hover:bg-blue-700 transition-all">
+            Place Order via WhatsApp
+        </button>
     </div>
 </div>
 
 <script>
-    const CKEY = "teju_cart_v5";
-    const SKEY = "teju_sales_v5";
-    const UKEY = "teju_user_v5";
+    const CKEY = "teju_cart_v6";
+    const UKEY = "teju_user_v6";
 
     let products = []; 
     let cart = JSON.parse(localStorage.getItem(CKEY)) || [];
@@ -75,15 +84,17 @@
     window.onload = async () => {
         await fetchProducts();
         updateUI();
+        loadUser();
     };
 
     async function fetchProducts() {
         try {
             const res = await fetch('products.json');
+            if(!res.ok) throw new Error();
             products = await res.json();
             document.getElementById("loader").classList.add("hidden");
         } catch (e) {
-            document.getElementById("loader").innerHTML = `<p class="text-red-500">JSON Error.</p>`;
+            document.getElementById("loader").innerHTML = `<p class="text-red-500">Error loading products.json</p>`;
         }
     }
 
@@ -96,13 +107,16 @@
     function renderProducts(list) {
         const grid = document.getElementById("grid");
         grid.innerHTML = "";
+        
+        if (list.length === 0) {
+            grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400 font-bold">No products found.</div>`;
+            return;
+        }
+
         list.forEach(p => {
             const inCart = cart.find(i => i.id === p.id);
-            
-            // LOGIC FOR PRICE DISPLAY
             const isOnPromo = p.promoPrice && p.promoPrice > 0;
             const displayPrice = isOnPromo ? p.promoPrice : p.price;
-            const oldPriceHtml = isOnPromo ? `<span class="line-through text-gray-400 text-[10px] mr-1">₦${p.price.toLocaleString()}</span>` : "";
 
             grid.innerHTML += `
                 <div class="product bg-white p-3 rounded-[24px] shadow-sm border border-gray-100 flex flex-col">
@@ -112,7 +126,7 @@
                     <h3 class="font-bold text-gray-800 leading-tight text-xs flex-grow">${p.name}</h3>
                     
                     <div class="mt-2 mb-3">
-                        ${oldPriceHtml}
+                        ${isOnPromo ? `<span class="line-through text-gray-400 text-[10px] mr-1">₦${p.price.toLocaleString()}</span>` : ""}
                         <span class="text-red-600 font-black text-sm">₦${displayPrice.toLocaleString()}</span>
                     </div>
                     
@@ -124,7 +138,7 @@
                                 <button onclick="changeQty(${p.id},1)" class="w-8 h-8 bg-white rounded-lg shadow-sm font-bold text-gray-800">+</button>
                             </div>
                         ` : `
-                            <button onclick="addToCart(${p.id})" class="bg-black text-white w-full py-2.5 rounded-xl font-bold text-xs">Add to Cart</button>
+                            <button onclick="addToCart(${p.id})" class="bg-black text-white w-full py-2.5 rounded-xl font-bold text-xs hover:bg-gray-800">Add</button>
                         `}
                     </div>
                 </div>`;
@@ -151,16 +165,27 @@
         renderProducts(filtered);
     }
 
-    // Helper to get actual selling price
+    // FIXED SEARCH BAR FUNCTION
+    function filterProducts() {
+        const term = document.getElementById("search").value.toLowerCase();
+        if (term === "") {
+            filterByCategory(currentCategory);
+            return;
+        }
+        const filtered = products.filter(p => 
+            p.name.toLowerCase().includes(term) || 
+            p.category.toLowerCase().includes(term)
+        );
+        renderProducts(filtered);
+    }
+
     function getPrice(product) {
         return (product.promoPrice && product.promoPrice > 0) ? product.promoPrice : product.price;
     }
 
     function addToCart(id) {
         const p = products.find(i => i.id === id);
-        // Important: Cart saves the selling price (Promo if available)
-        const sellingPrice = getPrice(p);
-        cart.push({...p, quantity: 1, currentPrice: sellingPrice});
+        cart.push({...p, quantity: 1});
         saveCart();
     }
 
@@ -175,8 +200,9 @@
 
     function saveCart() {
         localStorage.setItem(CKEY, JSON.stringify(cart));
-        document.getElementById("count").textContent = cart.reduce((a, b) => a + b.quantity, 0);
-        filterByCategory(currentCategory);
+        updateCount();
+        const term = document.getElementById("search").value;
+        if (term) filterProducts(); else filterByCategory(currentCategory);
         if (!document.getElementById("cartModal").classList.contains("hidden")) showCart();
     }
 
@@ -185,13 +211,13 @@
         document.getElementById("cartItems").innerHTML = cart.map(i => `
             <div class="flex justify-between items-center border-b border-gray-50 pb-3">
                 <div class="flex-1 pr-4">
-                    <p class="font-bold text-gray-800 text-sm">${i.name}</p>
+                    <p class="font-bold text-gray-800 text-sm leading-tight">${i.name}</p>
                     <p class="text-xs text-red-500 font-bold">₦${(getPrice(i) * i.quantity).toLocaleString()}</p>
                 </div>
                 <div class="flex items-center gap-3 bg-gray-100 p-1 rounded-xl">
-                    <button onclick="changeQty(${i.id},-1)" class="w-7 h-7 bg-white rounded-lg font-bold text-gray-800">-</button>
+                    <button onclick="changeQty(${i.id},-1)" class="w-7 h-7 bg-white rounded-lg shadow-sm font-bold">-</button>
                     <span class="font-black text-sm w-4 text-center">${i.quantity}</span>
-                    <button onclick="changeQty(${i.id},1)" class="w-7 h-7 bg-white rounded-lg font-bold text-gray-800">+</button>
+                    <button onclick="changeQty(${i.id},1)" class="w-7 h-7 bg-white rounded-lg shadow-sm font-bold">+</button>
                 </div>
             </div>
         `).join('');
@@ -201,28 +227,31 @@
     }
 
     function hideCart() { document.getElementById("cartModal").classList.add("hidden"); }
-
     function updateCount() { document.getElementById("count").textContent = cart.reduce((a, b) => a + b.quantity, 0); }
 
-    function handleLogoTap() { /* Admin trigger same as before */ }
+    function loadUser() {
+        const u = JSON.parse(localStorage.getItem(UKEY)) || {};
+        document.getElementById("custName").value = u.name || "";
+        document.getElementById("custPhone").value = u.phone || "";
+        document.getElementById("custAddr").value = u.addr || "";
+    }
 
     function previewOrder() {
         const name = document.getElementById("custName").value;
         const phone = document.getElementById("custPhone").value;
         const addr = document.getElementById("custAddr").value;
-        if (!name || !phone || !addr) return alert("Fill delivery info");
+        if (!name || !phone || !addr) return alert("Please fill delivery info!");
+        localStorage.setItem(UKEY, JSON.stringify({name, phone, addr}));
 
-        let msg = `*TEJU BOSS ENT - PROMO ORDER*%0A%0A`;
-        cart.forEach(i => {
-            const price = getPrice(i);
-            msg += `• ${i.name}%0A  Qty: ${i.quantity} | ₦${(price * i.quantity).toLocaleString()}%0A%0A`;
-        });
-        
+        let msg = `*TEJU BOSS ENT - ORDER*%0A%0A`;
+        cart.forEach(i => msg += `• ${i.name}%0A  Qty: ${i.quantity} | ₦${(getPrice(i) * i.quantity).toLocaleString()}%0A%0A`);
         const total = cart.reduce((a, b) => a + getPrice(b) * b.quantity, 0);
         msg += `*TOTAL: ₦${total.toLocaleString()}*%0A%0A*Customer:* ${name}%0A*Address:* ${addr}`;
         window.open(`https://wa.me/2347079557886?text=${msg}`);
         cart = []; saveCart(); hideCart();
     }
+
+    function handleLogoTap() { /* Admin trigger logic can go here */ }
 </script>
 </body>
 </html>
