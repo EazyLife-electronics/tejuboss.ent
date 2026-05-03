@@ -3,240 +3,289 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teju Boss Enterprise</title>
+    <title>Teju Boss Enterprise | PZ Cussons Shop</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .product { transition: 0.3s; }
-        .product:hover { transform: translateY(-4px); }
-        ::-webkit-scrollbar { height: 4px; }
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .product { transition: transform 0.2s ease; }
+        .active-cat { background-color: black !important; color: white !important; border-color: black !important; }
+        ::-webkit-scrollbar { height: 4px; width: 4px; }
         ::-webkit-scrollbar-thumb { background: #000; border-radius: 10px; }
+        .cart-modal-content { max-height: 80vh; overflow-y: auto; }
     </style>
 </head>
 
-<body class="bg-gray-100 pb-20">
+<body class="bg-gray-50 pb-24">
 
-<header class="bg-black text-white p-4 sticky top-0 z-40 flex justify-between items-center shadow-lg">
-    <h1 onclick="handleLogoTap()" class="font-bold text-xl cursor-pointer tracking-tight">
-        TEJU BOSS <span class="text-red-500 text-sm">ENT.</span>
+<header class="bg-black text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-md">
+    <h1 onclick="handleLogoTap()" class="font-extrabold text-lg tracking-tighter cursor-pointer">
+        TEJU BOSS <span class="text-red-500">ENT.</span>
     </h1>
-    <button onclick="showCart()" class="bg-red-600 px-4 py-2 rounded-lg font-bold text-sm">
-        Cart (<span id="count">0</span>)
+    <button onclick="showCart()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-full font-bold text-sm transition-all flex items-center gap-2">
+        <span>Cart</span>
+        <span id="count" class="bg-white text-red-600 rounded-full px-2 py-0.5 text-xs">0</span>
     </button>
 </header>
 
-<main class="p-4 max-w-6xl mx-auto">
-    <div class="mb-6">
-        <input id="search" placeholder="Search products..." class="w-full p-4 rounded-xl border-none shadow-sm mb-4 outline-red-500" onkeyup="filterProducts()">
-        <div id="catFilters" class="flex gap-2 overflow-x-auto pb-2 italic text-sm"></div>
+<main class="p-4 max-w-5xl mx-auto">
+    <div class="mb-6 space-y-4">
+        <div class="relative">
+            <input id="search" placeholder="Search brands (Robb, Carex, Joy...)" 
+                   class="w-full p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-red-500 outline-none" 
+                   onkeyup="filterProducts()">
+        </div>
+        
+        <div id="catFilters" class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+            </div>
     </div>
 
-    <div id="loader" class="text-center py-10 text-gray-500 font-bold">Loading Catalog...</div>
+    <div id="loader" class="flex flex-col items-center justify-center py-20 text-gray-400">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-2"></div>
+        <p class="font-medium">Fetching PZ Price List...</p>
+    </div>
     
     <div id="grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
 </main>
 
-<div id="adminPanel" class="hidden fixed bottom-5 left-5 bg-white p-5 shadow-2xl rounded-2xl w-80 border-2 border-black z-50">
-    <h2 class="font-bold mb-2">Admin Tools</h2>
-    <p class="text-[10px] mb-3 text-gray-500">Note: To make changes permanent for customers, you must edit <b>products.json</b> on GitHub.</p>
-    <button onclick="copyJSONTemplate()" class="bg-gray-800 text-white w-full p-2 rounded text-xs mb-4">Copy JSON Template</button>
-    <div class="bg-gray-100 p-3 rounded-lg text-sm">
-        <p class="flex justify-between font-bold">Total Sales: <span>₦<span id="sales">0</span></span></p>
+<div id="adminPanel" class="hidden fixed bottom-6 left-6 bg-white p-6 shadow-2xl rounded-3xl w-72 border border-gray-200 z-[60]">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="font-bold text-gray-800">Admin Dashboard</h2>
+        <button onclick="closeAdmin()" class="text-gray-400 text-xl">&times;</button>
     </div>
-    <button onclick="closeAdmin()" class="w-full mt-2 text-xs text-red-500">Close</button>
+    <div class="space-y-4">
+        <div class="bg-gray-50 p-3 rounded-xl">
+            <p class="text-xs text-gray-500 uppercase font-bold mb-1">Total Sales Record</p>
+            <p class="text-xl font-black text-green-600">₦<span id="sales">0</span></p>
+        </div>
+        <button onclick="copyJSONTemplate()" class="w-full py-2 bg-gray-100 rounded-lg text-xs font-semibold hover:bg-gray-200">Copy JSON Structure</button>
+    </div>
 </div>
 
-<div id="cartModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white p-6 w-full max-w-md rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto">
-        <h2 class="font-bold text-2xl mb-4 italic">Your Cart</h2>
-        <div id="cartItems" class="space-y-3 mb-6"></div>
-        <div class="space-y-3 border-t pt-4">
-            <input id="custName" placeholder="Your Name" class="w-full border p-3 rounded-xl">
-            <input id="custPhone" placeholder="WhatsApp Number" class="w-full border p-3 rounded-xl">
-            <textarea id="custAddr" placeholder="Delivery Address" class="w-full border p-3 rounded-xl" rows="2"></textarea>
+<div id="cartModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end md:items-center justify-center">
+    <div class="bg-white w-full max-w-md rounded-t-[32px] md:rounded-[32px] shadow-2xl p-6 cart-modal-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="font-extrabold text-2xl italic text-gray-900">Your Order</h2>
+            <button onclick="hideCart()" class="text-gray-400 p-2">&times;</button>
         </div>
-        <div class="flex justify-between items-center mt-6 p-4 bg-gray-50 rounded-2xl">
-            <span class="font-bold text-gray-600">Total:</span>
+
+        <div id="cartItems" class="space-y-4 mb-8">
+            </div>
+
+        <div class="bg-gray-50 p-4 rounded-2xl mb-6 space-y-3">
+            <input id="custName" placeholder="Full Name" class="w-full bg-white border-none p-3 rounded-xl shadow-sm text-sm">
+            <input id="custPhone" placeholder="WhatsApp Number" class="w-full bg-white border-none p-3 rounded-xl shadow-sm text-sm">
+            <textarea id="custAddr" placeholder="Detailed Delivery Address" class="w-full bg-white border-none p-3 rounded-xl shadow-sm text-sm" rows="2"></textarea>
+        </div>
+
+        <div class="flex justify-between items-center px-2">
+            <span class="font-bold text-gray-500">Total Payable</span>
             <span class="text-2xl font-black text-red-600">₦<span id="total">0</span></span>
         </div>
-        <button onclick="previewOrder()" class="bg-blue-600 text-white w-full p-4 mt-4 rounded-2xl font-bold shadow-lg">Send to WhatsApp</button>
-        <button onclick="hideCart()" class="w-full mt-4 text-gray-400 font-medium text-sm">Close</button>
+
+        <button onclick="previewOrder()" class="bg-blue-600 text-white w-full py-4 mt-6 rounded-2xl font-black text-lg shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all">
+            Place Order via WhatsApp
+        </button>
     </div>
 </div>
 
 <script>
-const CKEY = "teju_cart_v4";
-const SKEY = "teju_sales_v4";
-const UKEY = "teju_user_v4";
+    // Storage Keys
+    const CKEY = "teju_cart_v5";
+    const SKEY = "teju_sales_v5";
+    const UKEY = "teju_user_v5";
 
-let products = []; 
-let cart = JSON.parse(localStorage.getItem(CKEY)) || [];
-let sales = JSON.parse(localStorage.getItem(SKEY)) || [];
-let adminMode = false;
-let taps = 0;
-let tapTimer;
+    // State
+    let products = []; 
+    let cart = JSON.parse(localStorage.getItem(CKEY)) || [];
+    let sales = JSON.parse(localStorage.getItem(SKEY)) || [];
+    let currentCategory = 'All';
+    let adminMode = false;
+    let taps = 0;
+    let tapTimer;
 
-window.onload = async () => {
-    await fetchProducts();
-    updateUI();
-    loadUser();
-};
+    // Initialization
+    window.onload = async () => {
+        await fetchProducts();
+        updateUI();
+        loadUser();
+    };
 
-async function fetchProducts() {
-    try {
-        // Fetches from the same folder as index.html
-        const res = await fetch('products.json');
-        if(!res.ok) throw new Error("File not found");
-        products = await res.json();
-        document.getElementById("loader").classList.add("hidden");
-    } catch (e) {
-        document.getElementById("loader").textContent = "Error loading products. Check products.json file.";
-        console.error(e);
-    }
-}
-
-function updateUI() {
-    renderProducts(products);
-    renderCategoryButtons();
-    updateCount();
-    updateSalesDisplay();
-}
-
-function renderProducts(list) {
-    const grid = document.getElementById("grid");
-    grid.innerHTML = "";
-    list.forEach(p => {
-        const inCart = cart.find(i => i.id === p.id);
-        grid.innerHTML += `
-            <div class="product bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
-                <img src="${p.image || 'https://via.placeholder.com/300'}" class="h-36 w-full object-cover rounded-xl mb-3">
-                <span class="text-[10px] font-bold uppercase text-gray-400">${p.category}</span>
-                <h3 class="font-bold text-gray-800 leading-tight mb-1">${p.name}</h3>
-                <p class="text-red-600 font-black mb-3">₦${p.price.toLocaleString()}</p>
-                <div class="mt-auto">
-                    ${inCart ? `
-                        <div class="flex items-center justify-between bg-gray-100 rounded-lg p-1">
-                            <button onclick="changeQty(${p.id},-1)" class="w-8 h-8 bg-white rounded shadow-sm font-bold">-</button>
-                            <span class="font-bold">${inCart.quantity}</span>
-                            <button onclick="changeQty(${p.id},1)" class="w-8 h-8 bg-white rounded shadow-sm font-bold">+</button>
-                        </div>
-                    ` : `
-                        <button onclick="addToCart(${p.id})" class="bg-black text-white w-full py-2 rounded-lg font-bold text-sm">Add</button>
-                    `}
-                </div>
-            </div>`;
-    });
-}
-
-function renderCategoryButtons() {
-    const cats = ['All', ...new Set(products.map(p => p.category))];
-    document.getElementById("catFilters").innerHTML = cats.map(c => `
-        <button onclick="filterByCategory('${c}')" class="whitespace-nowrap px-4 py-2 rounded-full bg-white shadow-sm border font-medium hover:bg-black hover:text-white transition">
-            ${c}
-        </button>
-    `).join('');
-}
-
-function filterByCategory(cat) {
-    if (cat === 'All') renderProducts(products);
-    else renderProducts(products.filter(p => p.category === cat));
-}
-
-function filterProducts() {
-    const term = document.getElementById("search").value.toLowerCase();
-    renderProducts(products.filter(p => p.name.toLowerCase().includes(term)));
-}
-
-function addToCart(id) {
-    const p = products.find(i => i.id === id);
-    cart.push({...p, quantity: 1});
-    saveCart();
-}
-
-function changeQty(id, delta) {
-    const item = cart.find(i => i.id === id);
-    if (!item) return;
-    item.quantity += delta;
-    if (item.quantity <= 0) cart = cart.filter(i => i.id !== id);
-    saveCart();
-}
-
-function saveCart() {
-    localStorage.setItem(CKEY, JSON.stringify(cart));
-    updateCount();
-    renderProducts(products);
-    if (!document.getElementById("cartModal").classList.contains("hidden")) showCart();
-}
-
-function updateCount() {
-    document.getElementById("count").textContent = cart.reduce((a, b) => a + b.quantity, 0);
-}
-
-function showCart() {
-    if (cart.length === 0) return alert("Cart is empty");
-    document.getElementById("cartItems").innerHTML = cart.map(i => `
-        <div class="flex justify-between items-center border-b pb-2 text-sm">
-            <div><p class="font-bold">${i.name}</p><span>₦${i.price} x ${i.quantity}</span></div>
-            <p class="font-bold text-red-600">₦${(i.price * i.quantity).toLocaleString()}</p>
-        </div>
-    `).join('');
-    document.getElementById("total").textContent = cart.reduce((a, b) => a + b.price * b.quantity, 0).toLocaleString();
-    document.getElementById("cartModal").classList.remove("hidden");
-}
-
-function hideCart() { document.getElementById("cartModal").classList.add("hidden"); }
-
-function handleLogoTap() {
-    taps++;
-    clearTimeout(tapTimer);
-    tapTimer = setTimeout(() => taps = 0, 1000);
-    if (taps >= 5) {
-        if (prompt("Admin Password?") === "admin123") {
-            adminMode = true;
-            document.getElementById("adminPanel").classList.remove("hidden");
+    async function fetchProducts() {
+        try {
+            const res = await fetch('products.json');
+            if(!res.ok) throw new Error("JSON not found");
+            products = await res.json();
+            document.getElementById("loader").classList.add("hidden");
+        } catch (e) {
+            document.getElementById("loader").innerHTML = `<p class="text-red-500">Error: products.json file missing in your GitHub folder.</p>`;
         }
     }
-}
 
-function closeAdmin() { adminMode = false; document.getElementById("adminPanel").classList.add("hidden"); }
+    function updateUI() {
+        filterByCategory(currentCategory);
+        renderCategoryButtons();
+        updateCount();
+        updateSalesDisplay();
+    }
 
-function copyJSONTemplate() {
-    const template = JSON.stringify([{id: Date.now(), name: "Sample Item", price: 1000, category: "General", image: "", inStock: true}], null, 2);
-    navigator.clipboard.writeText(template);
-    alert("JSON template copied to clipboard! Paste this into your products.json file.");
-}
+    // Render Product Grid
+    function renderProducts(list) {
+        const grid = document.getElementById("grid");
+        grid.innerHTML = "";
+        list.forEach(p => {
+            const inCart = cart.find(i => i.id === p.id);
+            grid.innerHTML += `
+                <div class="product bg-white p-3 rounded-[24px] shadow-sm border border-gray-100 flex flex-col">
+                    <img src="${p.image || 'https://via.placeholder.com/300?text=' + p.name}" class="h-32 w-full object-contain rounded-xl mb-3 bg-gray-50">
+                    <span class="text-[9px] font-black uppercase text-gray-400 tracking-wider mb-1">${p.category}</span>
+                    <h3 class="font-bold text-gray-800 leading-tight text-xs flex-grow">${p.name}</h3>
+                    <p class="text-red-600 font-black text-sm mt-2 mb-3">₦${p.price.toLocaleString()}</p>
+                    
+                    <div class="mt-auto">
+                        ${inCart ? `
+                            <div class="flex items-center justify-between bg-gray-100 rounded-xl p-1">
+                                <button onclick="changeQty(${p.id},-1)" class="w-8 h-8 bg-white rounded-lg shadow-sm font-bold text-gray-800">-</button>
+                                <span class="font-bold text-sm">${inCart.quantity}</span>
+                                <button onclick="changeQty(${p.id},1)" class="w-8 h-8 bg-white rounded-lg shadow-sm font-bold text-gray-800">+</button>
+                            </div>
+                        ` : `
+                            <button onclick="addToCart(${p.id})" class="bg-black text-white w-full py-2.5 rounded-xl font-bold text-xs hover:bg-gray-800">Add to Cart</button>
+                        `}
+                    </div>
+                </div>`;
+        });
+    }
 
-function loadUser() {
-    const u = JSON.parse(localStorage.getItem(UKEY)) || {};
-    document.getElementById("custName").value = u.name || "";
-    document.getElementById("custPhone").value = u.phone || "";
-    document.getElementById("custAddr").value = u.addr || "";
-}
+    // Category Logic
+    function renderCategoryButtons() {
+        const cats = ['All', ...new Set(products.map(p => p.category))];
+        document.getElementById("catFilters").innerHTML = cats.map(c => `
+            <button onclick="filterByCategory('${c}')" 
+                    class="whitespace-nowrap px-5 py-2 rounded-full border text-xs font-bold transition-all ${currentCategory === c ? 'active-cat' : 'bg-white text-gray-500 border-gray-200'}">
+                ${c}
+            </button>
+        `).join('');
+    }
 
-function previewOrder() {
-    const name = document.getElementById("custName").value;
-    const phone = document.getElementById("custPhone").value;
-    const addr = document.getElementById("custAddr").value;
-    if (!name || !phone || !addr) return alert("Fill delivery info");
+    function filterByCategory(cat) {
+        currentCategory = cat;
+        renderCategoryButtons();
+        const filtered = (cat === 'All') ? products : products.filter(p => p.category === cat);
+        renderProducts(filtered);
+    }
 
-    localStorage.setItem(UKEY, JSON.stringify({name, phone, addr}));
+    function filterProducts() {
+        const term = document.getElementById("search").value.toLowerCase();
+        const filtered = products.filter(p => p.name.toLowerCase().includes(term) || p.category.toLowerCase().includes(term));
+        renderProducts(filtered);
+    }
 
-    let msg = `*NEW ORDER - TEJU BOSS ENT*%0A%0A`;
-    cart.forEach(i => msg += `• ${i.name} x${i.quantity} = ₦${(i.price * i.quantity).toLocaleString()}%0A`);
-    
-    const total = cart.reduce((a, b) => a + b.price * b.quantity, 0);
-    msg += `%0A*TOTAL: ₦${total.toLocaleString()}*%0A%0A*Customer:* ${name}%0A*Address:* ${addr}`;
+    // Cart Logic
+    function addToCart(id) {
+        const p = products.find(i => i.id === id);
+        cart.push({...p, quantity: 1});
+        saveCart();
+    }
 
-    sales.push({total, date: new Date().toISOString()});
-    localStorage.setItem(SKEY, JSON.stringify(sales));
+    function changeQty(id, delta) {
+        const item = cart.find(i => i.id === id);
+        if (!item) return;
+        item.quantity += delta;
+        if (item.quantity <= 0) cart = cart.filter(i => i.id !== id);
+        saveCart();
+    }
 
-    window.open(`https://wa.me/2347079557886?text=${msg}`);
-    cart = []; saveCart(); hideCart(); updateSalesDisplay();
-}
+    function saveCart() {
+        localStorage.setItem(CKEY, JSON.stringify(cart));
+        updateCount();
+        filterByCategory(currentCategory); // Fix: Maintain filter when adding/removing
+        if (!document.getElementById("cartModal").classList.contains("hidden")) showCart();
+    }
 
-function updateSalesDisplay() {
-    document.getElementById("sales").textContent = sales.reduce((a, b) => a + b.total, 0).toLocaleString();
-}
+    function updateCount() {
+        document.getElementById("count").textContent = cart.reduce((a, b) => a + b.quantity, 0);
+    }
+
+    function showCart() {
+        if (cart.length === 0) {
+            hideCart();
+            return alert("Your cart is empty!");
+        }
+        document.getElementById("cartItems").innerHTML = cart.map(i => `
+            <div class="flex justify-between items-center border-b border-gray-50 pb-3">
+                <div class="flex-1 pr-4">
+                    <p class="font-bold text-gray-800 text-sm leading-tight">${i.name}</p>
+                    <p class="text-xs text-red-500 font-bold">₦${(i.price * i.quantity).toLocaleString()}</p>
+                </div>
+                <div class="flex items-center gap-3 bg-gray-100 p-1 rounded-xl">
+                    <button onclick="changeQty(${i.id},-1)" class="w-7 h-7 bg-white rounded-lg shadow-sm font-bold text-gray-800">-</button>
+                    <span class="font-black text-sm w-4 text-center">${i.quantity}</span>
+                    <button onclick="changeQty(${i.id},1)" class="w-7 h-7 bg-white rounded-lg shadow-sm font-bold text-gray-800">+</button>
+                </div>
+            </div>
+        `).join('');
+        
+        const totalAmount = cart.reduce((a, b) => a + b.price * b.quantity, 0);
+        document.getElementById("total").textContent = totalAmount.toLocaleString();
+        document.getElementById("cartModal").classList.remove("hidden");
+    }
+
+    function hideCart() { document.getElementById("cartModal").classList.add("hidden"); }
+
+    // Admin & Checkout
+    function handleLogoTap() {
+        taps++;
+        clearTimeout(tapTimer);
+        tapTimer = setTimeout(() => taps = 0, 800);
+        if (taps >= 5) {
+            if (prompt("Admin Key?") === "admin123") {
+                adminMode = true;
+                document.getElementById("adminPanel").classList.remove("hidden");
+            }
+        }
+    }
+
+    function closeAdmin() { document.getElementById("adminPanel").classList.add("hidden"); }
+
+    function loadUser() {
+        const u = JSON.parse(localStorage.getItem(UKEY)) || {};
+        document.getElementById("custName").value = u.name || "";
+        document.getElementById("custPhone").value = u.phone || "";
+        document.getElementById("custAddr").value = u.addr || "";
+    }
+
+    function previewOrder() {
+        const name = document.getElementById("custName").value;
+        const phone = document.getElementById("custPhone").value;
+        const addr = document.getElementById("custAddr").value;
+        if (!name || !phone || !addr) return alert("Please provide delivery details!");
+
+        localStorage.setItem(UKEY, JSON.stringify({name, phone, addr}));
+
+        let msg = `*TEJU BOSS ENTERPRISE - ORDER*%0A%0A`;
+        cart.forEach(i => msg += `• ${i.name}%0A  Qty: ${i.quantity} | ₦${(i.price * i.quantity).toLocaleString()}%0A%0A`);
+        
+        const total = cart.reduce((a, b) => a + b.price * b.quantity, 0);
+        msg += `*TOTAL PAYABLE: ₦${total.toLocaleString()}*%0A%0A*Customer:* ${name}%0A*WhatsApp:* ${phone}%0A*Address:* ${addr}`;
+
+        sales.push({total, date: new Date().toISOString()});
+        localStorage.setItem(SKEY, JSON.stringify(sales));
+
+        window.open(`https://wa.me/2347079557886?text=${msg}`);
+        cart = []; saveCart(); hideCart(); updateSalesDisplay();
+    }
+
+    function updateSalesDisplay() {
+        const totalSales = sales.reduce((a, b) => a + b.total, 0);
+        document.getElementById("sales").textContent = totalSales.toLocaleString();
+    }
+
+    function copyJSONTemplate() {
+        const template = `{\n "id": ${Date.now()},\n "name": "New Product",\n "price": 0,\n "category": "General",\n "image": "",\n "inStock": true\n}`;
+        navigator.clipboard.writeText(template);
+        alert("Template copied! Use this structure in your products.json file.");
+    }
 </script>
 </body>
 </html>
