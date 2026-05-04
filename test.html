@@ -15,9 +15,9 @@
         ::-webkit-scrollbar-thumb { background: #000; border-radius: 10px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* Hero Slider Styles */
-        #heroSlider { display: flex; transition: transform 0.5s ease-in-out; width: 100%; }
-        .hero-slide { min-width: 100%; position: relative; }
+        /* Fixed Hero Slider Transition */
+        #heroSlider { display: flex; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; height: 100%; }
+        .hero-slide { min-width: 100%; height: 100%; position: relative; }
         
         @keyframes cart-bounce {
             0%, 100% { transform: scale(1); }
@@ -41,12 +41,13 @@
 
 <main class="max-w-5xl mx-auto">
     <div id="heroContainer" class="px-4 pt-4 mb-6 relative overflow-hidden group">
-        <div id="heroSlider" 
-             ontouchstart="handleTouchStart(event)" 
-             ontouchmove="handleTouchMove(event)"
-             class="rounded-[32px] overflow-hidden shadow-lg bg-gray-200 aspect-[21/9] md:aspect-[21/7]">
-            </div>
-        <div id="heroDots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2"></div>
+        <div class="rounded-[32px] overflow-hidden shadow-lg bg-gray-200 aspect-[21/9] md:aspect-[21/7] relative">
+            <div id="heroSlider" 
+                 ontouchstart="handleTouchStart(event)" 
+                 ontouchmove="handleTouchMove(event)">
+                 </div>
+            <div id="heroDots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20"></div>
+        </div>
     </div>
 
     <div class="p-4 space-y-4">
@@ -59,7 +60,7 @@
 
     <div id="loader" class="flex flex-col items-center justify-center py-20 text-gray-400">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-2"></div>
-        <p class="font-medium">Loading Catalog...</p>
+        <p class="font-medium">Loading Teju Boss Catalog...</p>
     </div>
     
     <div id="grid" class="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
@@ -96,7 +97,7 @@
     let cart = JSON.parse(localStorage.getItem(CKEY)) || [];
     let currentCategory = 'All';
     
-    // SLIDER STATE
+    // Slider State
     let currentSlide = 0;
     let slideInterval;
     let touchStartX = 0;
@@ -105,7 +106,7 @@
         await Promise.all([fetchProducts(), fetchHeroes()]);
         updateUI();
         loadUser();
-        startAutoPlay();
+        if(heroes.length > 0) startAutoPlay();
     };
 
     async function fetchHeroes() {
@@ -138,21 +139,19 @@
         `).join('');
 
         dots.innerHTML = heroes.map((_, i) => `
-            <div class="w-2 h-2 rounded-full transition-all ${i === 0 ? 'bg-red-600 w-6' : 'bg-white/50'}"></div>
+            <div onclick="goToSlide(${i})" class="cursor-pointer w-2 h-2 rounded-full transition-all ${i === 0 ? 'bg-red-600 w-6' : 'bg-white/50'}"></div>
         `).join('');
     }
 
-    // SLIDER LOGIC
     function goToSlide(index) {
         if (index >= heroes.length) index = 0;
         if (index < 0) index = heroes.length - 1;
         currentSlide = index;
         document.getElementById("heroSlider").style.transform = `translateX(-${index * 100}%)`;
         
-        // Update dots
         const dots = document.getElementById("heroDots").children;
         for (let i = 0; i < dots.length; i++) {
-            dots[i].className = `w-2 h-2 rounded-full transition-all ${i === index ? 'bg-red-600 w-6' : 'bg-white/50'}`;
+            dots[i].className = `cursor-pointer w-2 h-2 rounded-full transition-all ${i === index ? 'bg-red-600 w-6' : 'bg-white/50'}`;
         }
     }
 
@@ -161,12 +160,10 @@
         slideInterval = setInterval(() => goToSlide(currentSlide + 1), 5000);
     }
 
-    // SWIPE DETECTION
     function handleTouchStart(e) { touchStartX = e.touches[0].clientX; clearInterval(slideInterval); }
     function handleTouchMove(e) {
         if (!touchStartX) return;
-        let touchEndX = e.touches[0].clientX;
-        let diff = touchStartX - touchEndX;
+        let diff = touchStartX - e.touches[0].clientX;
         if (Math.abs(diff) > 50) {
             if (diff > 0) goToSlide(currentSlide + 1);
             else goToSlide(currentSlide - 1);
