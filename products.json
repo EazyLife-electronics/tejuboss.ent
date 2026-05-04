@@ -65,7 +65,7 @@
   { "id": 802, "name": "PREMIER SOAP 110G ROSE", "price": 9020, "category": "Toilet Soap", "image": "", "inStock": true },
   { "id": 803, "name": "PREM CN F/BAR 150G X 32", "price": 15510, "category": "Toilet Soap", "image": "", "inStock": true },
   { "id": 804, "name": "PREM CN F/BAR 175G X 32", "price": 17470, "category": "Toilet Soap", "image": "", "inStock": true },
-  { "id": 805, "name": "PREM COOL BLACK 60G X12", "price": 28120, "promoPrice": 25000, "isPromo": true, "category": "Toilet Soap", "image": "", "inStock": true },
+  { "id": 805, "name": "PREM COOL BLACK 60G X12", "price": 28120, "promoPrice": 25000, "isPromo": true, "category": "Toilet Soap", "image": "https://eazylife-electronics.github.io/tejuboss.ent/pictures/products/pcd60g_ult.png", "inStock": true },
   { "id": 806, "name": "PREMC SOAP MED 110G DEOX", "price": 42990, "category": "Toilet Soap", "image": "", "inStock": true },
   { "id": 807, "name": "JOY SOAP BTY 65G TNDR", "price": 30250, "category": "Toilet Soap", "image": "", "inStock": true },
   { "id": 808, "name": "JOY SOFT GLOW 65G", "price": 30250, "category": "Toilet Soap", "image": "", "inStock": true },
