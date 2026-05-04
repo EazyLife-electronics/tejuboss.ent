@@ -15,7 +15,6 @@
         ::-webkit-scrollbar-thumb { background: #000; border-radius: 10px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* Fixed Hero Slider Transition */
         #heroSlider { display: flex; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; height: 100%; }
         .hero-slide { min-width: 100%; height: 100%; position: relative; }
         
@@ -42,10 +41,7 @@
 <main class="max-w-5xl mx-auto">
     <div id="heroContainer" class="px-4 pt-4 mb-6 relative overflow-hidden group">
         <div class="rounded-[32px] overflow-hidden shadow-lg bg-gray-200 aspect-[21/9] md:aspect-[21/7] relative">
-            <div id="heroSlider" 
-                 ontouchstart="handleTouchStart(event)" 
-                 ontouchmove="handleTouchMove(event)">
-                 </div>
+            <div id="heroSlider" ontouchstart="handleTouchStart(event)" ontouchmove="handleTouchMove(event)"></div>
             <div id="heroDots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20"></div>
         </div>
     </div>
@@ -54,13 +50,12 @@
         <input id="search" placeholder="Search brands (Robb, Carex, Joy...)" 
                class="w-full p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-red-500 outline-none" 
                onkeyup="filterProducts()">
-        
         <div id="catFilters" class="flex gap-2 overflow-x-auto pb-2 no-scrollbar"></div>
     </div>
 
     <div id="loader" class="flex flex-col items-center justify-center py-20 text-gray-400">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-2"></div>
-        <p class="font-medium">Loading Teju Boss Catalog...</p>
+        <p class="font-medium">Loading Catalog...</p>
     </div>
     
     <div id="grid" class="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
@@ -96,8 +91,6 @@
     let heroes = [];
     let cart = JSON.parse(localStorage.getItem(CKEY)) || [];
     let currentCategory = 'All';
-    
-    // Slider State
     let currentSlide = 0;
     let slideInterval;
     let touchStartX = 0;
@@ -147,7 +140,8 @@
         if (index >= heroes.length) index = 0;
         if (index < 0) index = heroes.length - 1;
         currentSlide = index;
-        document.getElementById("heroSlider").style.transform = `translateX(-${index * 100}%)`;
+        const slider = document.getElementById("heroSlider");
+        if(slider) slider.style.transform = `translateX(-${index * 100}%)`;
         
         const dots = document.getElementById("heroDots").children;
         for (let i = 0; i < dots.length; i++) {
@@ -172,10 +166,16 @@
         }
     }
 
+    // FIXED: Now ensures target is matched correctly and product is added
     function handleHeroAction(action, target) {
         if (action === 'add') {
-            const product = products.find(p => p.id == target);
-            if (product) { addToCart(product.id); showCart(); }
+            const product = products.find(p => String(p.id) === String(target));
+            if (product) { 
+                addToCart(product.id); 
+                showCart(); 
+            } else {
+                console.error("Product ID not found:", target);
+            }
         } else if (action === 'filter') {
             filterByCategory(target);
             document.getElementById("catFilters").scrollIntoView({ behavior: 'smooth' });
@@ -255,6 +255,7 @@
 
     function addToCart(id) {
         const p = products.find(i => i.id === id);
+        if(!p) return;
         const inCart = cart.find(i => i.id === id);
         if (inCart) inCart.quantity++;
         else cart.push({...p, quantity: 1});
