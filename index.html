@@ -281,11 +281,21 @@
     function saveCart() {
         localStorage.setItem(CKEY, JSON.stringify(cart));
         updateCount();
-        filterProducts();
+        
+        // FIX: Only re-render the grid, do NOT reset the category or search logic
+        const term = document.getElementById("search").value.toLowerCase();
+        let filtered = products;
+        
+        if (currentCategory === '🔥 Promos') filtered = filtered.filter(p => p.promoPrice > 0);
+        else if (currentCategory !== 'All') filtered = filtered.filter(p => p.category === currentCategory);
+        
+        if (term) filtered = filtered.filter(p => p.name.toLowerCase().includes(term) || p.category.toLowerCase().includes(term));
+        
+        renderProducts(filtered);
+
         if (!document.getElementById("cartModal").classList.contains("hidden")) showCart();
     }
 
-    // UPDATED: Now shows unit price (₦X) next to the total per item
     function showCart() {
         if (cart.length === 0) return hideCart();
         document.getElementById("cartItems").innerHTML = cart.map(i => {
@@ -295,7 +305,7 @@
                 <div class="flex-1 pr-4">
                     <p class="font-bold text-gray-800 text-sm leading-tight mb-1">${i.name}</p>
                     <div class="flex items-baseline gap-2">
-                        <span class="text-xs text-gray-400 font-medium">₦${unitPrice.toLocaleString()} × ${i.quantity}</span>
+                        <span class="text-[10px] text-gray-400 font-medium">₦${unitPrice.toLocaleString()} × ${i.quantity}</span>
                         <span class="text-xs text-red-500 font-black">₦${(unitPrice * i.quantity).toLocaleString()}</span>
                     </div>
                 </div>
