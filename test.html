@@ -6,7 +6,6 @@
     <title>Teju Boss Enterprise | PZ Cussons Shop</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         .product { transition: transform 0.2s ease; position: relative; }
@@ -15,6 +14,10 @@
         ::-webkit-scrollbar { height: 4px; width: 4px; }
         ::-webkit-scrollbar-thumb { background: #000; border-radius: 10px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Hero Slider Styles */
+        #heroSlider { display: flex; transition: transform 0.5s ease-in-out; width: 100%; }
+        .hero-slide { min-width: 100%; position: relative; }
         
         @keyframes cart-bounce {
             0%, 100% { transform: scale(1); }
@@ -37,9 +40,13 @@
 </header>
 
 <main class="max-w-5xl mx-auto">
-    <div id="heroContainer" class="px-4 pt-4 mb-6">
-        <div id="heroSlider" class="relative w-full aspect-[21/9] md:aspect-[21/7] rounded-[32px] overflow-hidden shadow-lg bg-gray-200">
+    <div id="heroContainer" class="px-4 pt-4 mb-6 relative overflow-hidden group">
+        <div id="heroSlider" 
+             ontouchstart="handleTouchStart(event)" 
+             ontouchmove="handleTouchMove(event)"
+             class="rounded-[32px] overflow-hidden shadow-lg bg-gray-200 aspect-[21/9] md:aspect-[21/7]">
             </div>
+        <div id="heroDots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2"></div>
     </div>
 
     <div class="p-4 space-y-4">
@@ -88,11 +95,17 @@
     let heroes = [];
     let cart = JSON.parse(localStorage.getItem(CKEY)) || [];
     let currentCategory = 'All';
+    
+    // SLIDER STATE
+    let currentSlide = 0;
+    let slideInterval;
+    let touchStartX = 0;
 
     window.onload = async () => {
         await Promise.all([fetchProducts(), fetchHeroes()]);
         updateUI();
         loadUser();
+        startAutoPlay();
     };
 
     async function fetchHeroes() {
@@ -100,34 +113,72 @@
             const res = await fetch('heroes.json');
             if(res.ok) {
                 heroes = await res.json();
-                renderHero();
+                renderHeroes();
             } else { document.getElementById("heroContainer").classList.add("hidden"); }
         } catch (e) { document.getElementById("heroContainer").classList.add("hidden"); }
     }
 
-    function renderHero() {
-        const container = document.getElementById("heroSlider");
+    function renderHeroes() {
+        const slider = document.getElementById("heroSlider");
+        const dots = document.getElementById("heroDots");
         if (!heroes.length) return;
-        const h = heroes[0]; // Shows the first hero item
-        container.innerHTML = `
-            <img src="${h.image}" class="absolute inset-0 w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent flex flex-col justify-center p-8 text-white">
-                <h2 class="text-2xl md:text-4xl font-black italic tracking-tighter mb-1 uppercase">${h.title}</h2>
-                <p class="text-xs md:text-base font-medium opacity-80 max-w-xs mb-5">${h.subtitle}</p>
-                <button onclick="handleHeroAction('${h.action}', '${h.target}')" 
-                        class="bg-red-600 hover:bg-red-700 w-fit px-6 py-3 rounded-full font-black text-xs uppercase tracking-widest transition-all shadow-lg">
-                    ${h.buttonText}
-                </button>
-            </div>`;
+
+        slider.innerHTML = heroes.map(h => `
+            <div class="hero-slide">
+                <img src="${h.image}" class="absolute inset-0 w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent flex flex-col justify-center p-8 text-white">
+                    <h2 class="text-2xl md:text-4xl font-black italic tracking-tighter mb-1 uppercase">${h.title}</h2>
+                    <p class="text-xs md:text-base font-medium opacity-80 max-w-xs mb-5">${h.subtitle}</p>
+                    <button onclick="handleHeroAction('${h.action}', '${h.target}')" 
+                            class="bg-red-600 hover:bg-red-700 w-fit px-6 py-3 rounded-full font-black text-xs uppercase tracking-widest transition-all shadow-lg">
+                        ${h.buttonText}
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        dots.innerHTML = heroes.map((_, i) => `
+            <div class="w-2 h-2 rounded-full transition-all ${i === 0 ? 'bg-red-600 w-6' : 'bg-white/50'}"></div>
+        `).join('');
+    }
+
+    // SLIDER LOGIC
+    function goToSlide(index) {
+        if (index >= heroes.length) index = 0;
+        if (index < 0) index = heroes.length - 1;
+        currentSlide = index;
+        document.getElementById("heroSlider").style.transform = `translateX(-${index * 100}%)`;
+        
+        // Update dots
+        const dots = document.getElementById("heroDots").children;
+        for (let i = 0; i < dots.length; i++) {
+            dots[i].className = `w-2 h-2 rounded-full transition-all ${i === index ? 'bg-red-600 w-6' : 'bg-white/50'}`;
+        }
+    }
+
+    function startAutoPlay() {
+        clearInterval(slideInterval);
+        slideInterval = setInterval(() => goToSlide(currentSlide + 1), 5000);
+    }
+
+    // SWIPE DETECTION
+    function handleTouchStart(e) { touchStartX = e.touches[0].clientX; clearInterval(slideInterval); }
+    function handleTouchMove(e) {
+        if (!touchStartX) return;
+        let touchEndX = e.touches[0].clientX;
+        let diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 50) {
+            if (diff > 0) goToSlide(currentSlide + 1);
+            else goToSlide(currentSlide - 1);
+            touchStartX = 0;
+            startAutoPlay();
+        }
     }
 
     function handleHeroAction(action, target) {
         if (action === 'add') {
             const product = products.find(p => p.id == target);
-            if (product) {
-                addToCart(product.id);
-                showCart();
-            }
+            if (product) { addToCart(product.id); showCart(); }
         } else if (action === 'filter') {
             filterByCategory(target);
             document.getElementById("catFilters").scrollIntoView({ behavior: 'smooth' });
