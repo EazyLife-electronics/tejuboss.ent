@@ -285,15 +285,19 @@
         if (!document.getElementById("cartModal").classList.contains("hidden")) showCart();
     }
 
+    // UPDATED: Now shows unit price (₦X) next to the total per item
     function showCart() {
         if (cart.length === 0) return hideCart();
         document.getElementById("cartItems").innerHTML = cart.map(i => {
-            const price = (i.promoPrice > 0) ? i.promoPrice : i.price;
+            const unitPrice = (i.promoPrice > 0) ? i.promoPrice : i.price;
             return `
             <div class="flex justify-between items-center border-b border-gray-50 pb-3">
                 <div class="flex-1 pr-4">
-                    <p class="font-bold text-gray-800 text-sm leading-tight">${i.name}</p>
-                    <p class="text-xs text-red-500 font-bold">₦${(price * i.quantity).toLocaleString()}</p>
+                    <p class="font-bold text-gray-800 text-sm leading-tight mb-1">${i.name}</p>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-xs text-gray-400 font-medium">₦${unitPrice.toLocaleString()} × ${i.quantity}</span>
+                        <span class="text-xs text-red-500 font-black">₦${(unitPrice * i.quantity).toLocaleString()}</span>
+                    </div>
                 </div>
                 <div class="flex items-center gap-3 bg-gray-100 p-1 rounded-xl">
                     <button onclick="changeQty(${i.id},-1)" class="w-7 h-7 bg-white rounded-lg shadow-sm font-bold">-</button>
