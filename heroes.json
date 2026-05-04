@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "title": "PZ Cussons Mega Sale",
+    "subtitle": "Get the best prices on Robb, Carex, and Joy soap.",
+    "image": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1000",
+    "action": "filter",
+    "target": "Personal Care",
+    "buttonText": "Shop Personal Care"
+  },
+  {
+    "id": 2,
+    "title": "Instant Relief with Robb",
+    "subtitle": "Stock up on the original Robb Ointment for your shop.",
+    "image": "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?q=80&w=1000",
+    "action": "search",
+    "target": "Robb",
+    "buttonText": "Search Robb"
+  },
+  {
+    "id": 3,
+    "title": "Deal of the Day",
+    "subtitle": "Get Joy Soap (Pack of 6) at a special price for today only!",
+    "image": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1000",
+    "action": "add",
+    "target": 101, 
+    "buttonText": "Add to Cart Now"
+  }
+]
