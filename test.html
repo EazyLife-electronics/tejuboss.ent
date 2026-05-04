@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teju Boss Enterprise | PZ Cussons Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .product { transition: transform 0.2s ease; position: relative; }
+        .active-cat { background-color: black !important; color: white !important; border-color: black !important; }
+        .promo-tag { position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 900; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar { height: 4px; width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #000; border-radius: 10px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        @keyframes cart-bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        .cart-pop { animation: cart-bounce 0.4s ease-in-out; }
+    </style>
+</head>
+
+<body class="bg-gray-50 pb-24">
+
+<header class="bg-black text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-md">
+    <h1 class="font-extrabold text-lg tracking-tighter cursor-pointer">
+        TEJU BOSS <span class="text-red-500">ENT.</span>
+    </h1>
+    <button onclick="showCart()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-full font-bold text-sm transition-all flex items-center gap-2">
+        <span>Cart</span>
+        <span id="count" class="bg-white text-red-600 rounded-full px-2 py-0.5 text-xs">0</span>
+    </button>
+</header>
+
+<main class="max-w-5xl mx-auto">
+    <div id="heroContainer" class="px-4 pt-4 mb-6">
+        <div id="heroSlider" class="relative w-full aspect-[21/9] md:aspect-[21/7] rounded-[32px] overflow-hidden shadow-lg bg-gray-200">
+            </div>
+    </div>
+
+    <div class="p-4 space-y-4">
+        <input id="search" placeholder="Search brands (Robb, Carex, Joy...)" 
+               class="w-full p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-red-500 outline-none" 
+               onkeyup="filterProducts()">
+        
+        <div id="catFilters" class="flex gap-2 overflow-x-auto pb-2 no-scrollbar"></div>
+    </div>
+
+    <div id="loader" class="flex flex-col items-center justify-center py-20 text-gray-400">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-2"></div>
+        <p class="font-medium">Loading Catalog...</p>
+    </div>
+    
+    <div id="grid" class="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+</main>
+
+<div id="cartModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end md:items-center justify-center">
+    <div class="bg-white w-full max-w-md rounded-t-[32px] md:rounded-[32px] shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="font-extrabold text-2xl italic text-gray-900">Your Order</h2>
+            <button onclick="hideCart()" class="text-gray-400 p-2 text-2xl">&times;</button>
+        </div>
+        <div id="cartItems" class="space-y-4 mb-8"></div>
+        <div class="bg-gray-50 p-4 rounded-2xl mb-6 space-y-3">
+            <input id="custName" placeholder="Full Name" class="w-full bg-white border-none p-3 rounded-xl shadow-sm text-sm">
+            <input id="custPhone" placeholder="WhatsApp Number" class="w-full bg-white border-none p-3 rounded-xl shadow-sm text-sm">
+            <textarea id="custAddr" placeholder="Delivery Address" class="w-full bg-white border-none p-3 rounded-xl shadow-sm text-sm" rows="2"></textarea>
+        </div>
+        <div class="flex justify-between items-center px-2">
+            <span class="font-bold text-gray-500">Total Payable</span>
+            <span class="text-2xl font-black text-red-600">₦<span id="total">0</span></span>
+        </div>
+        <button onclick="previewOrder()" class="bg-blue-600 text-white w-full py-4 mt-6 rounded-2xl font-black text-lg shadow-xl hover:bg-blue-700 transition-all">
+            Place Order via WhatsApp
+        </button>
+    </div>
+</div>
+
+<script>
+    const CKEY = "teju_cart_v6";
+    const UKEY = "teju_user_v6";
+
+    let products = []; 
+    let heroes = [];
+    let cart = JSON.parse(localStorage.getItem(CKEY)) || [];
+    let currentCategory = 'All';
+
+    window.onload = async () => {
+        await Promise.all([fetchProducts(), fetchHeroes()]);
+        updateUI();
+        loadUser();
+    };
+
+    async function fetchHeroes() {
+        try {
+            const res = await fetch('heroes.json');
+            if(res.ok) {
+                heroes = await res.json();
+                renderHero();
+            } else { document.getElementById("heroContainer").classList.add("hidden"); }
+        } catch (e) { document.getElementById("heroContainer").classList.add("hidden"); }
+    }
+
+    function renderHero() {
+        const container = document.getElementById("heroSlider");
+        if (!heroes.length) return;
+        const h = heroes[0]; // Shows the first hero item
+        container.innerHTML = `
+            <img src="${h.image}" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent flex flex-col justify-center p-8 text-white">
+                <h2 class="text-2xl md:text-4xl font-black italic tracking-tighter mb-1 uppercase">${h.title}</h2>
+                <p class="text-xs md:text-base font-medium opacity-80 max-w-xs mb-5">${h.subtitle}</p>
+                <button onclick="handleHeroAction('${h.action}', '${h.target}')" 
+                        class="bg-red-600 hover:bg-red-700 w-fit px-6 py-3 rounded-full font-black text-xs uppercase tracking-widest transition-all shadow-lg">
+                    ${h.buttonText}
+                </button>
+            </div>`;
+    }
+
+    function handleHeroAction(action, target) {
+        if (action === 'add') {
+            const product = products.find(p => p.id == target);
+            if (product) {
+                addToCart(product.id);
+                showCart();
+            }
+        } else if (action === 'filter') {
+            filterByCategory(target);
+            document.getElementById("catFilters").scrollIntoView({ behavior: 'smooth' });
+        } else if (action === 'search') {
+            document.getElementById("search").value = target;
+            filterProducts();
+            document.getElementById("search").scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    async function fetchProducts() {
+        try {
+            const res = await fetch('products.json');
+            products = await res.json();
+            document.getElementById("loader").classList.add("hidden");
+        } catch (e) {
+            document.getElementById("loader").innerHTML = `<p class="text-red-500">Failed to load catalog.</p>`;
+        }
+    }
+
+    function updateUI() {
+        filterByCategory(currentCategory);
+        renderCategoryButtons();
+        updateCount();
+    }
+
+    function renderProducts(list) {
+        const grid = document.getElementById("grid");
+        grid.innerHTML = list.map(p => {
+            const inCart = cart.find(i => i.id === p.id);
+            const displayPrice = (p.promoPrice && p.promoPrice > 0) ? p.promoPrice : p.price;
+            return `
+                <div class="product bg-white p-3 rounded-[24px] shadow-sm border border-gray-100 flex flex-col">
+                    ${p.promoPrice > 0 ? `<div class="promo-tag">SALE</div>` : ""}
+                    <img src="${p.image || 'https://via.placeholder.com/300'}" class="h-32 w-full object-contain rounded-xl mb-3">
+                    <span class="text-[9px] font-black uppercase text-gray-400 tracking-wider mb-1">${p.category}</span>
+                    <h3 class="font-bold text-gray-800 leading-tight text-xs flex-grow">${p.name}</h3>
+                    <div class="mt-2 mb-3">
+                        <span class="text-red-600 font-black text-sm">₦${displayPrice.toLocaleString()}</span>
+                    </div>
+                    <div class="mt-auto">
+                        ${inCart ? `
+                            <div class="flex items-center justify-between bg-gray-100 rounded-xl p-1">
+                                <button onclick="changeQty(${p.id},-1)" class="w-8 h-8 bg-white rounded-lg shadow-sm font-bold">-</button>
+                                <span class="font-bold text-xs">${inCart.quantity}</span>
+                                <button onclick="changeQty(${p.id},1)" class="w-8 h-8 bg-white rounded-lg shadow-sm font-bold">+</button>
+                            </div>
+                        ` : `
+                            <button onclick="addToCart(${p.id})" class="bg-black text-white w-full py-2.5 rounded-xl font-bold text-xs hover:bg-gray-800">Add</button>
+                        `}
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function renderCategoryButtons() {
+        const cats = ['All', '🔥 Promos', ...new Set(products.map(p => p.category))];
+        document.getElementById("catFilters").innerHTML = cats.map(c => `
+            <button onclick="filterByCategory('${c}')" 
+                    class="whitespace-nowrap px-5 py-2 rounded-full border text-xs font-bold transition-all ${currentCategory === c ? 'active-cat' : 'bg-white text-gray-500 border-gray-200'}">
+                ${c}
+            </button>`).join('');
+    }
+
+    function filterByCategory(cat) {
+        currentCategory = cat;
+        renderCategoryButtons();
+        if (cat === 'All') renderProducts(products);
+        else if (cat === '🔥 Promos') renderProducts(products.filter(p => p.promoPrice > 0));
+        else renderProducts(products.filter(p => p.category === cat));
+    }
+
+    function filterProducts() {
+        const term = document.getElementById("search").value.toLowerCase();
+        renderProducts(products.filter(p => p.name.toLowerCase().includes(term) || p.category.toLowerCase().includes(term)));
+    }
+
+    function addToCart(id) {
+        const p = products.find(i => i.id === id);
+        const inCart = cart.find(i => i.id === id);
+        if (inCart) inCart.quantity++;
+        else cart.push({...p, quantity: 1});
+        saveCart();
+    }
+
+    function changeQty(id, delta) {
+        const item = cart.find(i => i.id === id);
+        if (item) {
+            item.quantity += delta;
+            if (item.quantity <= 0) cart = cart.filter(i => i.id !== id);
+            saveCart();
+        }
+    }
+
+    function saveCart() {
+        localStorage.setItem(CKEY, JSON.stringify(cart));
+        updateCount();
+        filterProducts();
+        if (!document.getElementById("cartModal").classList.contains("hidden")) showCart();
+    }
+
+    function showCart() {
+        if (cart.length === 0) return hideCart();
+        document.getElementById("cartItems").innerHTML = cart.map(i => {
+            const price = (i.promoPrice > 0) ? i.promoPrice : i.price;
+            return `
+            <div class="flex justify-between items-center border-b border-gray-50 pb-3">
+                <div class="flex-1 pr-4">
+                    <p class="font-bold text-gray-800 text-sm leading-tight">${i.name}</p>
+                    <p class="text-xs text-red-500 font-bold">₦${(price * i.quantity).toLocaleString()}</p>
+                </div>
+                <div class="flex items-center gap-3 bg-gray-100 p-1 rounded-xl">
+                    <button onclick="changeQty(${i.id},-1)" class="w-7 h-7 bg-white rounded-lg shadow-sm font-bold">-</button>
+                    <span class="font-black text-sm w-4 text-center">${i.quantity}</span>
+                    <button onclick="changeQty(${i.id},1)" class="w-7 h-7 bg-white rounded-lg shadow-sm font-bold">+</button>
+                </div>
+            </div>`;
+        }).join('');
+        const total = cart.reduce((a, b) => a + ((b.promoPrice > 0 ? b.promoPrice : b.price) * b.quantity), 0);
+        document.getElementById("total").textContent = total.toLocaleString();
+        document.getElementById("cartModal").classList.remove("hidden");
+    }
+
+    function hideCart() { document.getElementById("cartModal").classList.add("hidden"); }
+    
+    function updateCount() { 
+        const el = document.getElementById("count");
+        el.textContent = cart.reduce((a, b) => a + b.quantity, 0);
+        el.parentElement.classList.add('cart-pop');
+        setTimeout(() => el.parentElement.classList.remove('cart-pop'), 400);
+    }
+
+    function loadUser() {
+        const u = JSON.parse(localStorage.getItem(UKEY)) || {};
+        document.getElementById("custName").value = u.name || "";
+        document.getElementById("custPhone").value = u.phone || "";
+        document.getElementById("custAddr").value = u.addr || "";
+    }
+
+    function previewOrder() {
+        const name = document.getElementById("custName").value;
+        const phone = document.getElementById("custPhone").value;
+        const addr = document.getElementById("custAddr").value;
+        if (!name || !phone || !addr) return alert("Fill delivery details!");
+        localStorage.setItem(UKEY, JSON.stringify({name, phone, addr}));
+
+        let msg = `*TEJU BOSS ENT - NEW ORDER*%0A%0A`;
+        cart.forEach(i => {
+            const price = (i.promoPrice > 0) ? i.promoPrice : i.price;
+            msg += `• ${i.name}%0A  Qty: ${i.quantity} | ₦${(price * i.quantity).toLocaleString()}%0A%0A`;
+        });
+        const total = cart.reduce((a, b) => a + ((b.promoPrice > 0 ? b.promoPrice : b.price) * b.quantity), 0);
+        msg += `*TOTAL: ₦${total.toLocaleString()}*%0A%0A*Name:* ${name}%0A*Address:* ${addr}`;
+        window.open(`https://wa.me/2347079557886?text=${msg}`);
+        cart = []; saveCart(); hideCart();
+    }
+</script>
+</body>
+</html>
