@@ -14,13 +14,28 @@
         ::-webkit-scrollbar { height: 4px; width: 4px; }
         ::-webkit-scrollbar-thumb { background: #000; border-radius: 10px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        #heroSlider { display: flex; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; height: 100%; }
+        .hero-slide { min-width: 100%; height: 100%; position: relative; overflow: hidden; }
+        
+        .hero-content {
+            background: linear-gradient(to right, rgba(0,0,0,0.85) 20%, rgba(0,0,0,0.4) 60%, transparent 100%);
+            width: 100%;
+            height: 100%;
+        }
+
+        @keyframes cart-bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        .cart-pop { animation: cart-bounce 0.4s ease-in-out; }
     </style>
 </head>
 
 <body class="bg-gray-50 pb-24">
 
 <header class="bg-black text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-md">
-    <h1 onclick="handleLogoTap()" class="font-extrabold text-lg tracking-tighter cursor-pointer">
+    <h1 class="font-extrabold text-lg tracking-tighter cursor-pointer">
         TEJU BOSS <span class="text-red-500">ENT.</span>
     </h1>
     <button onclick="showCart()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-full font-bold text-sm transition-all flex items-center gap-2">
@@ -29,22 +44,27 @@
     </button>
 </header>
 
-<main class="p-4 max-w-5xl mx-auto">
-    <div class="mb-6 space-y-4">
+<main class="max-w-5xl mx-auto">
+    <div id="heroContainer" class="px-4 pt-4 mb-6 relative overflow-hidden group">
+        <div class="rounded-[32px] overflow-hidden shadow-lg bg-gray-200 aspect-[4/3] md:aspect-[21/7] relative">
+            <div id="heroSlider" ontouchstart="handleTouchStart(event)" ontouchmove="handleTouchMove(event)"></div>
+            <div id="heroDots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20"></div>
+        </div>
+    </div>
+
+    <div class="p-4 space-y-4">
         <input id="search" placeholder="Search brands (Robb, Carex, Joy...)" 
                class="w-full p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-red-500 outline-none" 
                onkeyup="filterProducts()">
-        
-        <div id="catFilters" class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-            </div>
+        <div id="catFilters" class="flex gap-2 overflow-x-auto pb-2 no-scrollbar"></div>
     </div>
 
     <div id="loader" class="flex flex-col items-center justify-center py-20 text-gray-400">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-2"></div>
-        <p class="font-medium">Loading Teju Boss Catalog...</p>
+        <p class="font-medium">Loading Catalog...</p>
     </div>
     
-    <div id="grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+    <div id="grid" class="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
 </main>
 
 <div id="cartModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end md:items-center justify-center">
@@ -53,20 +73,16 @@
             <h2 class="font-extrabold text-2xl italic text-gray-900">Your Order</h2>
             <button onclick="hideCart()" class="text-gray-400 p-2 text-2xl">&times;</button>
         </div>
-
         <div id="cartItems" class="space-y-4 mb-8"></div>
-
         <div class="bg-gray-50 p-4 rounded-2xl mb-6 space-y-3">
             <input id="custName" placeholder="Full Name" class="w-full bg-white border-none p-3 rounded-xl shadow-sm text-sm">
             <input id="custPhone" placeholder="WhatsApp Number" class="w-full bg-white border-none p-3 rounded-xl shadow-sm text-sm">
             <textarea id="custAddr" placeholder="Delivery Address" class="w-full bg-white border-none p-3 rounded-xl shadow-sm text-sm" rows="2"></textarea>
         </div>
-
         <div class="flex justify-between items-center px-2">
             <span class="font-bold text-gray-500">Total Payable</span>
             <span class="text-2xl font-black text-red-600">₦<span id="total">0</span></span>
         </div>
-
         <button onclick="previewOrder()" class="bg-blue-600 text-white w-full py-4 mt-6 rounded-2xl font-black text-lg shadow-xl hover:bg-blue-700 transition-all">
             Place Order via WhatsApp
         </button>
@@ -78,23 +94,112 @@
     const UKEY = "teju_user_v6";
 
     let products = []; 
+    let heroes = [];
     let cart = JSON.parse(localStorage.getItem(CKEY)) || [];
     let currentCategory = 'All';
+    let currentSlide = 0;
+    let slideInterval;
+    let touchStartX = 0;
 
     window.onload = async () => {
-        await fetchProducts();
+        await Promise.all([fetchProducts(), fetchHeroes()]);
         updateUI();
         loadUser();
+        if(heroes.length > 0) startAutoPlay();
     };
+
+    async function fetchHeroes() {
+        try {
+            const res = await fetch('heroes.json');
+            if(res.ok) {
+                heroes = await res.json();
+                renderHeroes();
+            } else { document.getElementById("heroContainer").classList.add("hidden"); }
+        } catch (e) { document.getElementById("heroContainer").classList.add("hidden"); }
+    }
+
+    function renderHeroes() {
+        const slider = document.getElementById("heroSlider");
+        const dots = document.getElementById("heroDots");
+        if (!heroes.length) return;
+
+        slider.innerHTML = heroes.map(h => `
+            <div class="hero-slide">
+                <img src="${h.image}" class="absolute inset-0 w-full h-full object-cover">
+                <div class="hero-content absolute inset-0 flex flex-col justify-center p-6 md:p-12 text-white">
+                    <h2 class="text-xl md:text-4xl font-black italic tracking-tighter mb-2 uppercase leading-tight max-w-[85%]">
+                        ${h.title}
+                    </h2>
+                    <p class="text-[10px] md:text-base font-medium opacity-90 max-w-[75%] mb-4 md:mb-6 line-clamp-2">
+                        ${h.subtitle}
+                    </p>
+                    <button onclick="handleHeroAction('${h.action}', '${h.target}')" 
+                            class="bg-red-600 hover:bg-red-700 w-fit px-5 py-2.5 md:px-8 md:py-4 rounded-full font-black text-[10px] md:text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95">
+                        ${h.buttonText}
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        dots.innerHTML = heroes.map((_, i) => `
+            <div onclick="goToSlide(${i})" class="cursor-pointer w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all ${i === 0 ? 'bg-red-600 w-4 md:w-6' : 'bg-white/50'}"></div>
+        `).join('');
+    }
+
+    function goToSlide(index) {
+        if (index >= heroes.length) index = 0;
+        if (index < 0) index = heroes.length - 1;
+        currentSlide = index;
+        const slider = document.getElementById("heroSlider");
+        if(slider) slider.style.transform = `translateX(-${index * 100}%)`;
+        
+        const dots = document.getElementById("heroDots").children;
+        for (let i = 0; i < dots.length; i++) {
+            dots[i].className = `cursor-pointer w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all ${i === index ? 'bg-red-600 w-4 md:w-6' : 'bg-white/50'}`;
+        }
+    }
+
+    function startAutoPlay() {
+        clearInterval(slideInterval);
+        slideInterval = setInterval(() => goToSlide(currentSlide + 1), 5000);
+    }
+
+    function handleTouchStart(e) { touchStartX = e.touches[0].clientX; clearInterval(slideInterval); }
+    function handleTouchMove(e) {
+        if (!touchStartX) return;
+        let diff = touchStartX - e.touches[0].clientX;
+        if (Math.abs(diff) > 50) {
+            if (diff > 0) goToSlide(currentSlide + 1);
+            else goToSlide(currentSlide - 1);
+            touchStartX = 0;
+            startAutoPlay();
+        }
+    }
+
+    function handleHeroAction(action, target) {
+        if (action === 'add') {
+            const product = products.find(p => String(p.id) === String(target));
+            if (product) { 
+                addToCart(product.id); 
+                showCart(); 
+            }
+        } else if (action === 'filter') {
+            filterByCategory(target);
+            document.getElementById("catFilters").scrollIntoView({ behavior: 'smooth' });
+        } else if (action === 'search') {
+            document.getElementById("search").value = target;
+            filterProducts();
+            document.getElementById("search").scrollIntoView({ behavior: 'smooth' });
+        }
+    }
 
     async function fetchProducts() {
         try {
             const res = await fetch('products.json');
-            if(!res.ok) throw new Error();
             products = await res.json();
             document.getElementById("loader").classList.add("hidden");
         } catch (e) {
-            document.getElementById("loader").innerHTML = `<p class="text-red-500">Error loading products.json</p>`;
+            document.getElementById("loader").innerHTML = `<p class="text-red-500">Failed to load catalog.</p>`;
         }
     }
 
@@ -106,43 +211,31 @@
 
     function renderProducts(list) {
         const grid = document.getElementById("grid");
-        grid.innerHTML = "";
-        
-        if (list.length === 0) {
-            grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400 font-bold">No products found.</div>`;
-            return;
-        }
-
-        list.forEach(p => {
+        grid.innerHTML = list.map(p => {
             const inCart = cart.find(i => i.id === p.id);
-            const isOnPromo = p.promoPrice && p.promoPrice > 0;
-            const displayPrice = isOnPromo ? p.promoPrice : p.price;
-
-            grid.innerHTML += `
+            const displayPrice = (p.promoPrice && p.promoPrice > 0) ? p.promoPrice : p.price;
+            return `
                 <div class="product bg-white p-3 rounded-[24px] shadow-sm border border-gray-100 flex flex-col">
-                    ${isOnPromo ? `<div class="promo-tag">SALE</div>` : ""}
-                    <img src="${p.image || 'https://via.placeholder.com/300?text=' + p.name}" class="h-32 w-full object-contain rounded-xl mb-3 bg-gray-50">
+                    ${p.promoPrice > 0 ? `<div class="promo-tag">SALE</div>` : ""}
+                    <img src="${p.image || 'https://via.placeholder.com/300'}" class="h-32 w-full object-contain rounded-xl mb-3">
                     <span class="text-[9px] font-black uppercase text-gray-400 tracking-wider mb-1">${p.category}</span>
                     <h3 class="font-bold text-gray-800 leading-tight text-xs flex-grow">${p.name}</h3>
-                    
                     <div class="mt-2 mb-3">
-                        ${isOnPromo ? `<span class="line-through text-gray-400 text-[10px] mr-1">₦${p.price.toLocaleString()}</span>` : ""}
                         <span class="text-red-600 font-black text-sm">₦${displayPrice.toLocaleString()}</span>
                     </div>
-                    
                     <div class="mt-auto">
                         ${inCart ? `
                             <div class="flex items-center justify-between bg-gray-100 rounded-xl p-1">
-                                <button onclick="changeQty(${p.id},-1)" class="w-8 h-8 bg-white rounded-lg shadow-sm font-bold text-gray-800">-</button>
-                                <span class="font-bold text-sm">${inCart.quantity}</span>
-                                <button onclick="changeQty(${p.id},1)" class="w-8 h-8 bg-white rounded-lg shadow-sm font-bold text-gray-800">+</button>
+                                <button onclick="changeQty(${p.id},-1)" class="w-8 h-8 bg-white rounded-lg shadow-sm font-bold">-</button>
+                                <span class="font-bold text-xs">${inCart.quantity}</span>
+                                <button onclick="changeQty(${p.id},1)" class="w-8 h-8 bg-white rounded-lg shadow-sm font-bold">+</button>
                             </div>
                         ` : `
                             <button onclick="addToCart(${p.id})" class="bg-black text-white w-full py-2.5 rounded-xl font-bold text-xs hover:bg-gray-800">Add</button>
                         `}
                     </div>
                 </div>`;
-        });
+        }).join('');
     }
 
     function renderCategoryButtons() {
@@ -151,41 +244,28 @@
             <button onclick="filterByCategory('${c}')" 
                     class="whitespace-nowrap px-5 py-2 rounded-full border text-xs font-bold transition-all ${currentCategory === c ? 'active-cat' : 'bg-white text-gray-500 border-gray-200'}">
                 ${c}
-            </button>
-        `).join('');
+            </button>`).join('');
     }
 
     function filterByCategory(cat) {
         currentCategory = cat;
         renderCategoryButtons();
-        let filtered;
-        if (cat === 'All') filtered = products;
-        else if (cat === '🔥 Promos') filtered = products.filter(p => p.promoPrice && p.promoPrice > 0);
-        else filtered = products.filter(p => p.category === cat);
-        renderProducts(filtered);
+        if (cat === 'All') renderProducts(products);
+        else if (cat === '🔥 Promos') renderProducts(products.filter(p => p.promoPrice > 0));
+        else renderProducts(products.filter(p => p.category === cat));
     }
 
-    // FIXED SEARCH BAR FUNCTION
     function filterProducts() {
         const term = document.getElementById("search").value.toLowerCase();
-        if (term === "") {
-            filterByCategory(currentCategory);
-            return;
-        }
-        const filtered = products.filter(p => 
-            p.name.toLowerCase().includes(term) || 
-            p.category.toLowerCase().includes(term)
-        );
-        renderProducts(filtered);
-    }
-
-    function getPrice(product) {
-        return (product.promoPrice && product.promoPrice > 0) ? product.promoPrice : product.price;
+        renderProducts(products.filter(p => p.name.toLowerCase().includes(term) || p.category.toLowerCase().includes(term)));
     }
 
     function addToCart(id) {
         const p = products.find(i => i.id === id);
-        cart.push({...p, quantity: 1});
+        if(!p) return;
+        const inCart = cart.find(i => i.id === id);
+        if (inCart) inCart.quantity++;
+        else cart.push({...p, quantity: 1});
         saveCart();
     }
 
@@ -201,33 +281,40 @@
     function saveCart() {
         localStorage.setItem(CKEY, JSON.stringify(cart));
         updateCount();
-        const term = document.getElementById("search").value;
-        if (term) filterProducts(); else filterByCategory(currentCategory);
+        filterProducts();
         if (!document.getElementById("cartModal").classList.contains("hidden")) showCart();
     }
 
     function showCart() {
         if (cart.length === 0) return hideCart();
-        document.getElementById("cartItems").innerHTML = cart.map(i => `
+        document.getElementById("cartItems").innerHTML = cart.map(i => {
+            const price = (i.promoPrice > 0) ? i.promoPrice : i.price;
+            return `
             <div class="flex justify-between items-center border-b border-gray-50 pb-3">
                 <div class="flex-1 pr-4">
                     <p class="font-bold text-gray-800 text-sm leading-tight">${i.name}</p>
-                    <p class="text-xs text-red-500 font-bold">₦${(getPrice(i) * i.quantity).toLocaleString()}</p>
+                    <p class="text-xs text-red-500 font-bold">₦${(price * i.quantity).toLocaleString()}</p>
                 </div>
                 <div class="flex items-center gap-3 bg-gray-100 p-1 rounded-xl">
                     <button onclick="changeQty(${i.id},-1)" class="w-7 h-7 bg-white rounded-lg shadow-sm font-bold">-</button>
                     <span class="font-black text-sm w-4 text-center">${i.quantity}</span>
                     <button onclick="changeQty(${i.id},1)" class="w-7 h-7 bg-white rounded-lg shadow-sm font-bold">+</button>
                 </div>
-            </div>
-        `).join('');
-        const total = cart.reduce((a, b) => a + getPrice(b) * b.quantity, 0);
+            </div>`;
+        }).join('');
+        const total = cart.reduce((a, b) => a + ((b.promoPrice > 0 ? b.promoPrice : b.price) * b.quantity), 0);
         document.getElementById("total").textContent = total.toLocaleString();
         document.getElementById("cartModal").classList.remove("hidden");
     }
 
     function hideCart() { document.getElementById("cartModal").classList.add("hidden"); }
-    function updateCount() { document.getElementById("count").textContent = cart.reduce((a, b) => a + b.quantity, 0); }
+    
+    function updateCount() { 
+        const el = document.getElementById("count");
+        el.textContent = cart.reduce((a, b) => a + b.quantity, 0);
+        el.parentElement.classList.add('cart-pop');
+        setTimeout(() => el.parentElement.classList.remove('cart-pop'), 400);
+    }
 
     function loadUser() {
         const u = JSON.parse(localStorage.getItem(UKEY)) || {};
@@ -240,18 +327,19 @@
         const name = document.getElementById("custName").value;
         const phone = document.getElementById("custPhone").value;
         const addr = document.getElementById("custAddr").value;
-        if (!name || !phone || !addr) return alert("Please fill delivery info!");
+        if (!name || !phone || !addr) return alert("Fill delivery details!");
         localStorage.setItem(UKEY, JSON.stringify({name, phone, addr}));
 
-        let msg = `*TEJU BOSS ENT - ORDER*%0A%0A`;
-        cart.forEach(i => msg += `• ${i.name}%0A  Qty: ${i.quantity} | ₦${(getPrice(i) * i.quantity).toLocaleString()}%0A%0A`);
-        const total = cart.reduce((a, b) => a + getPrice(b) * b.quantity, 0);
-        msg += `*TOTAL: ₦${total.toLocaleString()}*%0A%0A*Customer:* ${name}%0A*Address:* ${addr}`;
+        let msg = `*TEJU BOSS ENT - NEW ORDER*%0A%0A`;
+        cart.forEach(i => {
+            const price = (i.promoPrice > 0) ? i.promoPrice : i.price;
+            msg += `• ${i.name}%0A  Qty: ${i.quantity} | ₦${(price * i.quantity).toLocaleString()}%0A%0A`;
+        });
+        const total = cart.reduce((a, b) => a + ((b.promoPrice > 0 ? b.promoPrice : b.price) * b.quantity), 0);
+        msg += `*TOTAL: ₦${total.toLocaleString()}*%0A%0A*Name:* ${name}%0A*Address:* ${addr}`;
         window.open(`https://wa.me/2347079557886?text=${msg}`);
         cart = []; saveCart(); hideCart();
     }
-
-    function handleLogoTap() { /* Admin trigger logic can go here */ }
 </script>
 </body>
 </html>
