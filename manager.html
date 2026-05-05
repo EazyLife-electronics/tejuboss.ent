@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Manager | Teju Boss Ent.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .card { transition: all 0.2s ease; }
+        .card:hover { border-color: #ef4444; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #000; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-gray-100 pb-20">
+
+    <header class="bg-black text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-xl">
+        <h1 class="font-extrabold text-lg tracking-tighter">TEJU BOSS <span class="text-red-500">DATA HUB</span></h1>
+        <div class="flex gap-2">
+            <button onclick="copyJson()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-bold text-xs transition-all">Copy Full JSON</button>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-[24px] shadow-sm sticky top-24">
+                <h2 id="formTitle" class="font-black text-xl mb-4 text-gray-800">Add New Product</h2>
+                <form id="productForm" class="space-y-4">
+                    <input type="hidden" id="editId">
+                    
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-gray-400">Product Name</label>
+                        <input type="text" id="pName" placeholder="e.g. Robb Hot Balm 25g" class="w-full p-3 bg-gray-50 rounded-xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-red-500 outline-none text-sm" required>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] font-black uppercase text-gray-400">Category</label>
+                            <input type="text" id="pCat" placeholder="Health" class="w-full p-3 bg-gray-50 rounded-xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-red-500 outline-none text-sm" required>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black uppercase text-gray-400">Internal ID</label>
+                            <input type="number" id="pId" placeholder="101" class="w-full p-3 bg-gray-50 rounded-xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-red-500 outline-none text-sm" required>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] font-black uppercase text-gray-400">Price (₦)</label>
+                            <input type="number" id="pPrice" placeholder="2500" class="w-full p-3 bg-gray-50 rounded-xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-red-500 outline-none text-sm" required>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black uppercase text-gray-400">Promo (₦)</label>
+                            <input type="number" id="pPromo" placeholder="0" class="w-full p-3 bg-gray-50 rounded-xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-gray-400">Image URL</label>
+                        <input type="text" id="pImage" placeholder="images/product.jpg" class="w-full p-3 bg-gray-50 rounded-xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <button type="submit" class="flex-1 bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-all">Save Product</button>
+                        <button type="button" onclick="resetForm()" class="bg-gray-200 text-gray-600 px-4 rounded-xl font-bold hover:bg-gray-300 transition-all">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white p-4 rounded-[24px] shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+                <input type="text" id="search" placeholder="Search current products..." onkeyup="renderList()" class="w-full md:w-64 p-3 bg-gray-50 rounded-xl border-none ring-1 ring-gray-200 outline-none text-sm">
+                <p class="text-xs font-bold text-gray-400">Items: <span id="itemCount" class="text-black">0</span></p>
+            </div>
+
+            <div id="productList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                </div>
+
+            <div class="bg-black rounded-[24px] p-6 shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-white font-bold">Generated JSON Output</h3>
+                    <span class="text-[10px] text-gray-500 font-mono">Copy this to products.json</span>
+                </div>
+                <textarea id="jsonOutput" readonly class="w-full h-64 bg-gray-900 text-green-400 p-4 rounded-xl font-mono text-xs border-none outline-none resize-none"></textarea>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let products = [];
+
+        // Load existing products from your file
+        async function loadInitialData() {
+            try {
+                const res = await fetch('products.json');
+                if (res.ok) {
+                    products = await res.json();
+                    updateUI();
+                }
+            } catch (e) {
+                console.log("No existing products.json found, starting fresh.");
+            }
+        }
+
+        const form = document.getElementById('productForm');
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('pId').value);
+            const editId = document.getElementById('editId').value;
+            
+            const newProd = {
+                id: id,
+                name: document.getElementById('pName').value,
+                category: document.getElementById('pCat').value,
+                price: parseInt(document.getElementById('pPrice').value),
+                promoPrice: parseInt(document.getElementById('pPromo').value) || 0,
+                image: document.getElementById('pImage').value || "https://via.placeholder.com/300"
+            };
+
+            if (editId) {
+                // Update existing
+                const index = products.findIndex(p => p.id == editId);
+                products[index] = newProd;
+            } else {
+                // Add new
+                if(products.find(p => p.id === id)) return alert("ID already exists!");
+                products.push(newProd);
+            }
+
+            resetForm();
+            updateUI();
+        };
+
+        function updateUI() {
+            renderList();
+            const jsonStr = JSON.stringify(products, null, 4);
+            document.getElementById('jsonOutput').value = jsonStr;
+            document.getElementById('itemCount').textContent = products.length;
+        }
+
+        function renderList() {
+            const list = document.getElementById('productList');
+            const term = document.getElementById('search').value.toLowerCase();
+            
+            const filtered = products.filter(p => p.name.toLowerCase().includes(term));
+
+            list.innerHTML = filtered.map(p => `
+                <div class="card bg-white p-4 rounded-2xl border border-gray-100 flex items-center gap-4 shadow-sm">
+                    <img src="${p.image}" class="w-12 h-12 rounded-lg object-cover bg-gray-100">
+                    <div class="flex-grow">
+                        <h4 class="font-bold text-xs text-gray-800 leading-tight">${p.name}</h4>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase">${p.category} • ID: ${p.id}</p>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <button onclick="editProduct(${p.id})" class="text-[10px] bg-gray-100 hover:bg-black hover:text-white px-3 py-1 rounded-md font-bold transition-all">EDIT</button>
+                        <button onclick="deleteProduct(${p.id})" class="text-[10px] bg-red-50 text-red-600 hover:bg-red-600 hover:text-white px-3 py-1 rounded-md font-bold transition-all">DEL</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function editProduct(id) {
+            const p = products.find(prod => prod.id === id);
+            document.getElementById('editId').value = p.id;
+            document.getElementById('pId').value = p.id;
+            document.getElementById('pName').value = p.name;
+            document.getElementById('pCat').value = p.category;
+            document.getElementById('pPrice').value = p.price;
+            document.getElementById('pPromo').value = p.promoPrice;
+            document.getElementById('pImage').value = p.image;
+            
+            document.getElementById('formTitle').textContent = "Editing: " + p.name;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteProduct(id) {
+            if(confirm("Remove this product?")) {
+                products = products.filter(p => p.id !== id);
+                updateUI();
+            }
+        }
+
+        function resetForm() {
+            form.reset();
+            document.getElementById('editId').value = "";
+            document.getElementById('formTitle').textContent = "Add New Product";
+        }
+
+        function copyJson() {
+            const copyText = document.getElementById("jsonOutput");
+            copyText.select();
+            document.execCommand("copy");
+            alert("JSON copied to clipboard!");
+        }
+
+        window.onload = loadInitialData;
+    </script>
+</body>
+</html>
