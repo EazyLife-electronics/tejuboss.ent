@@ -1,79 +1,584 @@
 [
-  { "id": 101, "name": "NBC JELLY 105ML X 48", "price": 37380, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 102, "name": "NBC JELLY 210ML", "price": 36680, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 103, "name": "CBSS SOAP 70G X6X16", "price": 34310, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 104, "name": "CB OIL 100ML", "price": 44250, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 105, "name": "CBSS OIL 200ML X6X8", "price": 79990, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 106, "name": "CBMG OIL 400ML", "price": 35750, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 107, "name": "CBMG Bby Lot 100ml BTL x48", "price": 27970, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 108, "name": "CBSS LOT 200ML X6X8", "price": 54220, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 109, "name": "CBMG LOT 400ML X6X2", "price": 20450, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 110, "name": "CB JELLY 105G", "price": 48600, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 111, "name": "CB JELLY 210G", "price": 32880, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 112, "name": "CB PWD 90G", "price": 25960, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 113, "name": "CBSS PWD 200G X24", "price": 29030, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 114, "name": "CB PWD 400G", "price": 25410, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 115, "name": "CB GFT MEDIUM X6 PLUS WIPES", "price": 47735, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 116, "name": "CB SMALL GIFT PACK", "price": 51535, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 117, "name": "CB GFT HANDY PACK X12", "price": 33930, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 118, "name": "CBSS WPE 50'S X 3X6 PROMO STK", "price": 16005, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 119, "name": "CBABY WIPE SOFT & SMOOTH X80", "price": 26360, "category": "Mother & Baby", "image": "", "inStock": true },
-  { "id": 120, "name": "CB HTT LIQUID BATH", "price": 14550, "category": "Mother & Baby", "image": "", "inStock": true },
-
-  { "id": 201, "name": "ROBB OINT 3.5ML", "price": 74120, "promoPrice": 70590, "isPromo": true, "category": "Medicaments", "image": "", "inStock": true },
-  { "id": 202, "name": "ROBB NEW INHALR 1G", "price": 39890, "category": "Medicaments", "image": "", "inStock": true },
-  { "id": 203, "name": "ROBB ORIG OINT 23ML", "price": 74875, "promoPrice": 70935, "isPromo": true, "category": "Medicaments", "image": "", "inStock": true },
-  { "id": 204, "name": "ROBB EXTRA MENTHOL 23ML", "price": 105000, "category": "Medicaments", "image": "", "inStock": true },
-  { "id": 205, "name": "MENTH. DUST PWD 80G", "price": 15530, "category": "Medicaments", "image": "", "inStock": true },
-  { "id": 206, "name": "MENTH. DUST PWD 200G", "price": 15150, "category": "Medicaments", "image": "", "inStock": true },
-
-  { "id": 301, "name": "CAREX ASL 75ML+50ML ORIG", "price": 60000, "category": "Antiseptics", "image": "", "inStock": true },
-  { "id": 302, "name": "CAREX ASL 125ML+40ML ORIG", "price": 81500, "category": "Antiseptics", "image": "", "inStock": true },
-  { "id": 303, "name": "CAREX ASL 250ML ORIGINAL", "price": 82350, "promoPrice": 65880, "isPromo": true, "category": "Antiseptics", "image": "", "inStock": true },
-  { "id": 304, "name": "CAREX ASL 500ML ORIGINAL", "price": 144000, "promoPrice": 115200, "isPromo": true, "category": "Antiseptics", "image": "", "inStock": true },
-  { "id": 305, "name": "PREMIER ASL 125ML LF", "price": 46410, "category": "Antiseptics", "image": "", "inStock": true },
-  { "id": 306, "name": "PREMIER AS LIQ 250ML", "price": 52000, "category": "Antiseptics", "image": "", "inStock": true },
-  { "id": 307, "name": "PREMIER AS LIQ 500ML", "price": 105900, "category": "Antiseptics", "image": "", "inStock": true },
-  { "id": 308, "name": "PREMIER AS LIQUID 1LTR", "price": 50560, "category": "Antiseptics", "image": "", "inStock": true },
-
-  { "id": 401, "name": "VENUS HR RLX 150G X24", "price": 28750, "category": "Beauty - Hair", "image": "", "inStock": true },
-  { "id": 402, "name": "JOY HR RLX 150G X24", "price": 26440, "category": "Beauty - Hair", "image": "", "inStock": true },
-  { "id": 403, "name": "JET HAIR CREAM 125G", "price": 57350, "category": "Beauty - Hair", "image": "", "inStock": true },
-
-  { "id": 501, "name": "STELLA 125ML", "price": 50130, "category": "Beauty - Skin", "image": "", "inStock": true },
-  { "id": 502, "name": "STELLA 250ML", "price": 43310, "category": "Beauty - Skin", "image": "", "inStock": true },
-  { "id": 503, "name": "VENUS MST CRM 120G", "price": 101350, "category": "Beauty - Skin", "image": "", "inStock": true },
-  { "id": 504, "name": "VENUS MST LOTN 200ML", "price": 53780, "category": "Beauty - Skin", "image": "", "inStock": true },
-  { "id": 505, "name": "VENUS TONING CRM 120G", "price": 70880, "category": "Beauty - Skin", "image": "", "inStock": true },
-  { "id": 506, "name": "VENUS TONIG LTN 200ML", "price": 48010, "category": "Beauty - Skin", "image": "", "inStock": true },
-  { "id": 507, "name": "VENUS GOLD PERFUM 55G", "price": 55220, "category": "Beauty - Skin", "image": "", "inStock": true },
-  { "id": 508, "name": "DANDUALA 13MLX 96", "price": 70470, "category": "Beauty - Skin", "image": "", "inStock": true },
-
-  { "id": 601, "name": "MF MDWL 450ML ZEST X18", "price": 21290, "category": "Cleaning", "image": "", "inStock": true },
-  { "id": 602, "name": "MF MDWL ANTB 450ML X 18", "price": 22880, "category": "Cleaning", "image": "", "inStock": true },
-  { "id": 603, "name": "MF MDWL ZES 1000ML X 12", "price": 30860, "category": "Cleaning", "image": "", "inStock": true },
-  { "id": 604, "name": "MF 700ML ANTB X 12", "price": 22880, "category": "Cleaning", "image": "", "inStock": true },
-  { "id": 605, "name": "MF MDWL 200ML ZEST X24", "price": 16120, "category": "Cleaning", "image": "", "inStock": true },
-
-  { "id": 701, "name": "CANOE FAB SOAP 120G GLY", "price": 16910, "category": "Laundry", "image": "", "inStock": true },
-  { "id": 702, "name": "CANOE FAB SOAP 180G GLY", "price": 8860, "category": "Laundry", "image": "", "inStock": true },
-  { "id": 703, "name": "CANOE FAB SOAP 220G GLY", "price": 14640, "category": "Laundry", "image": "", "inStock": true },
-  { "id": 704, "name": "CANOE FAB SOAP 220G LEMON", "price": 15530, "category": "Laundry", "image": "", "inStock": true },
-  { "id": 705, "name": "CANOE FAB SOAP 220G SOFT", "price": 15530, "category": "Laundry", "image": "", "inStock": true },
-
-  { "id": 801, "name": "PREM CN F/BAR 55Gx104", "price": 20840, "category": "Toilet Soap", "image": "", "inStock": true },
-  { "id": 802, "name": "PREMIER SOAP 110G ROSE", "price": 9020, "category": "Toilet Soap", "image": "", "inStock": true },
-  { "id": 803, "name": "PREM CN F/BAR 150G X 32", "price": 15510, "category": "Toilet Soap", "image": "", "inStock": true },
-  { "id": 804, "name": "PREM CN F/BAR 175G X 32", "price": 17470, "category": "Toilet Soap", "image": "", "inStock": true },
-  { "id": 805, "name": "PREM COOL BLACK 60G X12", "price": 28120, "promoPrice": 25000, "isPromo": true, "category": "Toilet Soap", "image": "https://eazylife-electronics.github.io/tejuboss.ent/pictures/products/pcd60g_ult.png", "inStock": true },
-  { "id": 806, "name": "PREMC SOAP MED 110G DEOX", "price": 42990, "category": "Toilet Soap", "image": "", "inStock": true },
-  { "id": 807, "name": "JOY SOAP BTY 65G TNDR", "price": 30250, "category": "Toilet Soap", "image": "", "inStock": true },
-  { "id": 808, "name": "JOY SOFT GLOW 65G", "price": 30250, "category": "Toilet Soap", "image": "", "inStock": true },
-  { "id": 809, "name": "JOY BTY SOAP 140G TNDR", "price": 33660, "category": "Toilet Soap", "image": "", "inStock": true },
-  { "id": 810, "name": "JOY BTY SOAP 150G NOURISH", "price": 35310, "category": "Toilet Soap", "image": "", "inStock": true },
-  { "id": 811, "name": "JOY BLACK SOAP 150G", "price": 43680, "category": "Toilet Soap", "image": "", "inStock": true },
-  { "id": 812, "name": "IL CLASSIC BAR 60G", "price": 33930, "category": "Toilet Soap", "image": "", "inStock": true },
-  { "id": 813, "name": "CAREX ANTIBAC SOAP 110G", "price": 39510, "promoPrice": 33585, "isPromo": true, "category": "Toilet Soap", "image": "", "inStock": true },
-  { "id": 814, "name": "CAREX ANTIBAC SOAP 75G", "price": 30240, "promoPrice": 25705, "isPromo": true, "category": "Toilet Soap", "image": "", "inStock": true },
-  { "id": 815, "name": "CAREX HWLIQ 250ML HERB", "price": 16820, "category": "Toilet Soap", "image": "", "inStock": true }
+    {
+        "id": 101,
+        "name": "NBC JELLY 105ML X 48",
+        "price": 37380,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 102,
+        "name": "NBC JELLY 210ML",
+        "price": 36680,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 103,
+        "name": "CBSS SOAP 70G X6X16",
+        "price": 34310,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 104,
+        "name": "CB OIL 100ML",
+        "price": 44250,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 105,
+        "name": "CBSS OIL 200ML X6X8",
+        "price": 79990,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 106,
+        "name": "CBMG OIL 400ML",
+        "price": 35750,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 107,
+        "name": "CBMG Bby Lot 100ml BTL x48",
+        "price": 27970,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 108,
+        "name": "CBSS LOT 200ML X6X8",
+        "price": 54220,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 109,
+        "name": "CBMG LOT 400ML X6X2",
+        "price": 20450,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 110,
+        "name": "CB JELLY 105G",
+        "price": 48600,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 111,
+        "name": "CB JELLY 210G",
+        "price": 32880,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 112,
+        "name": "CB PWD 90G",
+        "price": 25960,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 113,
+        "name": "CBSS PWD 200G X24",
+        "price": 29030,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 114,
+        "name": "CB PWD 400G",
+        "price": 25410,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 115,
+        "name": "CB GFT MEDIUM X6 PLUS WIPES",
+        "price": 47735,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 116,
+        "name": "CB SMALL GIFT PACK",
+        "price": 51535,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 117,
+        "name": "CB GFT HANDY PACK X12",
+        "price": 33930,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 118,
+        "name": "CBSS WPE 50'S X 3X6 PROMO STK",
+        "price": 16005,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 119,
+        "name": "CBABY WIPE SOFT & SMOOTH X80",
+        "price": 26360,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 120,
+        "name": "CB HTT LIQUID BATH",
+        "price": 14550,
+        "category": "Mother & Baby",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 201,
+        "name": "ROBB OINT 3.5ML",
+        "price": 74120,
+        "promoPrice": 70590,
+        "isPromo": true,
+        "category": "Medicaments",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 202,
+        "name": "ROBB NEW INHALR 1G",
+        "price": 39890,
+        "category": "Medicaments",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 203,
+        "name": "ROBB ORIG OINT 23ML",
+        "price": 74875,
+        "promoPrice": 70935,
+        "isPromo": true,
+        "category": "Medicaments",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 204,
+        "name": "ROBB EXTRA MENTHOL 23ML",
+        "price": 105000,
+        "category": "Medicaments",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 205,
+        "name": "MENTH. DUST PWD 80G",
+        "price": 15530,
+        "category": "Medicaments",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 206,
+        "name": "MENTH. DUST PWD 200G",
+        "price": 15150,
+        "category": "Medicaments",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 301,
+        "name": "CAREX ASL 75ML+50ML ORIG",
+        "price": 60000,
+        "category": "Antiseptics",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 302,
+        "name": "CAREX ASL 125ML+40ML ORIG",
+        "price": 81500,
+        "category": "Antiseptics",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 303,
+        "name": "CAREX ASL 250ML ORIGINAL",
+        "price": 82350,
+        "promoPrice": 65880,
+        "isPromo": true,
+        "category": "Antiseptics",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 304,
+        "name": "CAREX ASL 500ML ORIGINAL",
+        "price": 144000,
+        "promoPrice": 115200,
+        "isPromo": true,
+        "category": "Antiseptics",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 305,
+        "name": "PREMIER ASL 125ML LF",
+        "price": 46410,
+        "category": "Antiseptics",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 306,
+        "name": "PREMIER AS LIQ 250ML",
+        "price": 52000,
+        "category": "Antiseptics",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 307,
+        "name": "PREMIER AS LIQ 500ML",
+        "price": 105900,
+        "category": "Antiseptics",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 308,
+        "name": "PREMIER AS LIQUID 1LTR",
+        "price": 50560,
+        "category": "Antiseptics",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 401,
+        "name": "VENUS HR RLX 150G X24",
+        "price": 28750,
+        "category": "Beauty - Hair",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 402,
+        "name": "JOY HR RLX 150G X24",
+        "price": 26440,
+        "category": "Beauty - Hair",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 403,
+        "name": "JET HAIR CREAM 125G",
+        "price": 57350,
+        "category": "Beauty - Hair",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 501,
+        "name": "STELLA 125ML",
+        "price": 50130,
+        "category": "Beauty - Skin",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 502,
+        "name": "STELLA 250ML",
+        "price": 43310,
+        "category": "Beauty - Skin",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 503,
+        "name": "VENUS MST CRM 120G",
+        "price": 101350,
+        "category": "Beauty - Skin",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 504,
+        "name": "VENUS MST LOTN 200ML",
+        "price": 53780,
+        "category": "Beauty - Skin",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 505,
+        "name": "VENUS TONING CRM 120G",
+        "price": 70880,
+        "category": "Beauty - Skin",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 506,
+        "name": "VENUS TONIG LTN 200ML",
+        "price": 48010,
+        "category": "Beauty - Skin",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 507,
+        "name": "VENUS GOLD PERFUM 55G",
+        "price": 55220,
+        "category": "Beauty - Skin",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 508,
+        "name": "DANDUALA 13MLX 96",
+        "price": 70470,
+        "category": "Beauty - Skin",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 601,
+        "name": "MF MDWL 450ML ZEST X18",
+        "price": 21290,
+        "category": "Cleaning",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 602,
+        "name": "MF MDWL ANTB 450ML X 18",
+        "price": 22880,
+        "category": "Cleaning",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 603,
+        "name": "MF MDWL ZES 1000ML X 12",
+        "price": 30860,
+        "category": "Cleaning",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 604,
+        "name": "MF 700ML ANTB X 12",
+        "price": 22880,
+        "category": "Cleaning",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 605,
+        "name": "MF MDWL 200ML ZEST X24",
+        "price": 16120,
+        "category": "Cleaning",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 701,
+        "name": "CANOE FAB SOAP 120G GLY",
+        "price": 16910,
+        "category": "Laundry",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 702,
+        "name": "CANOE FAB SOAP 180G GLY",
+        "price": 8860,
+        "category": "Laundry",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 703,
+        "name": "CANOE FAB SOAP 220G GLY",
+        "price": 14640,
+        "category": "Laundry",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 704,
+        "name": "CANOE FAB SOAP 220G LEMON",
+        "price": 15530,
+        "category": "Laundry",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 705,
+        "name": "CANOE FAB SOAP 220G SOFT",
+        "price": 15530,
+        "category": "Laundry",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 801,
+        "name": "PREM CN F/BAR 55Gx104",
+        "price": 20840,
+        "category": "Toilet Soap",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 802,
+        "name": "PREMIER SOAP 110G ROSE",
+        "price": 9020,
+        "category": "Toilet Soap",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 803,
+        "name": "PREM CN F/BAR 150G X 32",
+        "price": 15510,
+        "category": "Toilet Soap",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 804,
+        "name": "PREM CN F/BAR 175G X 32",
+        "price": 17470,
+        "category": "Toilet Soap",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 805,
+        "name": "PREM COOL BLACK 60G X12",
+        "price": 28120,
+        "promoPrice": 25000,
+        "isPromo": true,
+        "category": "Toilet Soap",
+        "image": "https://eazylife-electronics.github.io/tejuboss.ent/pictures/products/pcd60g_ult.png",
+        "inStock": true
+    },
+    {
+        "id": 806,
+        "name": "PREMC SOAP MED 110G DEOX",
+        "price": 42990,
+        "category": "Toilet Soap",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 807,
+        "name": "JOY SOAP BTY 65G TNDR",
+        "price": 30250,
+        "category": "Toilet Soap",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 808,
+        "name": "JOY SOFT GLOW 65G",
+        "price": 30250,
+        "category": "Toilet Soap",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 809,
+        "name": "JOY BTY SOAP 140G TNDR",
+        "price": 33660,
+        "category": "Toilet Soap",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 810,
+        "name": "JOY BTY SOAP 150G NOURISH",
+        "price": 35310,
+        "category": "Toilet Soap",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 811,
+        "name": "JOY BLACK SOAP 150G",
+        "price": 43680,
+        "category": "Toilet Soap",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 812,
+        "name": "IL CLASSIC BAR 60G",
+        "price": 33930,
+        "category": "Toilet Soap",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 813,
+        "name": "CAREX ANTIBAC SOAP 110G",
+        "price": 39510,
+        "promoPrice": 33585,
+        "isPromo": true,
+        "category": "Toilet Soap",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 814,
+        "name": "CAREX ANTIBAC SOAP 75G",
+        "price": 30240,
+        "promoPrice": 25705,
+        "isPromo": true,
+        "category": "Toilet Soap",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 815,
+        "name": "CAREX HWLIQ 250ML HERB",
+        "price": 16820,
+        "category": "Toilet Soap",
+        "image": "",
+        "inStock": true
+    },
+    {
+        "id": 171,
+        "name": "Awa Soap 60g",
+        "category": "Body soap",
+        "price": 20000,
+        "promoPrice": 0,
+        "image": "https://via.placeholder.com/300"
+    }
 ]
