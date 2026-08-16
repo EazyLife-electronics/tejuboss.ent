@@ -1,64 +1,70 @@
 // js/firebase.mjs
 // Central Firebase init — imported by shop.html and admin pages.
-// Uses the CDN modular SDK (no npm/build step needed for GitHub Pages).
+// TejuBoss uses its own Firebase project.
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
-// This module only injects markup on Admin pages. It is safe to load from the
-// shared Firebase module and, importantly, runs before admin-app.mjs starts.
+
 import "../admin/js/settings-ui.mjs";
 import "../admin/js/tejuboss-brand.mjs";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBmF_InIyNfcDMeX4VE_EkSdIipz0nWz6g",
-  authDomain: "eazylife-ng.firebaseapp.com",
-  projectId: "eazylife-ng",
-  storageBucket: "eazylife-ng.firebasestorage.app",
-  messagingSenderId: "310295030883",
-  appId: "1:310295030883:web:f6bb12e70d856309995c56",
-  measurementId: "G-07CCF0NFEQ"
+  apiKey: "AIzaSyDssM9wElYg5XwJMS8d_gzOZQuoJ_qd29w",
+  authDomain: "tejuboss-ent.firebaseapp.com",
+  projectId: "tejuboss-ent",
+  storageBucket: "tejuboss-ent.firebasestorage.app",
+  messagingSenderId: "513166880581",
+  appId: "1:513166880581:web:8afd14f8409e0864c5582c",
+  measurementId: "G-195KYYZY1H"
 };
 
-// TODO: replace with the reCAPTCHA v3 site key from Firebase Console ->
-// Build -> App Check -> Apps -> Register (web) -> reCAPTCHA v3. Until this
-// is a real key, App Check tokens won't validate, so leave enforcement OFF
-// in the console until this is set and deployed. See README-app-check.md.
-const RECAPTCHA_V3_SITE_KEY = 'REPLACE_WITH_RECAPTCHA_V3_SITE_KEY';
+// Add the TejuBoss reCAPTCHA v3 site key here later.
+// Leave Firebase App Check enforcement OFF until the real key is added.
+const RECAPTCHA_V3_SITE_KEY = "REPLACE_WITH_RECAPTCHA_V3_SITE_KEY";
 
 let cached = null;
 
 export function initFirebase() {
   if (cached) return cached;
+
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuth(app);
 
-  // App Check attaches a signed attestation token to every Firestore request,
-  // so once enforcement is turned on in the console, scripted/bot traffic
-  // (e.g. brute-forcing order tracking codes) gets rejected before it ever
-  // reaches Firestore. Safe to initialize even before enforcement is enabled.
-  if (RECAPTCHA_V3_SITE_KEY && RECAPTCHA_V3_SITE_KEY !== 'REPLACE_WITH_RECAPTCHA_V3_SITE_KEY') {
+  // Initialize App Check only after a real reCAPTCHA v3 key is supplied.
+  if (
+    RECAPTCHA_V3_SITE_KEY &&
+    RECAPTCHA_V3_SITE_KEY !== "REPLACE_WITH_RECAPTCHA_V3_SITE_KEY"
+  ) {
     try {
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(RECAPTCHA_V3_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
     } catch (err) {
-      console.warn('App Check could not initialize:', err);
+      console.warn("App Check could not initialize:", err);
     }
   }
 
   cached = { app, db, auth };
 
-  // Admin-only modules are loaded after Firebase is initialized so they can
-  // safely use the same Firestore instance without affecting the public shop.
-  if (typeof location !== 'undefined' && location.pathname.includes('/admin/')) {
-    import('../admin/js/purchases.mjs').catch(err => console.warn('Purchase module could not load:', err));
-    import('../admin/js/payments-ui.mjs')
+  // Admin-only modules
+  if (
+    typeof location !== "undefined" &&
+    location.pathname.includes("/admin/")
+  ) {
+    import("../admin/js/purchases.mjs")
+      .catch(err =>
+        console.warn("Purchase module could not load:", err)
+      );
+
+    import("../admin/js/payments-ui.mjs")
       .then(({ initPaymentsUI }) => initPaymentsUI(db))
-      .catch(err => console.warn('Payment UI could not load:', err));
+      .catch(err =>
+        console.warn("Payment UI could not load:", err)
+      );
   }
 
   return cached;
