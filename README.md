@@ -1,2 +1,2 @@
-# tejuboss.ent
-Teju boss enterprise site
+# eazylife.ng
+EazyLife Robotics &amp; Electronics Solutions website
