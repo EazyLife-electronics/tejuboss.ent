@@ -1,13 +1,12 @@
 // admin/js/admin-orders.mjs
-// Orders tab: order list, status advancement, cancellation, and the
-// WhatsApp/SMS messaging helper. Split out of admin-app.mjs.
+// TejuBoss Orders tab: order list, status advancement, cancellation, and
+// the WhatsApp/SMS messaging helper. Split out of admin-app.mjs.
 //
 // IMPORTANT: order-workflow-ui.mjs and order-delivery-bridge.mjs both read
 // the DOM this file renders into #orderList (by class name/structure, not
-// via any shared JS state), so the markup here must stay byte-for-byte
-// compatible with what they expect: a `.bg-white` card per order, a `span`
-// holding the status text, a tracking code in `.text-teal-600`, and the
-// action-button row in `.flex.gap-2.flex-wrap.justify-end`.
+// via any shared JS state), so the markup here must stay compatible with
+// what they expect: a `.bg-white` card per order, a `span` holding the
+// status text, a tracking code, and the action-button row.
 
 import { updateOrderStatus, cancelOrder } from '../../js/store.mjs';
 import { escapeHtml } from './admin-shared.mjs';
@@ -20,16 +19,12 @@ const CANCEL_REASONS = {
   payment_failed: 'Payment could not be confirmed'
 };
 
-// What the customer is told, if anything. 'other' uses the admin's own wording;
-// a null reason means the customer just sees "cancelled" with no explanation.
 function cancelReasonLabel(order) {
   if (!order.cancelReason) return null;
   if (order.cancelReason === 'other') return order.cancelCustomerNote || 'Other';
   return CANCEL_REASONS[order.cancelReason] || null;
 }
 
-// Nigerian numbers can arrive as 0805..., 234805..., or +234805... — WhatsApp's wa.me links
-// need the country-code form with no plus and no leading zero.
 function normalizeForWhatsApp(phone) {
   let digits = (phone || '').replace(/\D/g, '');
   if (digits.startsWith('0')) digits = '234' + digits.slice(1);
@@ -41,7 +36,7 @@ function orderMessageTemplate(order) {
   const name = escapeHtml(order.customerName || 'there');
   const code = escapeHtml(order.trackingCode || order.id);
   const itemsList = (order.items || []).map(i => escapeHtml(i.name)).join(', ');
-  const trackUrl = `https://eazylife.ng/track.html?code=${code}`;
+  const trackUrl = `https://tejuboss.ent/track.html?code=${code}`;
   if (order.status === 'cancelled') {
     const reasonLabel = escapeHtml(cancelReasonLabel(order));
     return reasonLabel
@@ -49,14 +44,13 @@ function orderMessageTemplate(order) {
       : `Hi ${name}, unfortunately we're unable to fulfill your order (${code}) for ${itemsList} at this time. We're sorry for the inconvenience — reach out to us if you'd like to know more or place a new order.`;
   }
   const templates = {
-    new: `Hi ${name}, thanks for your order with EazyLife! We're confirming your order (${code}) for ${itemsList} and will update you shortly. Track anytime: ${trackUrl}`,
+    new: `Hi ${name}, thanks for your order with Teju Boss! We're confirming your order (${code}) for ${itemsList} and will update you shortly. Track anytime: ${trackUrl}`,
     confirmed: `Hi ${name}, good news — your order (${code}) is confirmed and on its way! We'll reach out again once it's close to delivery. Track: ${trackUrl}`,
-    delivered: `Hi ${name}, your order (${code}) has been delivered. Thank you for shopping with EazyLife — we'd love a quick review if you have a moment!`
+    delivered: `Hi ${name}, your order (${code}) has been delivered. Thank you for shopping with Teju Boss — we'd love a quick review if you have a moment!`
   };
   return templates[order.status] || templates.new;
 }
 
-// Passed directly as the watchOrders() callback.
 export function renderOrderList(orders) {
   document.getElementById('orderList').innerHTML = orders.map(o => {
     const itemsHtml = (o.items || []).map(i => `${escapeHtml(i.name)} × ${Number(i.quantity) || 0}`).join(', ');
@@ -71,7 +65,7 @@ export function renderOrderList(orders) {
           <div>
             <p class="font-bold text-sm text-gray-800">${escapeHtml(o.customerName || 'Unknown')}</p>
             <p class="text-xs text-gray-400">${escapeHtml(o.phone || '')} · ${created}</p>
-            <p class="text-[10px] font-mono text-teal-600 font-bold mt-0.5">${escapeHtml(o.trackingCode || o.id)}</p>
+            <p class="text-[10px] font-mono text-[#E11D48] font-bold mt-0.5">${escapeHtml(o.trackingCode || o.id)}</p>
           </div>
           <span class="text-[10px] font-bold uppercase px-2 py-1 rounded-full ${STATUS_COLORS[o.status] || 'bg-gray-100 text-gray-500'}">${escapeHtml(o.status || 'new')}</span>
         </div>
@@ -84,7 +78,7 @@ export function renderOrderList(orders) {
           </div>
         ` : ''}
         <div class="flex justify-between items-center mb-2">
-          <span class="font-black text-sm text-[#00B09B]">₦${(o.total || 0).toLocaleString()}</span>
+          <span class="font-black text-sm text-[#E11D48]">₦${(o.total || 0).toLocaleString()}</span>
           <div class="flex gap-2 flex-wrap justify-end">
             <button data-msg-toggle="${o.id}" class="text-[10px] bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md font-bold"><i class="fas fa-comment-dots"></i> Message</button>
             ${nextStatus ? `<button data-order="${o.id}" data-next="${nextStatus}" class="advance-order-btn text-[10px] bg-gray-900 text-white px-3 py-1.5 rounded-md font-bold">Mark ${nextStatus}</button>` : ''}
@@ -173,9 +167,6 @@ export function renderOrderList(orders) {
     btn.addEventListener('click', () => {
       const text = document.getElementById(`msgText-${btn.dataset.smsSend}`).value;
       const phone = btn.dataset.phone.trim();
-      // sms: URI body param isn't perfectly standardized across iOS/Android — if it opens
-      // the messages app without the text pre-filled on a given phone, that's a platform quirk,
-      // not a bug here; the composed text above is still there to copy-paste manually.
       window.location.href = `sms:${phone}?body=${encodeURIComponent(text)}`;
     });
   });
