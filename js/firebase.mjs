@@ -9,6 +9,7 @@ import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com
 // This module only injects markup on Admin pages. It is safe to load from the
 // shared Firebase module and, importantly, runs before admin-app.mjs starts.
 import "../admin/js/settings-ui.mjs";
+import "../admin/js/tejuboss-brand.mjs";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBmF_InIyNfcDMeX4VE_EkSdIipz0nWz6g",
