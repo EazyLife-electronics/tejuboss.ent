@@ -1,6 +1,7 @@
-// TejuBoss branding layer.
+// TejuBoss branding + grocery adaptation layer.
 // Keeps the EazyLife admin engine intact while adapting its visible identity
-// for Teju Boss Enterprise. Business logic is intentionally not changed here.
+// and product-editor terminology for Teju Boss Enterprise.
+// Business logic and Firestore collection names remain unchanged.
 
 const BRAND = {
   shortName: 'Teju Boss',
@@ -36,15 +37,17 @@ function applyBranding() {
   document.documentElement.style.setProperty('--teal', BRAND.accent);
   document.documentElement.style.setProperty('--lime', BRAND.accentDark);
 
-  const style = document.createElement('style');
-  style.id = 'tejuboss-brand-overrides';
-  style.textContent = `
-    .bg-eazylife { background: linear-gradient(135deg, ${BRAND.accent}, ${BRAND.accentDark}) !important; }
-    .text-\\[\\#00B09B\\] { color: ${BRAND.accent} !important; }
-    .focus\\:ring-2.focus\\:ring-\\[\\#00B09B\\]:focus { --tw-ring-color: ${BRAND.accent} !important; }
-    .border-\\[\\#00B09B\\] { border-color: ${BRAND.accent} !important; }
-  `;
-  document.head.appendChild(style);
+  if (!document.getElementById('tejuboss-brand-overrides')) {
+    const style = document.createElement('style');
+    style.id = 'tejuboss-brand-overrides';
+    style.textContent = `
+      .bg-eazylife { background: linear-gradient(135deg, ${BRAND.accent}, ${BRAND.accentDark}) !important; }
+      .text-\\[\\#00B09B\\] { color: ${BRAND.accent} !important; }
+      .focus\\:ring-2.focus\\:ring-\\[\\#00B09B\\]:focus { --tw-ring-color: ${BRAND.accent} !important; }
+      .border-\\[\\#00B09B\\] { border-color: ${BRAND.accent} !important; }
+    `;
+    document.head.appendChild(style);
+  }
 
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   const nodes = [];
@@ -53,12 +56,26 @@ function applyBranding() {
   replaceAttributes(document);
 }
 
-if (typeof document !== 'undefined' && location.pathname.includes('/admin/')) {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', applyBranding, { once: true });
-  } else {
-    applyBranding();
+async function loadGroceryAdaptation() {
+  try {
+    await import('./tejuboss-grocery.mjs');
+  } catch (err) {
+    console.warn('TejuBoss grocery adaptation could not load:', err);
   }
+}
+
+if (typeof document !== 'undefined' && location.pathname.includes('/admin/')) {
+  const start = () => {
+    applyBranding();
+    loadGroceryAdaptation();
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else {
+    start();
+  }
+
   new MutationObserver(mutations => {
     for (const mutation of mutations) {
       mutation.addedNodes.forEach(node => {
