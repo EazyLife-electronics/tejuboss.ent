@@ -1,24 +1,21 @@
-// TejuBoss branding + grocery adaptation layer.
-// Keeps the EazyLife admin engine intact while adapting its visible identity
-// and product-editor terminology for Teju Boss Enterprise.
-// Business logic and Firestore collection names remain unchanged.
+// Teju Boss Enterprise — admin theme + defensive text safety net.
+// The storefront and admin HTML/CSS already carry Teju Boss branding directly
+// in source. This file just (a) sets the CSS accent variables the admin shell
+// reads, and (b) catches any stray "EazyLife" text that might still surface
+// from old cached data (e.g. a product typed before the rename), so nothing
+// EazyLife-branded is ever shown to a Teju Boss customer or admin.
 
 const BRAND = {
   shortName: 'Teju Boss',
-  fullName: 'Teju Boss Enterprise',
-  accent: '#E11D48',
-  accentDark: '#BE123C'
+  accent: '#DC2626',
+  accentDark: '#B91C1C'
 };
 
 function replaceText(node) {
   if (node.nodeType !== Node.TEXT_NODE) return;
   const value = node.nodeValue;
   if (!value || !/EazyLife/i.test(value)) return;
-  node.nodeValue = value
-    .replace(/EazyLife Robotics & Electronics Solutions/gi, BRAND.fullName)
-    .replace(/EazyLife Admin/gi, `${BRAND.shortName} Admin`)
-    .replace(/EazyLife Customers/gi, `${BRAND.shortName} Customers`)
-    .replace(/EazyLife/gi, BRAND.shortName);
+  node.nodeValue = value.replace(/EazyLife/gi, BRAND.shortName);
 }
 
 function replaceAttributes(root) {
@@ -33,21 +30,8 @@ function replaceAttributes(root) {
 }
 
 function applyBranding() {
-  document.title = document.title.replace(/EazyLife/gi, BRAND.shortName);
   document.documentElement.style.setProperty('--teal', BRAND.accent);
   document.documentElement.style.setProperty('--lime', BRAND.accentDark);
-
-  if (!document.getElementById('tejuboss-brand-overrides')) {
-    const style = document.createElement('style');
-    style.id = 'tejuboss-brand-overrides';
-    style.textContent = `
-      .bg-eazylife { background: linear-gradient(135deg, ${BRAND.accent}, ${BRAND.accentDark}) !important; }
-      .text-\\[\\#00B09B\\] { color: ${BRAND.accent} !important; }
-      .focus\\:ring-2.focus\\:ring-\\[\\#00B09B\\]:focus { --tw-ring-color: ${BRAND.accent} !important; }
-      .border-\\[\\#00B09B\\] { border-color: ${BRAND.accent} !important; }
-    `;
-    document.head.appendChild(style);
-  }
 
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   const nodes = [];
@@ -60,7 +44,7 @@ async function loadGroceryAdaptation() {
   try {
     await import('./tejuboss-grocery.mjs');
   } catch (err) {
-    console.warn('TejuBoss grocery adaptation could not load:', err);
+    console.warn('Teju Boss grocery adaptation could not load:', err);
   }
 }
 

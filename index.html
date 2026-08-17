@@ -5,102 +5,91 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script>
     (function () {
-      var saved = localStorage.getItem('eazylife-theme');
+      var saved = localStorage.getItem('tejuboss-theme');
       var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
       document.documentElement.setAttribute('data-theme', theme);
     })();
   </script>
-  <title>EazyLife | Robotics & Electronics Solutions — Ibadan, Nigeria</title>
-  <meta name="description" content="EazyLife Robotics & Electronics Solutions — Premium laptops, custom Arduino/ESP32 embedded systems, and professional device repairs in Ibadan, Nigeria. CAC Registered RC-9462420." />
-  <meta name="keywords" content="laptop Ibadan, electronics Ibadan, Arduino Nigeria, ESP32 Ibadan, laptop repair Ibadan, robotics Nigeria, embedded systems Nigeria, HP Dell laptop Ibadan" />
+  <title>Teju Boss Enterprise | Groceries &amp; Household Essentials, Nigeria</title>
+  <meta name="description" content="Teju Boss Enterprise — groceries, household essentials and everyday must-haves at honest prices, with fast WhatsApp ordering and delivery." />
+  <meta name="keywords" content="groceries Nigeria, household essentials, PZ Cussons products, wholesale groceries, online grocery shop Nigeria, WhatsApp shopping" />
   <meta name="robots" content="index, follow" />
-  <meta name="theme-color" content="#00B09B" />
-  <meta name="geo.region" content="NG-OY" />
-  <meta name="geo.placename" content="Ibadan" />
+  <meta name="theme-color" content="#DC2626" />
+  <!-- TODO: set geo.region / geo.placename once the business address is confirmed -->
   <!-- Open Graph for social sharing -->
-  <meta property="og:title" content="EazyLife | Robotics & Electronics Solutions — Ibadan" />
-  <meta property="og:description" content="EazyLife offers genuine HP & Dell laptops, custom Arduino/ESP32 embedded systems, and professional electronics repairs in Ibadan, Nigeria." />
-  <meta property="og:url" content="https://eazylife.ng" />
+  <meta property="og:title" content="Teju Boss Enterprise | Groceries & Household Essentials" />
+  <meta property="og:description" content="Teju Boss Enterprise — groceries, household essentials and everyday must-haves at honest prices, with fast WhatsApp ordering and delivery." />
+  <meta property="og:url" content="https://tejuboss.ent" />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://eazylife.ng/assets/pictures/og-image.png" />
+  <meta property="og:image" content="https://tejuboss.ent/assets/pictures/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:locale" content="en_NG" />
-  <meta property="og:site_name" content="EazyLife Robotics & Electronics Solutions" />
+  <meta property="og:site_name" content="Teju Boss Enterprise" />
   <!-- Twitter/X Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="EazyLife | Robotics & Electronics Solutions — Ibadan" />
-  <meta name="twitter:description" content="EazyLife offers genuine HP & Dell laptops, custom Arduino/ESP32 embedded systems, and professional electronics repairs in Ibadan, Nigeria." />
-  <meta name="twitter:image" content="https://eazylife.ng/assets/pictures/og-image.png" />
+  <meta name="twitter:title" content="Teju Boss Enterprise | Groceries & Household Essentials" />
+  <meta name="twitter:description" content="Teju Boss Enterprise — groceries, household essentials and everyday must-haves at honest prices, with fast WhatsApp ordering and delivery." />
+  <meta name="twitter:image" content="https://tejuboss.ent/assets/pictures/og-image.png" />
   <!-- Canonical -->
-  <link rel="canonical" href="https://eazylife.ng/" />
+  <link rel="canonical" href="https://tejuboss.ent/" />
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="https://eazylife.ng/assets/pictures/icon_dark.png" />
-  <link rel="apple-touch-icon" href="https://eazylife.ng/assets/pictures/icon_dark.png" />
-  <!-- Schema.org LocalBusiness structured data -->
+  <link rel="icon" type="image/png" href="https://tejuboss.ent/assets/pictures/icon_dark.png" />
+  <link rel="apple-touch-icon" href="https://tejuboss.ent/assets/pictures/icon_dark.png" />
+  <!--
+    Schema.org LocalBusiness structured data.
+    TODO before launch: fill in real streetAddress/addressLocality/addressRegion/
+    postalCode, geo coordinates, email, opening hours, and social links below —
+    these were intentionally left as placeholders rather than carried over from
+    the old business this template was adapted from.
+  -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "name": "EazyLife Robotics & Electronics Solutions",
-    "description": "Premium laptops, custom Arduino/ESP32 embedded systems, and professional device repairs in Ibadan, Nigeria.",
-    "url": "https://eazylife.ng",
-    "logo": "https://eazylife.ng/assets/pictures/logo_white.png",
-    "image": "https://eazylife.ng/assets/pictures/logo_white.png",
-    "telephone": "+2347051548082",
-    "email": "damzyeazy@gmail.com",
+    "@type": "GroceryStore",
+    "name": "Teju Boss Enterprise",
+    "description": "Groceries, household essentials and everyday must-haves at honest prices, with fast WhatsApp ordering and delivery.",
+    "url": "https://tejuboss.ent",
+    "logo": "https://tejuboss.ent/assets/pictures/logo_white.png",
+    "image": "https://tejuboss.ent/assets/pictures/logo_white.png",
+    "telephone": "+2347079557886",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "6 Ososami Road, Oke-ado",
-      "addressLocality": "Ibadan",
-      "addressRegion": "Oyo State",
-      "postalCode": "200253",
+      "streetAddress": "[Add street address]",
+      "addressLocality": "[Add city]",
+      "addressRegion": "[Add state]",
       "addressCountry": "NG"
     },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": 7.3775,
-      "longitude": 3.9171
-    },
-    "openingHours": "Mo-Sa 08:00-18:00",
     "priceRange": "₦₦",
     "currenciesAccepted": "NGN",
     "paymentAccepted": "Cash, Bank Transfer",
-    "areaServed": {
-      "@type": "City",
-      "name": "Ibadan"
-    },
-    "sameAs": [
-      "https://www.facebook.com/share/18UAAaL3xe/",
-      "https://www.instagram.com/eazylifeng",
-      "https://maps.app.goo.gl/wgWmKP8UQYWbf5np9"
-    ],
+    "sameAs": [],
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
-      "name": "EazyLife Services",
+      "name": "Teju Boss Services",
       "itemListElement": [
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": "Laptop & Electronics Sales",
-            "description": "Genuine HP and Dell laptops, TVs, phones and accessories at honest prices."
+            "name": "Groceries & Household Essentials",
+            "description": "Packaged foods, toiletries, cleaning supplies and everyday essentials at honest prices."
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": "Embedded Systems & Robotics",
-            "description": "Custom Arduino and ESP32-based automation, IoT, and robotics solutions."
+            "name": "Bulk & Wholesale Orders",
+            "description": "Carton and pack pricing for shops, resellers and bulk buyers."
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": "Electronics Repairs & Technical Support",
-            "description": "Professional laptop, TV and electronics repair and diagnostics in Ibadan."
+            "name": "Fast WhatsApp Ordering & Delivery",
+            "description": "Order directly on WhatsApp and get it delivered to your door."
           }
         }
       ]
@@ -117,16 +106,16 @@
 
   <style>
     :root {
-      --teal: #00B09B;
-      --teal-dark: #008a78;
-      --teal-light: #e0f7f5;
-      --lime: #8DC63F;
-      --lime-dark: #6fa02e;
-      --lime-light: #f0f9e0;
-      --grad: linear-gradient(135deg, #00B09B, #8DC63F);
-      --grad-hover: linear-gradient(135deg, #008a78, #6fa02e);
-      --dark: #1a2e2b;
-      --dark2: #162420;
+      --teal: #DC2626;
+      --teal-dark: #B91C1C;
+      --teal-light: #FEE2E2;
+      --lime: #F87171;
+      --lime-dark: #000000;
+      --lime-light: #F3F4F6;
+      --grad: linear-gradient(135deg, #DC2626, #991B1B);
+      --grad-hover: linear-gradient(135deg, #991B1B, #7F1D1D);
+      --dark: #0a0a0a;
+      --dark2: #000000;
       --text: #2d3748;
       --text-light: #64748b;
       --white: #ffffff;
@@ -147,7 +136,7 @@
     .container { max-width: 1160px; margin: 0 auto; padding: 0 20px; }
     section { padding: 56px 0; }
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 24px; border-radius: 999px; font-weight: 700; font-size: 0.9rem; border: none; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
-    .btn-primary { background: var(--grad); color: #fff; box-shadow: 0 8px 24px rgba(0,176,155,0.28); }
+    .btn-primary { background: var(--grad); color: #fff; box-shadow: 0 8px 24px rgba(220,38,38,0.28); }
     .btn-primary:active { transform: scale(0.97); }
     .btn-outline { background: #fff; color: var(--dark); border: 1.5px solid var(--border); }
     .btn-wa { background: #25D366; color: #fff; }
@@ -279,12 +268,12 @@
       .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; }
     }
     :root[data-theme="dark"] {
-      --dm-bg: #10181a; --dm-surface: #1a2422; --dm-surface-2: #202b29;
-      --dm-text: #eef2f0; --dm-text-light: #9fb0ac; --dm-border: #2c3a37;
+      --dm-bg: #121212; --dm-surface: #1c1c1c; --dm-surface-2: #242424;
+      --dm-text: #f5f5f5; --dm-text-light: #a3a3a3; --dm-border: #2e2e2e;
     }
     :root[data-theme="dark"] body { background: var(--dm-bg); color: var(--dm-text); }
     :root[data-theme="dark"] .nav { background: rgba(16,24,26,0.92); border-bottom-color: var(--dm-border); }
-    :root[data-theme="dark"] .hero { background: linear-gradient(180deg, #163330 0%, var(--dm-bg) 100%); }
+    :root[data-theme="dark"] .hero { background: linear-gradient(180deg, #2a1414 0%, var(--dm-bg) 100%); }
     :root[data-theme="dark"] .hero-badge { background: var(--dm-surface); border-color: var(--dm-border); color: var(--dm-text); }
     :root[data-theme="dark"] .section-title { color: var(--dm-text); }
     :root[data-theme="dark"] .hero h1,
@@ -328,7 +317,7 @@
   <!-- NAV -->
   <nav class="nav">
     <div class="nav-inner">
-      <a href="#" class="nav-logo"><img id="navLogo" src="assets/pictures/logo_black_transparent.png" alt="EazyLife" style="height:34px;width:auto;display:block;"></a>
+      <a href="#" class="nav-logo"><img id="navLogo" src="assets/pictures/logo_black_transparent.png" alt="Teju Boss" style="height:34px;width:auto;display:block;"></a>
       <div class="nav-actions">
         <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode" type="button"><i class="fas fa-moon"></i></button>
         <a href="shop.html#cart" id="navCartBtn" class="btn btn-outline" style="position:relative; display:none;">
@@ -337,7 +326,7 @@
         </a>
         <a href="shop.html" class="btn btn-outline"><i class="fas fa-shopping-basket"></i> Shop</a>
         <a href="track.html" class="btn btn-outline" title="Track Order"><i class="fas fa-truck-fast"></i></a>
-        <a href="https://wa.me/2347051548082" target="_blank" class="btn btn-wa"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://wa.me/2347079557886" target="_blank" class="btn btn-wa"><i class="fab fa-whatsapp"></i></a>
       </div>
     </div>
   </nav>
@@ -346,14 +335,14 @@
   <section class="hero" aria-label="Introduction">
     <div class="container">
       <div class="hero-badges">
-        <span class="hero-badge"><i class="fas fa-circle-check"></i> CAC Registered — RC-9462420</span>
-        <span class="hero-badge"><i class="fas fa-shield-halved"></i> No Tokunbo Surprises</span>
+        <span class="hero-badge"><i class="fas fa-shield-halved"></i> Genuine Products, No Fakes</span>
+        <span class="hero-badge"><i class="fab fa-whatsapp"></i> Order Directly on WhatsApp</span>
       </div>
-      <h1>Genuine Devices, <span>Honest Prices.</span><br>Ibadan's Trusted Tech Partner.</h1>
-      <p class="lead">Laptops, phones, embedded systems, repairs — and the partners you need for components or training. All in one place.</p>
+      <h1>Everyday Essentials, <span>Honest Prices.</span><br>Your Store For Groceries &amp; More.</h1>
+      <p class="lead">Groceries, household essentials and everyday must-haves — ordered easily and delivered fast, whether you're stocking your home or your shop.</p>
       <div class="hero-ctas">
         <a href="shop.html" class="btn btn-primary"><i class="fas fa-shopping-basket"></i> Shop Now</a>
-        <a href="#services" class="btn btn-outline">Explore Services</a>
+        <a href="#services" class="btn btn-outline">What We Offer</a>
       </div>
     </div>
   </section>
@@ -389,68 +378,54 @@
     <div class="container">
       <div class="section-label">What We Do</div>
       <h2 class="section-title">More Than Just A Shop</h2>
-      <p class="section-sub" style="margin-bottom:28px;">Four ways we help — two we deliver directly, two through trusted partners.</p>
+      <p class="section-sub" style="margin-bottom:28px;">Everyday essentials, sourced honestly and delivered fast.</p>
       <div class="services-strip">
         <div class="service-card">
-          <div class="service-icon"><i class="fas fa-laptop"></i></div>
-          <h3>Laptops & Devices</h3>
-          <p>Genuine UK-used laptops, phones and accessories — inspected, honestly priced, no surprises.</p>
-          <a href="shop.html?category=Laptops" class="service-link">Shop laptops <i class="fas fa-arrow-right"></i></a>
+          <div class="service-icon"><i class="fas fa-basket-shopping"></i></div>
+          <h3>Groceries &amp; Household Essentials</h3>
+          <p>Packaged foods, toiletries, cleaning supplies and everyday essentials — always in stock, always honestly priced.</p>
+          <a href="shop.html" class="service-link">Shop groceries <i class="fas fa-arrow-right"></i></a>
         </div>
         <div class="service-card">
-          <div class="service-icon"><i class="fas fa-screwdriver-wrench"></i></div>
-          <h3>Repairs & Diagnostics</h3>
-          <p>Professional repair for laptops, TVs and electronics — diagnosed properly, fixed right.</p>
-          <a href="https://wa.me/2347051548082?text=Hello%20EazyLife,%20I%20need%20help%20with%20repairs." target="_blank" class="service-link">Book a repair <i class="fas fa-arrow-right"></i></a>
+          <div class="service-icon"><i class="fas fa-boxes-stacked"></i></div>
+          <h3>Bulk &amp; Wholesale Orders</h3>
+          <p>Stocking a shop or buying for a large household? Ask about carton and pack pricing on your favourite items.</p>
+          <a href="https://wa.me/2347079557886?text=Hello%20Teju%20Boss,%20I%20want%20to%20place%20a%20bulk%2Fwholesale%20order." target="_blank" class="service-link">Ask about bulk pricing <i class="fas fa-arrow-right"></i></a>
         </div>
         <div class="service-card">
           <div class="service-icon"><i class="fas fa-magnifying-glass-dollar"></i></div>
-          <h3>Tell Us Your Budget</h3>
-          <p>Don't see the exact phone or laptop you want? Give us your budget — we source it, even beyond what's currently in stock. Delivery stays fast either way.</p>
-          <a href="shop.html" class="service-link">Make a request <i class="fas fa-arrow-right"></i></a>
+          <h3>Can't Find It?</h3>
+          <p>Don't see the exact item or brand you want? Tell us what you're looking for and we'll try to source it for you.</p>
+          <a href="https://wa.me/2347079557886?text=Hello%20Teju%20Boss,%20I%20am%20looking%20for%20an%20item%20I%20can't%20find%20in%20the%20shop." target="_blank" class="service-link">Make a request <i class="fas fa-arrow-right"></i></a>
         </div>
         <div class="service-card">
-          <div class="service-icon"><i class="fas fa-chalkboard-user"></i></div>
-          <h3>On-Site Training & Consultancy</h3>
-          <p>Need hands-on embedded systems training or technical consultancy at your location? We deliver this directly, ourselves.</p>
-          <a href="https://wa.me/2347051548082?text=Hello%20EazyLife,%20I%20am%20interested%20in%20on-site%20training%20or%20consultancy." target="_blank" class="service-link">Ask us <i class="fas fa-arrow-right"></i></a>
-        </div>
-        <div class="service-card">
-          <div class="service-tag" id="componentsTag">Partner Network</div>
-          <div class="service-icon"><i class="fas fa-layer-group"></i></div>
-          <h3>Electronic Components</h3>
-          <p id="componentsText">Need sensors, modules or other components beyond our own stock? We connect you with a trusted components partner.</p>
-          <a href="https://wa.me/2347051548082?text=Hello%20EazyLife,%20I%20am%20looking%20for%20electronic%20components." target="_blank" class="service-link">Ask us <i class="fas fa-arrow-right"></i></a>
-        </div>
-        <div class="service-card">
-          <div class="service-tag" id="trainingTag">Partner Network</div>
-          <div class="service-icon"><i class="fas fa-graduation-cap"></i></div>
-          <h3>Industrial Training Placement</h3>
-          <p id="trainingText">Looking for IT / SIWES placement? We refer you to a vetted training partner.</p>
-          <a href="https://wa.me/2347051548082?text=Hello%20EazyLife,%20I%20am%20interested%20in%20industrial%20training." target="_blank" class="service-link">Ask us <i class="fas fa-arrow-right"></i></a>
+          <div class="service-icon"><i class="fas fa-truck-fast"></i></div>
+          <h3>Fast WhatsApp Ordering &amp; Delivery</h3>
+          <p>Order directly on WhatsApp, track your order, and get it delivered to your door — no app download needed.</p>
+          <a href="https://wa.me/2347079557886?text=Hello%20Teju%20Boss,%20I%20am%20interested%20in%20your%20products." target="_blank" class="service-link">Chat with us <i class="fas fa-arrow-right"></i></a>
         </div>
       </div>
     </div>
   </section>
 
   <!-- TRUST / ABOUT (dynamic aboutText from settings, falls back to static copy) -->
-  <section aria-label="About EazyLife">
+  <section aria-label="About Teju Boss">
     <div class="trust-section">
-      <div class="section-label">Why EazyLife</div>
+      <div class="section-label">Why Teju Boss</div>
       <h2 class="section-title">Built On Trust, Not Just Transactions</h2>
-      <p class="section-sub" id="aboutText">We are an Ibadan-based technology company committed to delivering quality electronics and smart solutions at honest prices.</p>
+      <p class="section-sub" id="aboutText">We're a general merchant committed to getting you genuine groceries and household essentials at honest prices, every time.</p>
       <div class="trust-grid">
         <div class="trust-item">
-          <i class="fas fa-certificate"></i>
-          <div><h4>CAC Registered</h4><p>Officially registered business — RC-9462420.</p></div>
+          <i class="fas fa-shield-halved"></i>
+          <div><h4>Genuine Products</h4><p>No expired stock, no fakes — what you order is what you get.</p></div>
         </div>
         <div class="trust-item">
-          <i class="fas fa-globe"></i>
-          <div><h4>Verified Domain</h4><p>eazylife.ng — a real, verified .ng business domain.</p></div>
+          <i class="fas fa-truck-fast"></i>
+          <div><h4>Fast Delivery</h4><p>Order today, get it delivered fast — no long waiting.</p></div>
         </div>
         <div class="trust-item">
-          <i class="fas fa-eye"></i>
-          <div><h4>No Tokunbo Surprises</h4><p>What we describe is what you get — inspected and honestly graded.</p></div>
+          <i class="fas fa-tags"></i>
+          <div><h4>Fair, Honest Pricing</h4><p>No inflated prices — what you see is what you pay.</p></div>
         </div>
         <div class="trust-item">
           <i class="fas fa-comments"></i>
@@ -465,16 +440,16 @@
     <div class="container">
       <div class="section-label">Customer Reviews</div>
       <h2 class="section-title">What People Are Saying</h2>
-      <p class="section-sub" style="margin-bottom:28px;">Real feedback from real customers in Ibadan.</p>
+      <p class="section-sub" style="margin-bottom:28px;">Real feedback from real customers.</p>
       <div class="testimonials-grid" id="reviewsGrid">
         <div style="text-align:center;padding:40px;color:var(--text-light);font-size:0.9rem;grid-column:1/-1;">Loading reviews...</div>
       </div>
 
       <div class="review-form-wrap">
         <h3>Share Your Experience</h3>
-        <p>Used EazyLife? We'd love your honest feedback. Approved reviews appear on this page.</p>
+        <p>Used Teju Boss? We'd love your honest feedback. Approved reviews appear on this page.</p>
         <form id="reviewForm" action="https://formspree.io/f/xzdozlbk" method="POST">
-          <input type="hidden" name="_subject" value="New EazyLife Review Submission" />
+          <input type="hidden" name="_subject" value="New Teju Boss Review Submission" />
           <div class="form-row">
             <div class="form-group">
               <label for="r-name">Your Name *</label>
@@ -482,7 +457,7 @@
             </div>
             <div class="form-group">
               <label for="r-title">Occupation / Location</label>
-              <input type="text" id="r-title" name="title" placeholder="e.g. Student, Ibadan" />
+              <input type="text" id="r-title" name="title" placeholder="e.g. Regular customer" />
             </div>
           </div>
           <div class="form-group">
@@ -498,58 +473,58 @@
           </div>
           <div class="form-group">
             <label for="r-text">Your Review *</label>
-            <textarea id="r-text" name="review" placeholder="Tell others about your experience with EazyLife..." required></textarea>
+            <textarea id="r-text" name="review" placeholder="Tell others about your experience with Teju Boss..." required></textarea>
           </div>
           <input type="text" name="_gotcha" style="display:none" />
-          <button type="submit" class="btn-submit"><i class="fas fa-paper-plane"></i> Submit Review</button>
-          <div class="form-success" id="formSuccess">
-            <i class="fas fa-circle-check"></i>
-            <p>Thank you! Your review has been received and will appear here once approved.</p>
-          </div>
+          <button type="submit" class="btn-submit" id="reviewSubmitBtn"><i class="fas fa-paper-plane"></i> Submit Review</button>
         </form>
+        <div class="form-success" id="formSuccess">
+          <i class="fas fa-circle-check"></i>
+          <p>Thank you! Your review has been received and will appear here once approved.</p>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- CONTACT -->
-  <section id="contact" aria-label="Contact EazyLife">
+  <section id="contact" aria-label="Contact Teju Boss">
     <div class="container contact-grid">
       <div>
         <div class="section-label">Get in Touch</div>
-        <h2 class="section-title">Find &amp; Contact EazyLife</h2>
-        <p class="section-sub" style="margin-bottom:24px;">We're based in Ibadan. Reach us on WhatsApp, visit our location, or connect on social media.</p>
+        <h2 class="section-title">Find &amp; Contact Teju Boss</h2>
+        <p class="section-sub" style="margin-bottom:24px;">Reach us on WhatsApp — it's the fastest way to order or ask a question.</p>
         <div class="contact-info">
-          <a href="https://wa.me/2347051548082" target="_blank" class="contact-item">
+          <a href="https://wa.me/2347079557886" target="_blank" class="contact-item">
             <i class="fab fa-whatsapp"></i>
-            <div><h4>WhatsApp</h4><p>+234 705 154 8082 — Fastest way to reach us</p></div>
+            <div><h4>WhatsApp</h4><p>+234 707 955 7886 — Fastest way to reach us</p></div>
           </a>
-          <a href="https://maps.app.goo.gl/wgWmKP8UQYWbf5np9" target="_blank" class="contact-item">
+          <a href="[MAPS_URL]" target="_blank" class="contact-item">
             <i class="fas fa-location-dot"></i>
-            <div><h4>Our Location</h4><p>6 Ososami Road, Oke-ado, Ibadan, Oyo State</p></div>
+            <div><h4>Our Location</h4><p>[Address], [City], [State]</p></div>
           </a>
-          <a href="mailto:damzyeazy@gmail.com" class="contact-item">
+          <a href="mailto:[email]" class="contact-item">
             <i class="fas fa-envelope"></i>
-            <div><h4>Email</h4><p>damzyeazy@gmail.com</p></div>
+            <div><h4>Email</h4><p>[email]</p></div>
           </a>
         </div>
       </div>
       <div>
         <h3 class="follow-heading" style="font-size:1rem;font-weight:700;margin-bottom:16px;">Follow Us Online</h3>
         <div class="social-cards">
-          <a href="https://wa.me/2347051548082?text=Hello%20EazyLife,%20I%20am%20interested%20in%20your%20services." target="_blank" rel="noopener" class="social-card sc-wa">
+          <a href="https://wa.me/2347079557886?text=Hello%20Teju%20Boss,%20I%20am%20interested%20in%20your%20products." target="_blank" rel="noopener" class="social-card sc-wa">
             <div class="social-card-left"><div class="social-card-icon"><i class="fab fa-whatsapp"></i></div><div><h4>WhatsApp</h4><p>Chat with us directly</p></div></div>
             <i class="fas fa-arrow-right"></i>
           </a>
-          <a href="https://www.facebook.com/share/18UAAaL3xe/" target="_blank" rel="noopener" class="social-card sc-fb">
-            <div class="social-card-left"><div class="social-card-icon"><i class="fab fa-facebook-f"></i></div><div><h4>Facebook</h4><p>EazyLife Robotics & Electronics</p></div></div>
+          <a href="[FACEBOOK_URL]" target="_blank" rel="noopener" class="social-card sc-fb">
+            <div class="social-card-left"><div class="social-card-icon"><i class="fab fa-facebook-f"></i></div><div><h4>Facebook</h4><p>Teju Boss Enterprise</p></div></div>
             <i class="fas fa-arrow-right"></i>
           </a>
-          <a href="https://www.instagram.com/eazylifeng" target="_blank" rel="noopener" class="social-card sc-ig">
-            <div class="social-card-left"><div class="social-card-icon"><i class="fab fa-instagram"></i></div><div><h4>Instagram</h4><p>@eazylifeng</p></div></div>
+          <a href="[INSTAGRAM_URL]" target="_blank" rel="noopener" class="social-card sc-ig">
+            <div class="social-card-left"><div class="social-card-icon"><i class="fab fa-instagram"></i></div><div><h4>Instagram</h4><p>@[instagram_handle]</p></div></div>
             <i class="fas fa-arrow-right"></i>
           </a>
-          <a href="https://maps.app.goo.gl/wgWmKP8UQYWbf5np9" target="_blank" rel="noopener" class="social-card sc-gm">
-            <div class="social-card-left"><div class="social-card-icon"><i class="fas fa-location-dot"></i></div><div><h4>Google Maps</h4><p>6 Ososami Rd, Oke-ado, Ibadan</p></div></div>
+          <a href="[MAPS_URL]" target="_blank" rel="noopener" class="social-card sc-gm">
+            <div class="social-card-left"><div class="social-card-icon"><i class="fas fa-map-marker-alt"></i></div><div><h4>Google Maps</h4><p>[Address], [City]</p></div></div>
             <i class="fas fa-arrow-right"></i>
           </a>
         </div>
@@ -558,7 +533,7 @@
   </section>
 
   <footer class="site-footer">
-    &copy; <span id="year"></span> EazyLife Robotics & Electronics Solutions. CAC RC-9462420. Ibadan, Nigeria.
+    &copy; <span id="year"></span> Teju Boss Enterprise.
   </footer>
 
   <script>
@@ -582,7 +557,7 @@
     // back to the homepage is reminded they left items waiting.
     (function showCartReminder() {
       try {
-        var cart = JSON.parse(localStorage.getItem('eazylife_cart_v2')) || [];
+        var cart = JSON.parse(localStorage.getItem('tejuboss_cart_v2')) || [];
         var totalQty = cart.reduce(function (a, b) { return a + (b.quantity || 0); }, 0);
         if (totalQty > 0) {
           document.getElementById('navCartCount').textContent = totalQty;
@@ -595,48 +570,65 @@
       var current = document.documentElement.getAttribute('data-theme');
       var next = current === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('eazylife-theme', next);
+      localStorage.setItem('tejuboss-theme', next);
       applyThemeVisuals();
     });
 
     // If the person hasn't manually chosen a theme, keep following the system preference live
-    if (window.matchMedia && !localStorage.getItem('eazylife-theme')) {
+    if (window.matchMedia && !localStorage.getItem('tejuboss-theme')) {
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
         document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
         applyThemeVisuals();
       });
     }
 
-    // Formspree review submission (email backup) + direct Firestore write (shows in admin instantly, unapproved)
+    // Direct Firestore write (shows in admin Reviews tab instantly, unapproved) is the
+    // primary path — it's what actually makes the review usable. Formspree is only a
+    // best-effort email courtesy copy and must never block success or trigger the error
+    // alert on its own; a review that saved to Firestore is a successful submission.
+    //
+    // NOTE: this Formspree form ID (xzdozlbk) still belongs to the original EazyLife
+    // account/domain. Create your own form at formspree.io and swap the ID below —
+    // until then this line will keep failing silently (by design) and no email copy
+    // will be sent, but the review still saves correctly to Firestore either way.
     document.getElementById('reviewForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       const form = e.target;
+      const btn = document.getElementById('reviewSubmitBtn');
+      if (btn.disabled) return; // guard against double-clicks firing a second submit mid-flight
+      const originalBtnHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
       const data = new FormData(form);
+      let savedToFirestore = false;
       try {
-        const res = await fetch(form.action, { method: 'POST', body: data, headers: { 'Accept': 'application/json' } });
+        const { addReview } = await import('./js/store.mjs');
+        await addReview({
+          name: data.get('name') || '',
+          title: data.get('title') || '',
+          stars: parseInt(data.get('stars'), 10) || 0,
+          text: data.get('review') || '',
+          approved: false
+        });
+        savedToFirestore = true;
+      } catch (fsErr) {
+        console.error('Firestore review save failed:', fsErr);
+      }
 
-        // Also save directly to Firestore so it shows up in the admin Reviews tab right away (unapproved until you approve it)
-        try {
-          const { addReview } = await import('./js/store.mjs');
-          await addReview({
-            name: data.get('name') || '',
-            title: data.get('title') || '',
-            stars: parseInt(data.get('stars'), 10) || 0,
-            text: data.get('review') || '',
-            approved: false
-          });
-        } catch (fsErr) {
-          console.error('Firestore review save failed (email copy still sent):', fsErr);
-        }
+      try {
+        await fetch(form.action, { method: 'POST', body: data, headers: { 'Accept': 'application/json' } });
+      } catch (emailErr) {
+        console.warn('Formspree email copy failed (not fatal):', emailErr);
+      }
 
-        if (res.ok) {
-          form.style.display = 'none';
-          document.getElementById('formSuccess').classList.add('show');
-        } else {
-          alert('Something went wrong sending your review. Please try again or message us on WhatsApp.');
-        }
-      } catch (err) {
+      if (savedToFirestore) {
+        form.style.display = 'none';
+        document.getElementById('formSuccess').classList.add('show');
+      } else {
         alert('Something went wrong sending your review. Please try again or message us on WhatsApp.');
+        btn.disabled = false;
+        btn.innerHTML = originalBtnHtml;
       }
     });
   </script>
@@ -791,19 +783,12 @@
       }
     }
 
-    // ── ABOUT TEXT + REFERRAL MODE TOGGLE (dynamic from settings) ──
+    // ── ABOUT TEXT (dynamic from settings, falls back to static copy) ──
     async function loadAboutText() {
       try {
         const settings = await getSettings();
         if (settings.aboutText) {
           document.getElementById('aboutText').textContent = settings.aboutText;
-        }
-        const referralMode = settings.referralMode !== false; // defaults to true
-        if (!referralMode) {
-          document.getElementById('componentsTag').textContent = 'Direct';
-          document.getElementById('componentsText').textContent = "Need sensors, modules or other components beyond our own stock? We source them directly for you — fast delivery regardless.";
-          document.getElementById('trainingTag').textContent = 'Direct';
-          document.getElementById('trainingText').textContent = "Looking for IT / SIWES placement? We arrange this directly — no third party involved.";
         }
       } catch (err) {
         console.error('Settings failed to load, using static about text:', err);

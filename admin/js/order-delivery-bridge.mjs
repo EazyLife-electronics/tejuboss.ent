@@ -20,7 +20,7 @@ function renderButtons() {
     if (!card.classList.contains('bg-white')) return;
     if (card.querySelector('[data-send-delivery]')) return;
 
-    const codeEl = card.querySelector('.text-teal-600');
+    const codeEl = card.querySelector('.font-mono');
     const code = codeEl?.textContent?.trim();
     if (!code) return;
 

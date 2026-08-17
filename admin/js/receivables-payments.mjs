@@ -139,7 +139,7 @@ function render(orders) {
 
       const newBalance = Math.max(0, order.balance - value);
       message.textContent = `${money(value)} payment recorded successfully.`;
-      message.className = 'text-xs font-bold text-center text-[#00B09B]';
+      message.className = 'text-xs font-bold text-center text-[#DC2626]';
       amount.value = '';
       panel.querySelector('#collectionReference').value = '';
       panel.querySelector('#collectionNote').value = '';

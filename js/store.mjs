@@ -59,7 +59,7 @@ export async function deleteProduct(id) {
 
 function generateTrackingCode() {
   const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-  let code = 'EZ-';
+  let code = 'TB-';
   for (let i = 0; i < 6; i++) code += alphabet[Math.floor(Math.random() * alphabet.length)];
   return code;
 }

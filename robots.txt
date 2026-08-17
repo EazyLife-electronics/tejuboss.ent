@@ -1,5 +1,5 @@
-# robots.txt — EazyLife Robotics & Electronics Solutions
-# https://eazylife.ng
+# robots.txt — Teju Boss Enterprise
+# https://tejuboss.ent
 
 User-agent: *
 Allow: /
@@ -8,4 +8,4 @@ Allow: /
 Disallow: /admin/
 
 # Sitemap location
-Sitemap: https://eazylife.ng/sitemap.xml
+Sitemap: https://tejuboss.ent/sitemap.xml

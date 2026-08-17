@@ -290,9 +290,9 @@ function statementRowsHtml(statement) {
   }).join('');
 }
 
-function buildPrintSheet(customer, statement, title = 'EazyLife Customer Statement') {
-  const oldSheet = document.getElementById('eazylifePrintSheet');
-  const oldStyle = document.getElementById('eazylifePrintStyle');
+function buildPrintSheet(customer, statement, title = 'Teju Boss Customer Statement') {
+  const oldSheet = document.getElementById('tejubossPrintSheet');
+  const oldStyle = document.getElementById('tejubossPrintStyle');
   oldSheet?.remove();
   oldStyle?.remove();
 
@@ -301,7 +301,7 @@ function buildPrintSheet(customer, statement, title = 'EazyLife Customer Stateme
     : 'All time';
 
   const sheet = document.createElement('section');
-  sheet.id = 'eazylifePrintSheet';
+  sheet.id = 'tejubossPrintSheet';
   sheet.innerHTML = `
     <div class="print-header">
       <h1>${esc(title)}</h1>
@@ -323,16 +323,16 @@ function buildPrintSheet(customer, statement, title = 'EazyLife Customer Stateme
     <div class="print-total"><span>Closing Balance</span><strong>${money(statement.outstanding)}</strong></div>`;
 
   const style = document.createElement('style');
-  style.id = 'eazylifePrintStyle';
+  style.id = 'tejubossPrintStyle';
   style.textContent = `
-    #eazylifePrintSheet { display:none; }
+    #tejubossPrintSheet { display:none; }
     @media print {
       @page { size:auto; margin:12mm; }
       body > * { display:none !important; }
-      #eazylifePrintSheet { display:block !important; font-family:Arial,sans-serif; color:#111; background:#fff; padding:4px; }
-      #eazylifePrintSheet h1 { font-size:22px; margin:0 0 6px; }
-      #eazylifePrintSheet h2 { font-size:15px; margin:20px 0 8px; }
-      #eazylifePrintSheet p { margin:3px 0; font-size:12px; }
+      #tejubossPrintSheet { display:block !important; font-family:Arial,sans-serif; color:#111; background:#fff; padding:4px; }
+      #tejubossPrintSheet h1 { font-size:22px; margin:0 0 6px; }
+      #tejubossPrintSheet h2 { font-size:15px; margin:20px 0 8px; }
+      #tejubossPrintSheet p { margin:3px 0; font-size:12px; }
       .print-muted { color:#666; font-size:11px; }
       .print-summary { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:18px 0; }
       .print-summary > div { border:1px solid #ddd; border-radius:7px; padding:10px; }
@@ -388,7 +388,7 @@ function downloadBlob(blob, filename) {
 
 function exportExcel(customer, statement) {
   const rows = [
-    ['EazyLife Customer Statement'],
+    ['Teju Boss Customer Statement'],
     ['Customer', customer.name],
     ['Phone', customer.phone || ''],
     ['Period', statement.from || statement.to ? `${statement.from || 'Beginning'} to ${statement.to || 'Today'}` : 'All time'],
@@ -415,7 +415,7 @@ function exportExcel(customer, statement) {
 
   const xmlEsc = value => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const xml = `<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="Statement"><Table>${rows.map(row => `<Row>${row.map(cell => `<Cell><Data ss:Type="${typeof cell === 'number' ? 'Number' : 'String'}">${xmlEsc(cell)}</Data></Cell>`).join('')}</Row>`).join('')}</Table></Worksheet></Workbook>`;
-  downloadBlob(new Blob([xml], { type: 'application/vnd.ms-excel' }), `EazyLife-${safeFileName(customer.name)}-statement.xls`);
+  downloadBlob(new Blob([xml], { type: 'application/vnd.ms-excel' }), `TB-${safeFileName(customer.name)}-statement.xls`);
 }
 
 function safeFileName(value) {
@@ -439,7 +439,7 @@ function exportImage(customer, statement) {
   ctx.fillRect(0, 0, width, height);
   ctx.fillStyle = '#111827';
   ctx.font = '700 30px Arial';
-  ctx.fillText('EazyLife Customer Statement', 50, 55);
+  ctx.fillText('Teju Boss Customer Statement', 50, 55);
   ctx.font = '700 22px Arial';
   ctx.fillText(customer.name || 'Customer', 50, 95);
   ctx.font = '16px Arial';
@@ -506,7 +506,7 @@ function exportImage(customer, statement) {
   ctx.font = '700 17px Arial';
   ctx.fillText(`Closing Balance: ${money(statement.outstanding)}`, 50, y);
   canvas.toBlob(blob => {
-    if (blob) downloadBlob(blob, `EazyLife-${safeFileName(customer.name)}-statement.png`);
+    if (blob) downloadBlob(blob, `TB-${safeFileName(customer.name)}-statement.png`);
     else alert('Could not create the image.');
   }, 'image/png');
 }
@@ -700,7 +700,7 @@ function render(customers, queryText = '') {
   root.innerHTML = `
     <div class="bg-white p-5 rounded-[24px] shadow-sm mb-5">
       <div class="flex justify-between items-start gap-3 mb-1">
-        <div><h2 class="font-black text-lg">Customer Receivables</h2><p class="text-xs text-gray-400 mt-1">See who owes EazyLife, how much has been paid, and what is still outstanding.</p></div>
+        <div><h2 class="font-black text-lg">Customer Receivables</h2><p class="text-xs text-gray-400 mt-1">See who owes Teju Boss, how much has been paid, and what is still outstanding.</p></div>
         <button id="receivablesRefresh" type="button" class="bg-gray-100 text-gray-700 px-3 py-2 rounded-xl text-xs font-bold">Refresh</button>
       </div>
       <div class="grid grid-cols-2 gap-3 mt-4">
@@ -722,7 +722,7 @@ function render(customers, queryText = '') {
             </div>
             <div class="flex gap-2 mt-3">
               <button type="button" data-customer-toggle="${index}" class="flex-1 bg-gray-900 text-white text-[11px] font-bold py-2 rounded-lg">View orders</button>
-              <button type="button" data-ledger="${index}" class="bg-[#00B09B] text-white text-[11px] font-bold px-4 rounded-lg">Ledger</button>
+              <button type="button" data-ledger="${index}" class="bg-[#DC2626] text-white text-[11px] font-bold px-4 rounded-lg">Ledger</button>
               <button type="button" data-go-orders class="bg-gray-100 text-gray-700 text-[11px] font-bold px-3 rounded-lg">Orders</button>
             </div>
             <div id="receivableOrders-${index}" class="hidden mt-3 pt-3 border-t border-gray-100 space-y-2">${c.orders.map(orderLine).join('')}</div>

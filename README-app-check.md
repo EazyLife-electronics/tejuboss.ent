@@ -3,7 +3,7 @@
 Code side is already done in `js/firebase.mjs`. Three steps left, all in the Firebase console:
 
 1. **Get a reCAPTCHA v3 site key**
-   Firebase Console → Build → App Check → Apps tab → find your web app → Register → choose **reCAPTCHA v3** → follow the prompt to create a key at google.com/recaptcha/admin (register `eazylife.ng` as the domain). Copy the **site key**.
+   Firebase Console → Build → App Check → Apps tab → find your web app → Register → choose **reCAPTCHA v3** → follow the prompt to create a key at google.com/recaptcha/admin (register `tejuboss.ent` as the domain). Copy the **site key**.
 
 2. **Add the site key to the code**
    In `js/firebase.mjs`, replace:

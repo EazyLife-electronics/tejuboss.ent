@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EazyLife | Official Catalog</title>
+    <title>Teju Boss | Official Catalog</title>
     <link rel="icon" type="image/png" href="assets/pictures/icon_dark.png" />
     <link rel="apple-touch-icon" href="assets/pictures/icon_dark.png" />
     <script>
         (function () {
-            var saved = localStorage.getItem('eazylife-theme');
+            var saved = localStorage.getItem('tejuboss-theme');
             var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             if (theme === 'dark') document.documentElement.classList.add('dark');
         })();
@@ -18,46 +18,46 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        :root { --teal: #00B09B; --lime: #8DC63F; --dark: #1a2e2b; }
+        :root { --teal: #DC2626; --lime: #F87171; --dark: #0a0a0a; }
         body { font-family: 'DM Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         h1, h2, .font-syne { font-family: 'Poppins', sans-serif; }
-        .bg-eazylife { background: linear-gradient(135deg, #00B09B, #8DC63F); }
+        .bg-tejuboss { background: linear-gradient(135deg, #DC2626, #991B1B); }
         .text-teal { color: var(--teal); }
         .active-cat { background-color: var(--teal) !important; color: white !important; border-color: var(--teal) !important; }
         .product-card { transition: transform 0.2s ease; border: 1px solid #eee; position: relative; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         #count.has-items { animation: pulse 0.5s ease-in-out; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
-        .dark body { background: #0f1715; }
-        .dark .product-card { background: #182420; border-color: #2a3835; }
-        .dark #search { background: #1c2925; color: #eef2f0; }
-        .dark #search::placeholder { color: #7d8f8b; }
+        .dark body { background: #121212; }
+        .dark .product-card { background: #1c1c1c; border-color: #2e2e2e; }
+        .dark #search { background: #181818; color: #f5f5f5; }
+        .dark #search::placeholder { color: #8a8a8a; }
         .nav-menu { position: relative; }
         .nav-menu-panel { position: absolute; top: calc(100% + 8px); left: 0; background: #fff; border: 1px solid #eee; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); padding: 8px; min-width: 170px; z-index: 60; }
-        .dark .nav-menu-panel { background: #182420; border-color: #2a3835; }
-        .nav-menu-panel a { display: block; padding: 10px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; color: #1a2e2b; }
-        .dark .nav-menu-panel a { color: #eef2f0; }
-        .nav-menu-panel a:hover { background: #f0fdfb; }
-        .dark .nav-menu-panel a:hover { background: #1c2925; }
-        .request-tile { background: #f0fdfb; border: 1.5px dashed #00B09B; }
-        .dark .request-tile { background: #16302c; }
-        .request-tile h3 { color: #1a2e2b; }
-        .dark .request-tile h3 { color: #eef2f0; }
+        .dark .nav-menu-panel { background: #1c1c1c; border-color: #2e2e2e; }
+        .nav-menu-panel a { display: block; padding: 10px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; color: #1a1a1a; }
+        .dark .nav-menu-panel a { color: #f5f5f5; }
+        .nav-menu-panel a:hover { background: #FEF2F2; }
+        .dark .nav-menu-panel a:hover { background: #181818; }
+        .request-tile { background: #FEF2F2; border: 1.5px dashed #DC2626; }
+        .dark .request-tile { background: #2a1414; }
+        .request-tile h3 { color: #1a1a1a; }
+        .dark .request-tile h3 { color: #f5f5f5; }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-[#0f1715] pb-24">
+<body class="bg-gray-50 dark:bg-[#121212] pb-24">
 
-<header class="bg-white/90 dark:bg-[#0f1715]/90 backdrop-blur-md border-b dark:border-[#2a3835] sticky top-0 z-50 p-4 shadow-sm">
+<header class="bg-white/90 dark:bg-[#121212]/90 backdrop-blur-md border-b dark:border-[#2e2e2e] sticky top-0 z-50 p-4 shadow-sm">
     <div class="max-w-6xl mx-auto flex justify-between items-center">
         <a href="index.html" class="flex items-center gap-2">
-            <img id="navLogo" src="assets/pictures/logo_black_transparent.png" class="h-9" alt="EazyLife">
+            <img id="navLogo" src="assets/pictures/logo_black_transparent.png" class="h-9" alt="Teju Boss">
         </a>
         <div class="flex items-center gap-2">
-            <button id="themeToggle" type="button" aria-label="Toggle dark mode" class="w-10 h-10 rounded-full border border-gray-200 dark:border-[#2a3835] dark:bg-[#182420] flex items-center justify-center text-gray-700 dark:text-gray-200">
+            <button id="themeToggle" type="button" aria-label="Toggle dark mode" class="w-10 h-10 rounded-full border border-gray-200 dark:border-[#2e2e2e] dark:bg-[#1c1c1c] flex items-center justify-center text-gray-700 dark:text-gray-200">
                 <i class="fas fa-moon"></i>
             </button>
             <div class="nav-menu">
-                <button id="navMenuBtn" type="button" aria-label="Open menu" class="w-10 h-10 rounded-full border border-gray-200 dark:border-[#2a3835] dark:bg-[#182420] flex items-center justify-center text-gray-700 dark:text-gray-200">
+                <button id="navMenuBtn" type="button" aria-label="Open menu" class="w-10 h-10 rounded-full border border-gray-200 dark:border-[#2e2e2e] dark:bg-[#1c1c1c] flex items-center justify-center text-gray-700 dark:text-gray-200">
                     <i class="fas fa-bars"></i>
                 </button>
                 <div id="navMenuPanel" class="nav-menu-panel hidden">
@@ -67,11 +67,11 @@
                     <a href="index.html#contact"><i class="fas fa-address-card fa-fw"></i> Contact</a>
                 </div>
             </div>
-            <button onclick="showCart()" class="bg-eazylife text-white px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 shadow-lg hover:opacity-90 transition-all">
+            <button onclick="showCart()" class="bg-tejuboss text-white px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 shadow-lg hover:opacity-90 transition-all">
                 <i class="fas fa-shopping-basket"></i>
-                <span id="count" class="bg-white text-teal-600 rounded-full px-2 py-0.5 text-xs">0</span>
+                <span id="count" class="bg-white text-red-600 rounded-full px-2 py-0.5 text-xs">0</span>
             </button>
-            <a href="https://wa.me/2347051548082" target="_blank" class="w-10 h-10 rounded-full bg-[#25D366] text-white flex items-center justify-center">
+            <a href="https://wa.me/2347079557886" target="_blank" class="w-10 h-10 rounded-full bg-[#25D366] text-white flex items-center justify-center">
                 <i class="fab fa-whatsapp"></i>
             </a>
         </div>
@@ -90,7 +90,7 @@
 
     document.getElementById('themeToggle').addEventListener('click', function () {
         var isDark = document.documentElement.classList.toggle('dark');
-        localStorage.setItem('eazylife-theme', isDark ? 'dark' : 'light');
+        localStorage.setItem('tejuboss-theme', isDark ? 'dark' : 'light');
         applyShopThemeVisuals();
     });
 
@@ -109,24 +109,24 @@
 
 <main class="p-4 max-w-6xl mx-auto">
     <div class="mt-4 mb-8">
-        <h1 class="text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Tech <span class="text-teal">Catalog</span></h1>
-        <p class="text-gray-500 dark:text-gray-400 text-sm">Genuine Laptops & Embedded Systems.</p>
+        <h1 class="text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Shop <span class="text-teal">Catalog</span></h1>
+        <p class="text-gray-500 dark:text-gray-400 text-sm">Groceries &amp; Household Essentials.</p>
     </div>
 
-    <div class="sticky top-[76px] z-40 bg-gray-50/95 dark:bg-[#0f1715]/95 pt-2 pb-4">
+    <div class="sticky top-[76px] z-40 bg-gray-50/95 dark:bg-[#121212]/95 pt-2 pb-4">
         <div class="relative mb-4">
             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-            <input id="search" placeholder="Search laptops, Arduino, sensors..."
-                   class="w-full pl-12 pr-4 py-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-[#00B09B] outline-none dark:text-gray-100">
+            <input id="search" placeholder="Search groceries, brands, essentials..."
+                   class="w-full pl-12 pr-4 py-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-[#DC2626] outline-none dark:text-gray-100">
         </div>
         <div id="catFilters" class="flex gap-2 overflow-x-auto no-scrollbar pb-2"></div>
         <div class="flex gap-2 mt-1">
             <button id="filtersBtn" onclick="openFilters()" type="button"
-                    class="relative flex-1 p-2.5 rounded-xl shadow-sm text-xs font-bold outline-none bg-white dark:bg-[#182420] text-gray-600 dark:text-gray-200 flex items-center justify-center gap-1.5">
+                    class="relative flex-1 p-2.5 rounded-xl shadow-sm text-xs font-bold outline-none bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-200 flex items-center justify-center gap-1.5">
                 <i class="fas fa-sliders"></i> Filters
-                <span id="filterBadge" class="hidden absolute -top-1.5 -right-1.5 bg-teal-600 text-white text-[9px] font-black w-4 h-4 rounded-full items-center justify-center" style="background:var(--teal);">0</span>
+                <span id="filterBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full items-center justify-center" style="background:var(--teal);">0</span>
             </button>
-            <select id="sortSelect" class="flex-1 p-2.5 rounded-xl border-none shadow-sm text-xs outline-none dark:bg-[#182420] dark:text-gray-100">
+            <select id="sortSelect" class="flex-1 p-2.5 rounded-xl border-none shadow-sm text-xs outline-none dark:bg-[#1c1c1c] dark:text-gray-100">
                 <option value="default">Sort: Featured</option>
                 <option value="price-asc">Price: Low to High</option>
                 <option value="price-desc">Price: High to Low</option>
@@ -137,7 +137,7 @@
     </div>
 
     <div id="loader" class="flex flex-col items-center justify-center py-20 text-gray-400">
-        <div class="animate-spin text-teal-500 text-3xl mb-3"><i class="fas fa-circle-notch"></i></div>
+        <div class="animate-spin text-red-500 text-3xl mb-3"><i class="fas fa-circle-notch"></i></div>
         <p class="font-medium">Syncing Inventory...</p>
     </div>
 
@@ -146,7 +146,7 @@
 
 <!-- PRODUCT DETAIL MODAL — pick variant + upgrades, price updates live -->
 <div id="productModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end md:items-center justify-center">
-    <div class="bg-white dark:bg-[#182420] w-full max-w-md rounded-t-[32px] md:rounded-[24px] shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
+    <div class="bg-white dark:bg-[#1c1c1c] w-full max-w-md rounded-t-[32px] md:rounded-[24px] shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
         <div class="flex justify-between items-start mb-3">
             <div>
                 <h2 id="pmName" class="font-syne font-extrabold text-xl text-gray-900 dark:text-gray-100 leading-tight"></h2>
@@ -154,12 +154,12 @@
             </div>
             <button onclick="hideProductModal()" class="text-gray-400 p-1 text-3xl">&times;</button>
         </div>
-        <img id="pmImage" class="w-full h-40 object-contain rounded-xl bg-gray-50 dark:bg-[#1c2925] mb-4">
+        <img id="pmImage" class="w-full h-40 object-contain rounded-xl bg-gray-50 dark:bg-[#181818] mb-4">
         <p id="pmDesc" class="text-sm text-gray-500 dark:text-gray-400 mb-4"></p>
 
         <div class="mb-4">
             <label class="text-[10px] font-black uppercase text-gray-400 mb-1 block">Choose Option</label>
-            <select id="pmVariant" class="w-full p-3 bg-gray-50 dark:bg-[#1c2925] dark:text-gray-100 border border-gray-200 dark:border-[#2a3835] rounded-xl text-sm outline-none"></select>
+            <select id="pmVariant" class="w-full p-3 bg-gray-50 dark:bg-[#181818] dark:text-gray-100 border border-gray-200 dark:border-[#2e2e2e] rounded-xl text-sm outline-none"></select>
         </div>
 
         <div id="pmUpgradesWrap" class="mb-4 hidden">
@@ -167,12 +167,12 @@
             <div id="pmUpgrades" class="space-y-2"></div>
         </div>
 
-        <div class="flex items-center justify-between mb-5 bg-gray-50 dark:bg-[#1c2925] rounded-xl p-3">
+        <div class="flex items-center justify-between mb-5 bg-gray-50 dark:bg-[#181818] rounded-xl p-3">
             <span class="text-xs font-bold text-gray-500 dark:text-gray-400">Quantity</span>
             <div class="flex items-center gap-3">
-                <button onclick="changePmQty(-1)" class="w-8 h-8 bg-white dark:bg-[#182420] dark:text-gray-100 rounded-lg shadow-sm font-bold">-</button>
-                <input id="pmQty" type="text" inputmode="numeric" pattern="[0-9]*" value="1" onfocus="this.select()" onchange="setPmQty(this.value)" class="font-black text-sm w-10 text-center dark:text-gray-100 bg-white dark:bg-[#182420] rounded-lg py-1.5 outline-none">
-                <button onclick="changePmQty(1)" class="w-8 h-8 bg-white dark:bg-[#182420] dark:text-gray-100 rounded-lg shadow-sm font-bold">+</button>
+                <button onclick="changePmQty(-1)" class="w-8 h-8 bg-white dark:bg-[#1c1c1c] dark:text-gray-100 rounded-lg shadow-sm font-bold">-</button>
+                <input id="pmQty" type="text" inputmode="numeric" pattern="[0-9]*" value="1" onfocus="this.select()" onchange="setPmQty(this.value)" class="font-black text-sm w-10 text-center dark:text-gray-100 bg-white dark:bg-[#1c1c1c] rounded-lg py-1.5 outline-none">
+                <button onclick="changePmQty(1)" class="w-8 h-8 bg-white dark:bg-[#1c1c1c] dark:text-gray-100 rounded-lg shadow-sm font-bold">+</button>
             </div>
         </div>
 
@@ -190,7 +190,7 @@
         </div>
         <p id="pmBulkHint" class="hidden text-[11px] text-teal font-bold mb-4 px-1"></p>
 
-        <div class="flex justify-between items-center mb-4 px-1 pt-2 border-t border-gray-100 dark:border-[#2a3835]">
+        <div class="flex justify-between items-center mb-4 px-1 pt-2 border-t border-gray-100 dark:border-[#2e2e2e]">
             <span class="font-bold text-gray-500 dark:text-gray-400 text-sm">Price</span>
             <span class="flex items-center gap-1.5">
                 <span id="pmOriginalPrice" class="hidden text-xs text-gray-400 line-through"></span>
@@ -208,7 +208,7 @@
 <!-- FILTERS DRAWER — brand (synced to category), price range, spec filters (RAM/ROM, dynamic per
      category), and quick toggles for promo items / bulk-savings items / in-stock only. -->
 <div id="filtersModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end md:items-center justify-center">
-    <div class="bg-white dark:bg-[#182420] w-full max-w-md rounded-t-[32px] md:rounded-[24px] shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
+    <div class="bg-white dark:bg-[#1c1c1c] w-full max-w-md rounded-t-[32px] md:rounded-[24px] shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
         <div class="flex justify-between items-center mb-5">
             <h2 class="font-syne font-extrabold text-xl text-gray-900 dark:text-gray-100">Filters</h2>
             <div class="flex items-center gap-3">
@@ -221,10 +221,10 @@
             <label class="text-[10px] font-black uppercase text-gray-400 mb-2 block">Price Range (₦)</label>
             <div class="flex items-center gap-2">
                 <input id="filterPriceMin" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Min"
-                       class="w-full p-3 bg-gray-50 dark:bg-[#1c2925] dark:text-gray-100 border border-gray-200 dark:border-[#2a3835] rounded-xl text-sm outline-none">
+                       class="w-full p-3 bg-gray-50 dark:bg-[#181818] dark:text-gray-100 border border-gray-200 dark:border-[#2e2e2e] rounded-xl text-sm outline-none">
                 <span class="text-gray-400 text-xs">—</span>
                 <input id="filterPriceMax" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Max"
-                       class="w-full p-3 bg-gray-50 dark:bg-[#1c2925] dark:text-gray-100 border border-gray-200 dark:border-[#2a3835] rounded-xl text-sm outline-none">
+                       class="w-full p-3 bg-gray-50 dark:bg-[#181818] dark:text-gray-100 border border-gray-200 dark:border-[#2e2e2e] rounded-xl text-sm outline-none">
             </div>
             <p id="filterPriceHint" class="text-[10px] text-gray-400 mt-1 px-1"></p>
         </div>
@@ -246,17 +246,17 @@
 
         <div class="mb-6 space-y-2">
             <label class="text-[10px] font-black uppercase text-gray-400 mb-1 block">Deals & Availability</label>
-            <label class="flex items-center justify-between bg-gray-50 dark:bg-[#1c2925] rounded-xl p-3 text-sm dark:text-gray-100 cursor-pointer">
+            <label class="flex items-center justify-between bg-gray-50 dark:bg-[#181818] rounded-xl p-3 text-sm dark:text-gray-100 cursor-pointer">
                 <span class="flex items-center gap-2"><i class="fas fa-tags text-teal"></i> On promotion</span>
-                <input id="filterPromo" type="checkbox" class="w-4 h-4 accent-[#00B09B]">
+                <input id="filterPromo" type="checkbox" class="w-4 h-4 accent-[#DC2626]">
             </label>
-            <label class="flex items-center justify-between bg-gray-50 dark:bg-[#1c2925] rounded-xl p-3 text-sm dark:text-gray-100 cursor-pointer">
+            <label class="flex items-center justify-between bg-gray-50 dark:bg-[#181818] rounded-xl p-3 text-sm dark:text-gray-100 cursor-pointer">
                 <span class="flex items-center gap-2"><i class="fas fa-boxes-stacked text-teal"></i> Bulk savings available</span>
-                <input id="filterBulk" type="checkbox" class="w-4 h-4 accent-[#00B09B]">
+                <input id="filterBulk" type="checkbox" class="w-4 h-4 accent-[#DC2626]">
             </label>
-            <label class="flex items-center justify-between bg-gray-50 dark:bg-[#1c2925] rounded-xl p-3 text-sm dark:text-gray-100 cursor-pointer">
+            <label class="flex items-center justify-between bg-gray-50 dark:bg-[#181818] rounded-xl p-3 text-sm dark:text-gray-100 cursor-pointer">
                 <span class="flex items-center gap-2"><i class="fas fa-check-circle text-teal"></i> In stock only</span>
-                <input id="filterInStock" type="checkbox" class="w-4 h-4 accent-[#00B09B]">
+                <input id="filterInStock" type="checkbox" class="w-4 h-4 accent-[#DC2626]">
             </label>
         </div>
 
@@ -268,7 +268,7 @@
 
 <!-- CART / CHECKOUT MODAL -->
 <div id="cartModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end md:items-center justify-center">
-    <div class="bg-white dark:bg-[#182420] w-full max-w-md rounded-t-[32px] md:rounded-[24px] shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
+    <div class="bg-white dark:bg-[#1c1c1c] w-full max-w-md rounded-t-[32px] md:rounded-[24px] shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
 
         <!-- Step 1: cart — mutable. Edit quantity, toggle items in/out, fill contact details. -->
         <div id="cartStep">
@@ -281,10 +281,10 @@
 
             <p id="cartExcludedNote" class="hidden text-[11px] text-gray-400 px-2 mb-4">Unchecked items stay in your cart — they won't be included when you check out.</p>
 
-            <div class="bg-gray-100 dark:bg-[#1c2925] p-4 rounded-2xl mb-6 space-y-3">
-                <input id="custName" placeholder="Full Name" class="w-full bg-white dark:bg-[#182420] dark:text-gray-100 border-none p-3 rounded-xl shadow-sm text-sm outline-none">
-                <input id="custPhone" placeholder="Phone / WhatsApp Number" class="w-full bg-white dark:bg-[#182420] dark:text-gray-100 border-none p-3 rounded-xl shadow-sm text-sm outline-none">
-                <textarea id="custAddr" placeholder="Delivery Address or Office" class="w-full bg-white dark:bg-[#182420] dark:text-gray-100 border-none p-3 rounded-xl shadow-sm text-sm outline-none" rows="2"></textarea>
+            <div class="bg-gray-100 dark:bg-[#181818] p-4 rounded-2xl mb-6 space-y-3">
+                <input id="custName" placeholder="Full Name" class="w-full bg-white dark:bg-[#1c1c1c] dark:text-gray-100 border-none p-3 rounded-xl shadow-sm text-sm outline-none">
+                <input id="custPhone" placeholder="Phone / WhatsApp Number" class="w-full bg-white dark:bg-[#1c1c1c] dark:text-gray-100 border-none p-3 rounded-xl shadow-sm text-sm outline-none">
+                <textarea id="custAddr" placeholder="Delivery Address or Office" class="w-full bg-white dark:bg-[#1c1c1c] dark:text-gray-100 border-none p-3 rounded-xl shadow-sm text-sm outline-none" rows="2"></textarea>
             </div>
 
             <div class="flex justify-between items-center px-2 text-sm">
@@ -307,7 +307,7 @@
                     <span class="font-bold text-gray-800 dark:text-gray-100">₦<span id="deliveryFeeDisplay">0</span></span>
                 </span>
             </div>
-            <div class="flex justify-between items-center px-2 mt-2 pt-2 border-t border-gray-100 dark:border-[#2a3835]">
+            <div class="flex justify-between items-center px-2 mt-2 pt-2 border-t border-gray-100 dark:border-[#2e2e2e]">
                 <span class="font-bold text-gray-500 dark:text-gray-400">Total</span>
                 <span class="flex items-center gap-1.5">
                     <span id="totalOriginal" class="hidden text-[11px] text-gray-400 line-through"></span>
@@ -338,7 +338,7 @@
 
             <div id="checkoutItems" class="space-y-4 mb-8"></div>
 
-            <div class="bg-gray-100 dark:bg-[#1c2925] p-4 rounded-2xl mb-6 space-y-1.5 text-sm">
+            <div class="bg-gray-100 dark:bg-[#181818] p-4 rounded-2xl mb-6 space-y-1.5 text-sm">
                 <p class="text-gray-800 dark:text-gray-100"><span class="text-gray-400 dark:text-gray-500">Name:</span> <span id="coName"></span></p>
                 <p class="text-gray-800 dark:text-gray-100"><span class="text-gray-400 dark:text-gray-500">Phone:</span> <span id="coPhone"></span></p>
                 <p class="text-gray-800 dark:text-gray-100"><span class="text-gray-400 dark:text-gray-500">Address:</span> <span id="coAddr"></span></p>
@@ -364,7 +364,7 @@
                     <span class="font-bold text-gray-800 dark:text-gray-100">₦<span id="deliveryFeeDisplayCo">0</span></span>
                 </span>
             </div>
-            <div class="flex justify-between items-center px-2 mt-2 pt-2 border-t border-gray-100 dark:border-[#2a3835]">
+            <div class="flex justify-between items-center px-2 mt-2 pt-2 border-t border-gray-100 dark:border-[#2e2e2e]">
                 <span class="font-bold text-gray-500 dark:text-gray-400">Total</span>
                 <span class="flex items-center gap-1.5">
                     <span id="totalOriginalCo" class="hidden text-[11px] text-gray-400 line-through"></span>
@@ -388,8 +388,8 @@
         <div id="confirmStep" class="hidden text-center py-6">
             <div class="text-5xl text-teal mb-4"><i class="fas fa-circle-check"></i></div>
             <h2 class="font-syne font-extrabold text-2xl text-gray-900 dark:text-gray-100 mb-2">Order Received!</h2>
-            <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">We've got your order and will reach out shortly to confirm delivery. Thank you for choosing EazyLife.</p>
-            <div class="bg-gray-50 dark:bg-[#1c2925] rounded-2xl p-4 mb-5">
+            <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">We've got your order and will reach out shortly to confirm delivery. Thank you for choosing Teju Boss.</p>
+            <div class="bg-gray-50 dark:bg-[#181818] rounded-2xl p-4 mb-5">
                 <p class="text-[10px] font-black uppercase text-gray-400 mb-1">Your Tracking Code</p>
                 <p id="trackingCodeDisplay" class="text-2xl font-black text-teal tracking-wider mb-2"></p>
                 <p class="text-[11px] text-gray-400">Save this — use it anytime on our <a id="trackLink" href="track.html" class="text-teal font-bold underline">Track Order</a> page to check status.</p>
@@ -404,7 +404,7 @@
 
 <!-- REQUEST MODAL — "can't find what you want" / budget-based sourcing -->
 <div id="requestModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end md:items-center justify-center">
-    <div class="bg-white dark:bg-[#182420] w-full max-w-md rounded-t-[32px] md:rounded-[24px] shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
+    <div class="bg-white dark:bg-[#1c1c1c] w-full max-w-md rounded-t-[32px] md:rounded-[24px] shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
 
         <div id="requestStep">
             <div class="flex justify-between items-center mb-4">
@@ -414,17 +414,17 @@
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">Give us your budget and what you're after — we'll source it, even if it's not in our current catalog.</p>
 
             <div class="space-y-3 mb-6">
-                <input id="reqName" placeholder="Full Name" class="w-full bg-gray-50 dark:bg-[#1c2925] dark:text-gray-100 border border-gray-200 dark:border-[#2a3835] p-3 rounded-xl text-sm outline-none">
-                <input id="reqPhone" placeholder="Phone / WhatsApp Number" class="w-full bg-gray-50 dark:bg-[#1c2925] dark:text-gray-100 border border-gray-200 dark:border-[#2a3835] p-3 rounded-xl text-sm outline-none">
-                <select id="reqCategory" class="w-full bg-gray-50 dark:bg-[#1c2925] dark:text-gray-100 border border-gray-200 dark:border-[#2a3835] p-3 rounded-xl text-sm outline-none">
+                <input id="reqName" placeholder="Full Name" class="w-full bg-gray-50 dark:bg-[#181818] dark:text-gray-100 border border-gray-200 dark:border-[#2e2e2e] p-3 rounded-xl text-sm outline-none">
+                <input id="reqPhone" placeholder="Phone / WhatsApp Number" class="w-full bg-gray-50 dark:bg-[#181818] dark:text-gray-100 border border-gray-200 dark:border-[#2e2e2e] p-3 rounded-xl text-sm outline-none">
+                <select id="reqCategory" class="w-full bg-gray-50 dark:bg-[#181818] dark:text-gray-100 border border-gray-200 dark:border-[#2e2e2e] p-3 rounded-xl text-sm outline-none">
                     <option value="">What kind of item? (optional)</option>
-                    <option value="Laptop">Laptop</option>
-                    <option value="Phone">Phone</option>
-                    <option value="Component">Electronic Component</option>
+                    <option value="Groceries">Groceries</option>
+                    <option value="Household">Household Essentials</option>
+                    <option value="Personal Care">Personal Care</option>
                     <option value="Other">Other</option>
                 </select>
-                <input id="reqBudget" type="number" placeholder="Your Budget (₦, optional)" class="w-full bg-gray-50 dark:bg-[#1c2925] dark:text-gray-100 border border-gray-200 dark:border-[#2a3835] p-3 rounded-xl text-sm outline-none">
-                <textarea id="reqNeed" placeholder="Describe what you're looking for" rows="3" class="w-full bg-gray-50 dark:bg-[#1c2925] dark:text-gray-100 border border-gray-200 dark:border-[#2a3835] p-3 rounded-xl text-sm outline-none"></textarea>
+                <input id="reqBudget" type="number" placeholder="Your Budget (₦, optional)" class="w-full bg-gray-50 dark:bg-[#181818] dark:text-gray-100 border border-gray-200 dark:border-[#2e2e2e] p-3 rounded-xl text-sm outline-none">
+                <textarea id="reqNeed" placeholder="Describe what you're looking for" rows="3" class="w-full bg-gray-50 dark:bg-[#181818] dark:text-gray-100 border border-gray-200 dark:border-[#2e2e2e] p-3 rounded-xl text-sm outline-none"></textarea>
             </div>
 
             <button onclick="submitRequest()" id="requestSubmitBtn" class="bg-gray-900 text-white w-full py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-black transition-all flex items-center justify-center gap-2">
@@ -448,8 +448,8 @@
     import { getProducts, placeOrder, placeRequest, getSettings } from './js/store.mjs';
     import { calcGroupedDeliveryFee, buildDeliveryFeeSummary, resolveDeliveryFee, variantUnitPrice, productPriceRange, productOriginalPriceRange, hasPromo, variantDiscountPercent, productHasPromo, buildPriceSavingsSummary, variantLabel, resolveBulkSavings, calcBulkSavingsForLine, buildBulkSavingsSummary } from './js/pricing.mjs';
 
-    const CKEY = "eazylife_cart_v2";
-    const UKEY = "eazylife_user_v2";
+    const CKEY = "tejuboss_cart_v2";
+    const UKEY = "tejuboss_user_v2";
 
     // Escapes text before it's inserted via innerHTML template strings.
     function escapeHtml(value) {
@@ -478,7 +478,7 @@
     let draftBrands = [];
     let draftRams = [];
     let draftRoms = [];
-    let whatsappNumber = '2347051548082'; // fallback if settings doc isn't set yet
+    let whatsappNumber = '2347079557886'; // fallback if settings doc isn't set yet
     let deliveryFeePerItem = 750;
     let deliveryDiscountRate = 0.10;
     let generalBulkSavingsPercent = 0;
@@ -539,7 +539,7 @@
         const cats = ['All', ...new Set(products.map(p => p.category))];
         let html = cats.map(c => `
             <button onclick="filterByCategory('${c}')"
-                    class="whitespace-nowrap px-5 py-2 rounded-full border text-xs font-bold transition-all ${currentCategory === c ? 'active-cat' : 'bg-white dark:bg-[#182420] text-gray-500 dark:text-gray-300 border-gray-200 dark:border-[#2a3835]'}">
+                    class="whitespace-nowrap px-5 py-2 rounded-full border text-xs font-bold transition-all ${currentCategory === c ? 'active-cat' : 'bg-white dark:bg-[#1c1c1c] text-gray-500 dark:text-gray-300 border-gray-200 dark:border-[#2e2e2e]'}">
                 ${c}
             </button>
         `).join('');
@@ -547,7 +547,7 @@
         // one tap away — same as the category pills, not tucked inside the filter drawer.
         html += `
             <button onclick="toggleQuickBulk()"
-                    class="whitespace-nowrap px-5 py-2 rounded-full border text-xs font-bold transition-all flex items-center gap-1.5 ${onlyBulk ? 'active-cat' : 'bg-white dark:bg-[#182420] text-gray-500 dark:text-gray-300 border-gray-200 dark:border-[#2a3835]'}">
+                    class="whitespace-nowrap px-5 py-2 rounded-full border text-xs font-bold transition-all flex items-center gap-1.5 ${onlyBulk ? 'active-cat' : 'bg-white dark:bg-[#1c1c1c] text-gray-500 dark:text-gray-300 border-gray-200 dark:border-[#2e2e2e]'}">
                 <i class="fas fa-tags"></i> Bulk Savings
             </button>
         `;
@@ -637,7 +637,7 @@
     }
 
     function chipHTML(value, selected, onclick) {
-        return `<button type="button" onclick="${onclick}" class="px-3.5 py-2 rounded-full border text-xs font-bold transition-all ${selected ? 'active-cat' : 'bg-gray-50 dark:bg-[#1c2925] text-gray-500 dark:text-gray-300 border-gray-200 dark:border-[#2a3835]'}">${value}</button>`;
+        return `<button type="button" onclick="${onclick}" class="px-3.5 py-2 rounded-full border text-xs font-bold transition-all ${selected ? 'active-cat' : 'bg-gray-50 dark:bg-[#181818] text-gray-500 dark:text-gray-300 border-gray-200 dark:border-[#2e2e2e]'}">${value}</button>`;
     }
 
     function toggleDraft(arr, value) {
@@ -863,7 +863,7 @@
         return `
             <div onclick="showRequestModal()" class="product-card request-tile ${full ? 'col-span-full' : ''}"
                  style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; cursor:pointer; ${full ? 'padding:24px;' : ''}">
-                <i class="fas fa-magnifying-glass-dollar" style="font-size:${full ? '1.8rem' : '1.6rem'}; color:#00B09B; margin-bottom:${full ? '10px' : '8px'};"></i>
+                <i class="fas fa-magnifying-glass-dollar" style="font-size:${full ? '1.8rem' : '1.6rem'}; color:#DC2626; margin-bottom:${full ? '10px' : '8px'};"></i>
                 <h3 style="font-size:${full ? '0.9rem' : '0.82rem'}; font-weight:800; margin-bottom:4px;">Can't find what you want?</h3>
                 <p style="font-size:${full ? '0.78rem' : '0.72rem'}; color:#777; margin-bottom:0;">Tell us your budget — we'll source it.</p>
             </div>`;
@@ -902,10 +902,10 @@
                 .reduce((a, b) => a + b.quantity, 0);
 
             grid.innerHTML += `
-                <div class="product-card bg-white dark:bg-[#182420] dark:border-[#2a3835] p-3 rounded-[24px] shadow-sm flex flex-col">
+                <div class="product-card bg-white dark:bg-[#1c1c1c] dark:border-[#2e2e2e] p-3 rounded-[24px] shadow-sm flex flex-col">
                     <div class="relative mb-3">
-                        <img src="${thumb ? escapeHtml(thumb) : 'assets/pictures/placeholder.svg'}" loading="lazy" class="h-32 md:h-40 w-full object-contain rounded-xl bg-gray-50 dark:bg-[#1c2925]">
-                        ${promo ? `<span class="absolute top-1.5 left-1.5 bg-[#00B09B] text-white text-[9px] font-black px-1.5 py-0.5 rounded-md shadow">-${Math.round(maxDiscountPercent)}%</span>` : ''}
+                        <img src="${thumb ? escapeHtml(thumb) : 'assets/pictures/placeholder.svg'}" loading="lazy" class="h-32 md:h-40 w-full object-contain rounded-xl bg-gray-50 dark:bg-[#181818]">
+                        ${promo ? `<span class="absolute top-1.5 left-1.5 bg-[#DC2626] text-white text-[9px] font-black px-1.5 py-0.5 rounded-md shadow">-${Math.round(maxDiscountPercent)}%</span>` : ''}
                     </div>
                     <span class="text-[9px] font-black uppercase text-teal tracking-wider mb-1">${p.brand ? escapeHtml(p.brand) + ' · ' : ''}${escapeHtml(p.category || '')}</span>
                     <h3 class="font-bold text-gray-800 dark:text-gray-100 leading-tight text-xs md:text-sm flex-grow mb-2">${escapeHtml(p.name)}</h3>
@@ -916,12 +916,12 @@
                     ${bulk ? `<p class="text-[9px] font-black text-teal mb-2 flex items-center gap-1"><i class="fas fa-tags"></i>Buy ${bulk.minQty}+, ${promo ? `save an extra ${bulk.percent}%` : `save ${bulk.percent}%`}</p>` : `<div class="mb-2"></div>`}
                     <div class="mt-auto">
                         ${outOfStock ? `
-                            <button disabled class="bg-gray-200 dark:bg-[#2a3835] text-gray-400 w-full py-2.5 rounded-xl font-bold text-xs cursor-not-allowed">Out of Stock</button>
+                            <button disabled class="bg-gray-200 dark:bg-[#2e2e2e] text-gray-400 w-full py-2.5 rounded-xl font-bold text-xs cursor-not-allowed">Out of Stock</button>
                         ` : cardLine ? `
-                            <div class="flex items-center justify-center gap-2 bg-gray-50 dark:bg-[#1c2925] p-1 rounded-xl">
-                                <button onclick="changeCardQty('${p.id}',-1)" class="w-8 h-8 bg-white dark:bg-[#182420] dark:text-gray-100 rounded-lg shadow-sm font-bold">-</button>
-                                <input type="text" inputmode="numeric" pattern="[0-9]*" value="${cardLine.quantity}" onfocus="this.select()" onchange="setCardQty('${p.id}', this.value)" class="font-black text-sm w-10 text-center dark:text-gray-100 bg-white dark:bg-[#182420] rounded-lg py-1.5 outline-none">
-                                <button onclick="changeCardQty('${p.id}',1)" class="w-8 h-8 bg-white dark:bg-[#182420] dark:text-gray-100 rounded-lg shadow-sm font-bold">+</button>
+                            <div class="flex items-center justify-center gap-2 bg-gray-50 dark:bg-[#181818] p-1 rounded-xl">
+                                <button onclick="changeCardQty('${p.id}',-1)" class="w-8 h-8 bg-white dark:bg-[#1c1c1c] dark:text-gray-100 rounded-lg shadow-sm font-bold">-</button>
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" value="${cardLine.quantity}" onfocus="this.select()" onchange="setCardQty('${p.id}', this.value)" class="font-black text-sm w-10 text-center dark:text-gray-100 bg-white dark:bg-[#1c1c1c] rounded-lg py-1.5 outline-none">
+                                <button onclick="changeCardQty('${p.id}',1)" class="w-8 h-8 bg-white dark:bg-[#1c1c1c] dark:text-gray-100 rounded-lg shadow-sm font-bold">+</button>
                             </div>
                             <button onclick="openProductModal('${p.id}')" class="w-full text-center text-[10px] text-gray-400 mt-1 underline decoration-dotted">${otherQty > 0 ? `+${otherQty} more in other options` : 'Change option'}</button>
                         ` : `
@@ -963,7 +963,7 @@
         if (upgrades.length > 0) {
             upgradesWrap.classList.remove('hidden');
             document.getElementById('pmUpgrades').innerHTML = upgrades.map((u, i) => `
-                <label class="flex items-center justify-between bg-white dark:bg-[#182420] border border-gray-200 dark:border-[#2a3835] rounded-lg p-2.5 text-xs dark:text-gray-100">
+                <label class="flex items-center justify-between bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-[#2e2e2e] rounded-lg p-2.5 text-xs dark:text-gray-100">
                     <span class="flex items-center gap-2"><input type="checkbox" class="pm-upgrade-check" data-upgrade-idx="${i}"> ${u.name}</span>
                     <span class="font-bold text-teal">+₦${(u.price || 0).toLocaleString()}</span>
                 </label>
@@ -1394,7 +1394,7 @@
             const baseHasPromo = baseOrigUnit > baseUnit;
             const upgradeItems = i.upgradeItems || [];
             return `
-            <div class="flex justify-between items-center border-b border-gray-50 dark:border-[#2a3835] pb-3">
+            <div class="flex justify-between items-center border-b border-gray-50 dark:border-[#2e2e2e] pb-3">
                 <div class="flex-1 pr-4 transition-opacity ${included ? '' : 'opacity-40'}">
                     <label class="flex items-center gap-2">
                         <input type="checkbox" ${included ? 'checked' : ''} onchange="toggleIncluded('${i.lineId}')" class="w-4 h-4 accent-teal rounded shrink-0" title="Include in order">
@@ -1410,10 +1410,10 @@
                         <span class="text-teal">₦${lineTotal.toLocaleString()}</span>
                     </p>
                 </div>
-                <div class="flex items-center gap-2 bg-gray-50 dark:bg-[#1c2925] p-1 rounded-xl shrink-0">
-                    <button onclick="changeQty('${i.lineId}',-1)" class="w-7 h-7 bg-white dark:bg-[#182420] dark:text-gray-100 rounded-lg shadow-sm font-bold">-</button>
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" value="${i.quantity}" onfocus="this.select()" onchange="setQty('${i.lineId}', this.value)" class="font-black text-sm w-9 text-center dark:text-gray-100 bg-white dark:bg-[#182420] rounded-lg py-1 outline-none">
-                    <button onclick="changeQty('${i.lineId}',1)" class="w-7 h-7 bg-white dark:bg-[#182420] dark:text-gray-100 rounded-lg shadow-sm font-bold">+</button>
+                <div class="flex items-center gap-2 bg-gray-50 dark:bg-[#181818] p-1 rounded-xl shrink-0">
+                    <button onclick="changeQty('${i.lineId}',-1)" class="w-7 h-7 bg-white dark:bg-[#1c1c1c] dark:text-gray-100 rounded-lg shadow-sm font-bold">-</button>
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" value="${i.quantity}" onfocus="this.select()" onchange="setQty('${i.lineId}', this.value)" class="font-black text-sm w-9 text-center dark:text-gray-100 bg-white dark:bg-[#1c1c1c] rounded-lg py-1 outline-none">
+                    <button onclick="changeQty('${i.lineId}',1)" class="w-7 h-7 bg-white dark:bg-[#1c1c1c] dark:text-gray-100 rounded-lg shadow-sm font-bold">+</button>
                 </div>
             </div>
         `;
@@ -1466,7 +1466,7 @@
             const baseHasPromo = baseOrigUnit > baseUnit;
             const upgradeItems = i.upgradeItems || [];
             return `
-            <div class="flex justify-between items-center border-b border-gray-50 dark:border-[#2a3835] pb-3">
+            <div class="flex justify-between items-center border-b border-gray-50 dark:border-[#2e2e2e] pb-3">
                 <div class="flex-1 pr-4">
                     <p class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">${i.productName}</p>
                     <p class="text-[11px] text-gray-400">${i.variantLabel}${i.upgradeNames.length ? ' · ' + i.upgradeNames.join(', ') : ''}</p>
@@ -1538,16 +1538,16 @@
             // Remember this order on this device — powers the "My Orders" list on track.html,
             // no login involved, purely local convenience.
             try {
-                const myOrders = JSON.parse(localStorage.getItem('eazylife_my_orders')) || [];
+                const myOrders = JSON.parse(localStorage.getItem('tejuboss_my_orders')) || [];
                 if (!myOrders.includes(trackingCode)) myOrders.unshift(trackingCode);
-                localStorage.setItem('eazylife_my_orders', JSON.stringify(myOrders.slice(0, 50)));
+                localStorage.setItem('tejuboss_my_orders', JSON.stringify(myOrders.slice(0, 50)));
             } catch (e) { /* non-critical */ }
 
             document.getElementById('trackingCodeDisplay').textContent = trackingCode;
             document.getElementById('trackLink').href = `track.html?code=${trackingCode}`;
 
             // Build an optional WhatsApp confirmation link (not required — order already saved)
-            let msg = `*EAZYLIFE - NEW ORDER*%0A%0A*Tracking Code:* ${trackingCode}%0A%0A`;
+            let msg = `*TEJU BOSS - NEW ORDER*%0A%0A*Tracking Code:* ${trackingCode}%0A%0A`;
             checkoutSnapshot.forEach(i => {
                 msg += `• ${i.productName} (${i.variantLabel}${i.upgradeNames.length ? ', ' + i.upgradeNames.join(', ') : ''})%0A  Qty: ${i.quantity} | ₦${(i.unitPrice * i.quantity).toLocaleString()}%0A%0A`;
             });
@@ -1604,7 +1604,7 @@
                 budget: budget ? parseInt(budget, 10) : null
             });
 
-            let msg = `*EAZYLIFE - CUSTOM REQUEST*%0A%0A*Looking for:* ${need}%0A`;
+            let msg = `*TEJU BOSS - CUSTOM REQUEST*%0A%0A*Looking for:* ${need}%0A`;
             if (category) msg += `*Category:* ${category}%0A`;
             if (budget) msg += `*Budget:* ₦${parseInt(budget, 10).toLocaleString()}%0A`;
             msg += `%0A*Name:* ${name}%0A*Phone:* ${phone}`;

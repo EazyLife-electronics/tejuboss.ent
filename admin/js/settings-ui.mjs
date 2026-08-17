@@ -15,28 +15,24 @@ if (typeof document !== 'undefined' &&
         <form id="settingsForm" class="space-y-3">
           <div>
             <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">WhatsApp number</label>
-            <input id="s_whatsapp" placeholder="e.g. 2348051234567" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#00B09B]">
+            <input id="s_whatsapp" placeholder="e.g. 2348051234567" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#DC2626]">
           </div>
           <div>
             <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Shop tagline</label>
-            <input id="s_tagline" placeholder="Short tagline shown around the shop" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#00B09B]">
+            <input id="s_tagline" placeholder="Short tagline shown around the shop" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#DC2626]">
           </div>
           <div>
             <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">About text</label>
-            <textarea id="s_about" rows="4" placeholder="Short description about EazyLife" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#00B09B]"></textarea>
+            <textarea id="s_about" rows="4" placeholder="Short description about Teju Boss" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#DC2626]"></textarea>
           </div>
-          <label class="flex items-center gap-2 text-xs font-bold text-gray-600 px-1">
-            <input type="checkbox" id="s_referralMode">
-            Enable referral mode
-          </label>
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Delivery fee / item (₦)</label>
-              <input id="s_deliveryFee" type="number" min="0" step="1" placeholder="750" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#00B09B]">
+              <input id="s_deliveryFee" type="number" min="0" step="1" placeholder="750" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#DC2626]">
             </div>
             <div>
               <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Delivery discount (%)</label>
-              <input id="s_deliveryDiscount" type="number" min="0" max="100" step="0.1" placeholder="10" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#00B09B]">
+              <input id="s_deliveryDiscount" type="number" min="0" max="100" step="0.1" placeholder="10" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#DC2626]">
             </div>
           </div>
           <div class="bg-gray-50 rounded-xl border border-gray-200 p-3">
@@ -45,17 +41,17 @@ if (typeof document !== 'undefined' &&
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Discount (%)</label>
-                <input id="s_bulkSavingsPercent" type="number" min="0" max="100" step="0.1" placeholder="e.g. 5" class="w-full p-3 bg-white rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#00B09B]">
+                <input id="s_bulkSavingsPercent" type="number" min="0" max="100" step="0.1" placeholder="e.g. 5" class="w-full p-3 bg-white rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#DC2626]">
               </div>
               <div>
                 <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Minimum quantity</label>
-                <input id="s_bulkSavingsMinQty" type="number" min="0" step="1" placeholder="e.g. 5" class="w-full p-3 bg-white rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#00B09B]">
+                <input id="s_bulkSavingsMinQty" type="number" min="0" step="1" placeholder="e.g. 5" class="w-full p-3 bg-white rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#DC2626]">
               </div>
             </div>
           </div>
           <div class="flex items-center gap-2 pt-1">
             <button type="submit" class="flex-1 bg-gray-900 text-white py-3 rounded-xl font-bold text-sm">Save Settings</button>
-            <span id="settingsMsg" class="hidden text-[11px] font-bold text-[#00B09B]">Saved</span>
+            <span id="settingsMsg" class="hidden text-[11px] font-bold text-[#DC2626]">Saved</span>
           </div>
         </form>
       </div>`;

@@ -98,7 +98,7 @@ function renderLedger(customer) {
     <div class="space-y-2">${customer.orders.map(orderRow).join('') || '<p class="text-sm text-gray-400 py-8 text-center">No orders found.</p>'}</div>
   </div>`;
 
-  document.getElementById('ledgerBack')?.addEventListener('click', () => window.dispatchEvent(new CustomEvent('eazylife:receivables-back')));
+  document.getElementById('ledgerBack')?.addEventListener('click', () => window.dispatchEvent(new CustomEvent('tejuboss:receivables-back')));
   document.querySelectorAll('[data-ledger-order]').forEach(btn => btn.addEventListener('click', () => {
     const panel = document.getElementById(`ledgerPayments-${btn.dataset.ledgerOrder}`);
     panel?.classList.toggle('hidden');

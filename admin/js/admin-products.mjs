@@ -17,12 +17,12 @@ function variantRowHTML(rowId, v = {}) {
   return `
     <div class="variant-row bg-white border border-gray-200 rounded-xl p-3" data-row-id="${rowId}">
       <div class="grid grid-cols-2 gap-2 mb-2">
-        <input id="v${rowId}_color" placeholder="Color" value="${escapeHtml(v.color || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
-        <input id="v${rowId}_processor" placeholder="Processor" value="${escapeHtml(v.processor || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
+        <input id="v${rowId}_color" placeholder="Variant / Flavour (e.g. Original, Blue)" value="${escapeHtml(v.color || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
+        <input id="v${rowId}_processor" placeholder="Unit / Type (e.g. Bottle, Sachet, Piece)" value="${escapeHtml(v.processor || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
       </div>
       <div class="grid grid-cols-2 gap-2 mb-2">
-        <input id="v${rowId}_ram" placeholder="RAM (e.g. 16GB)" value="${escapeHtml(v.ram || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
-        <input id="v${rowId}_rom" placeholder="Storage (e.g. 512GB)" value="${escapeHtml(v.rom || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
+        <input id="v${rowId}_ram" placeholder="Size / Weight (e.g. 500g, 1L)" value="${escapeHtml(v.ram || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
+        <input id="v${rowId}_rom" placeholder="Pack / Carton (e.g. Pack of 6)" value="${escapeHtml(v.rom || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
       </div>
       <div class="grid grid-cols-2 gap-2 mb-2">
         <input id="v${rowId}_price" type="number" placeholder="Price (₦)" value="${v.price || ''}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
@@ -70,7 +70,7 @@ function variantRowHTML(rowId, v = {}) {
 function upgradeRowHTML(rowId, u = {}) {
   return `
     <div class="upgrade-row bg-white border border-gray-200 rounded-xl p-3 flex gap-2 items-center" data-row-id="${rowId}">
-      <input id="u${rowId}_name" placeholder="Upgrade name (e.g. RAM upgrade to 16GB)" value="${escapeHtml(u.name || '')}" class="flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
+      <input id="u${rowId}_name" placeholder="Add-on name (e.g. Gift wrap)" value="${escapeHtml(u.name || '')}" class="flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
       <input id="u${rowId}_price" type="number" placeholder="+₦" value="${u.price || ''}" class="w-24 p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
       <button type="button" class="remove-upgrade-btn text-red-500 text-[11px] font-bold" data-row-id="${rowId}">Remove</button>
     </div>`;
@@ -259,7 +259,7 @@ function exportProductsToExcel() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(productRows), 'Products');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(upgradeRows), 'Upgrades');
-  XLSX.writeFile(wb, `eazylife-products-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  XLSX.writeFile(wb, `tejuboss-products-${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
 function showImportStatus(text) {

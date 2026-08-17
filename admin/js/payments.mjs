@@ -161,7 +161,7 @@ async function enhanceOrderCard(orderInput, suppliedCard = null) {
         <select data-pay-method="${escapeHtml(orderId)}" class="w-full p-2 bg-gray-50 rounded-lg border border-gray-200 text-[10px] outline-none">${Object.entries(PAYMENT_METHODS).map(([key, label]) => `<option value="${key}">${label}</option>`).join('')}</select>
         <input data-pay-reference="${escapeHtml(orderId)}" placeholder="Reference (optional)" class="w-full p-2 bg-gray-50 rounded-lg border border-gray-200 text-[10px] outline-none">
         <input data-pay-note="${escapeHtml(orderId)}" placeholder="Note (optional)" class="w-full p-2 bg-gray-50 rounded-lg border border-gray-200 text-[10px] outline-none">
-        <button type="button" data-pay-save="${escapeHtml(orderId)}" class="w-full bg-[#00B09B] text-white p-2 rounded-lg text-[10px] font-bold">Save Payment</button>
+        <button type="button" data-pay-save="${escapeHtml(orderId)}" class="w-full bg-[#DC2626] text-white p-2 rounded-lg text-[10px] font-bold">Save Payment</button>
       </div>`;
 
     card.appendChild(panel);
