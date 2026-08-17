@@ -11,6 +11,7 @@ export async function loadSettingsForm() {
   document.getElementById('s_about').value = settings.aboutText || '';
   document.getElementById('s_deliveryFee').value = settings.deliveryFeePerItem ?? 750;
   document.getElementById('s_deliveryDiscount').value = settings.deliveryDiscountPercent ?? 10;
+  document.getElementById('s_minOrder').value = settings.minOrderValue ?? 0;
   document.getElementById('s_bulkSavingsPercent').value = settings.bulkSavingsPercent ?? '';
   document.getElementById('s_bulkSavingsMinQty').value = settings.bulkSavingsMinQty ?? '';
 }
@@ -24,6 +25,7 @@ export function initSettings() {
       aboutText: document.getElementById('s_about').value.trim(),
       deliveryFeePerItem: parseInt(document.getElementById('s_deliveryFee').value, 10) || 0,
       deliveryDiscountPercent: parseFloat(document.getElementById('s_deliveryDiscount').value) || 0,
+      minOrderValue: parseInt(document.getElementById('s_minOrder').value, 10) || 0,
       bulkSavingsPercent: parseFloat(document.getElementById('s_bulkSavingsPercent').value) || 0,
       bulkSavingsMinQty: parseInt(document.getElementById('s_bulkSavingsMinQty').value, 10) || 0
     });

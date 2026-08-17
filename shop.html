@@ -481,6 +481,7 @@
     let whatsappNumber = '2347079557886'; // fallback if settings doc isn't set yet
     let deliveryFeePerItem = 750;
     let deliveryDiscountRate = 0.10;
+    let minOrderValue = 0;
     let generalBulkSavingsPercent = 0;
     let generalBulkSavingsMinQty = 0;
 
@@ -495,6 +496,7 @@
             if (settings.whatsapp) whatsappNumber = settings.whatsapp;
             if (settings.deliveryFeePerItem != null) deliveryFeePerItem = settings.deliveryFeePerItem;
             if (settings.deliveryDiscountPercent != null) deliveryDiscountRate = settings.deliveryDiscountPercent / 100;
+            if (settings.minOrderValue != null) minOrderValue = settings.minOrderValue;
             if (settings.bulkSavingsPercent != null) generalBulkSavingsPercent = settings.bulkSavingsPercent;
             if (settings.bulkSavingsMinQty != null) generalBulkSavingsMinQty = settings.bulkSavingsMinQty;
             document.getElementById("loader").classList.add("hidden");
@@ -1422,12 +1424,16 @@
         const included = includedCartItems();
         document.getElementById("cartExcludedNote").classList.toggle("hidden", included.length >= cart.length);
         renderTotalsBlock("", included);
+        const totals = cartTotals(included);
 
         const reviewBtn = document.getElementById("reviewBtn");
-        reviewBtn.disabled = included.length === 0;
+        const belowMin = minOrderValue > 0 && included.length > 0 && totals.subtotal < minOrderValue;
+        reviewBtn.disabled = included.length === 0 || belowMin;
         reviewBtn.innerHTML = included.length === 0
             ? `Select items to continue`
-            : `<i class="fas fa-arrow-right"></i> Review Order`;
+            : belowMin
+                ? `Add ₦${(minOrderValue - totals.subtotal).toLocaleString()} more to order`
+                : `<i class="fas fa-arrow-right"></i> Review Order`;
 
         document.getElementById("cartModal").classList.remove("hidden");
     }
@@ -1441,6 +1447,10 @@
     function goToCheckout() {
         const included = includedCartItems();
         if (included.length === 0) return;
+        const subtotalNow = cartTotals(included).subtotal;
+        if (minOrderValue > 0 && subtotalNow < minOrderValue) {
+            return alert(`A minimum order of ₦${minOrderValue.toLocaleString()} is required. Add ₦${(minOrderValue - subtotalNow).toLocaleString()} more to continue.`);
+        }
         const name = document.getElementById("custName").value.trim();
         const phone = document.getElementById("custPhone").value.trim();
         const addr = document.getElementById("custAddr").value.trim();

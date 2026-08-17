@@ -53,6 +53,12 @@
     "logo": "https://tejuboss.ent/assets/pictures/logo_white.png",
     "image": "https://tejuboss.ent/assets/pictures/logo_white.png",
     "telephone": "+2347079557886",
+    "identifier": {
+      "@type": "PropertyValue",
+      "name": "CAC RC Number",
+      "value": "7628297"
+    },
+    "foundingDate": "2024-06-28",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "[Add street address]",
@@ -171,8 +177,8 @@
     .hero-carousel-track.single { width: 100%; justify-content: center; }
     .hero-carousel-track.paused { animation-play-state: paused; }
     @keyframes heroMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-    .hero-slide { flex: 0 0 auto; width: 280px; border-radius: 22px; overflow: hidden; background: #fff; box-shadow: 0 8px 28px rgba(0,0,0,0.09); border: 1px solid #eee; }
-    .hero-slide img { height: 160px; width: 100%; object-fit: cover; background: #f4f4f4; }
+    .hero-slide { flex: 0 0 auto; width: 340px; border-radius: 22px; overflow: hidden; background: #fff; box-shadow: 0 8px 28px rgba(0,0,0,0.09); border: 1px solid #eee; }
+    .hero-slide img { height: 220px; width: 100%; object-fit: cover; background: #f4f4f4; }
     .hero-slide .slide-body { padding: 16px; }
     .hero-slide h4 { font-size: 1rem; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
     .hero-slide p { font-size: 0.8rem; color: var(--text-light); margin-bottom: 11px; }
@@ -258,8 +264,8 @@
 
     @media (min-width: 720px) {
       .hero h1 { font-size: 2.9rem; }
-      .hero-slide { width: 320px; }
-      .hero-slide img { height: 180px; }
+      .hero-slide { width: 460px; }
+      .hero-slide img { height: 260px; }
       .product-grid { grid-template-columns: repeat(4, 1fr); }
       .services-strip { grid-template-columns: repeat(3, 1fr); }
       .trust-grid { grid-template-columns: repeat(2, 1fr); }
@@ -533,7 +539,7 @@
   </section>
 
   <footer class="site-footer">
-    &copy; <span id="year"></span> Teju Boss Enterprise.
+    &copy; <span id="year"></span> Teju Boss Enterprise. RC 7628297.
   </footer>
 
   <script>
@@ -753,7 +759,7 @@
 
         // Keep the homepage snackable — a full row on desktop (4-col grid), two tidy rows
         // on mobile (2-col grid), rather than the longer scroll the full catalog invites.
-        const PREVIEW_COUNT = 4;
+        const PREVIEW_COUNT = 8;
         const preview = products.slice(0, PREVIEW_COUNT);
         grid.innerHTML = preview.map(p => {
           const range = productPriceRange(p);

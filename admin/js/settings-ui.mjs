@@ -35,6 +35,10 @@ if (typeof document !== 'undefined' &&
               <input id="s_deliveryDiscount" type="number" min="0" max="100" step="0.1" placeholder="10" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#DC2626]">
             </div>
           </div>
+          <div>
+            <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Minimum order value (₦)</label>
+            <input id="s_minOrder" type="number" min="0" step="1" placeholder="e.g. 5000 (0 = no minimum)" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#DC2626]">
+          </div>
           <div class="bg-gray-50 rounded-xl border border-gray-200 p-3">
             <h3 class="text-xs font-black uppercase text-gray-500 mb-1">Bulk savings</h3>
             <p class="text-[10px] text-gray-400 mb-3">Used by variants that inherit the general bulk-savings rule.</p>
