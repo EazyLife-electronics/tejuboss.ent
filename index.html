@@ -1,359 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teju Boss Enterprise | PZ Cussons Shop</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .product { transition: transform 0.2s ease; position: relative; }
-        .active-cat { background-color: black !important; color: white !important; border-color: black !important; }
-        .promo-tag { position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 900; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        ::-webkit-scrollbar { height: 4px; width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #000; border-radius: 10px; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        
-        #heroSlider { display: flex; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; height: 100%; }
-        .hero-slide { min-width: 100%; height: 100%; position: relative; overflow: hidden; }
-        
-        .hero-content {
-            background: linear-gradient(to right, rgba(0,0,0,0.85) 20%, rgba(0,0,0,0.4) 60%, transparent 100%);
-            width: 100%;
-            height: 100%;
-        }
-
-        @keyframes cart-bounce {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
-        .cart-pop { animation: cart-bounce 0.4s ease-in-out; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#6f4e37">
+<title>Teju Boss Enterprise | Shop</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{--brown:#6f4e37;--brown2:#8b6245;--cream:#f8f3ed;--ink:#241b16;--muted:#746b64;--line:#e8dfd7;}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#fff;color:var(--ink);font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent}.serif{font-family:'Playfair Display',serif}.brown{color:var(--brown)}.bg-brown{background:var(--brown)}.bg-cream{background:var(--cream)}.border-soft{border-color:var(--line)}
+.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}.hide{display:none!important}.product-card{transition:.22s ease;cursor:pointer}.product-card:hover{transform:translateY(-3px);box-shadow:0 16px 35px rgba(36,27,22,.09)}.product-img{background:linear-gradient(135deg,#faf7f3,#f1eae3)}
+.hero-track{display:flex;height:100%;transition:transform .55s cubic-bezier(.4,0,.2,1)}.hero-slide{min-width:100%;height:100%;position:relative}.hero-overlay{background:linear-gradient(90deg,rgba(26,18,13,.84),rgba(26,18,13,.34) 55%,transparent)}
+.drawer{transition:transform .28s ease}.modal{transition:opacity .2s ease}.line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.pill{transition:.18s ease}.pill.active{background:var(--brown);color:white;border-color:var(--brown)}
+.toast{animation:toastIn .25s ease}@keyframes toastIn{from{transform:translateY(15px);opacity:0}to{transform:translateY(0);opacity:1}}
+@media(min-width:768px){.hero-height{height:390px}.mobile-bottom{display:none!important}}
+@media(max-width:767px){.hero-height{height:300px}.desktop-only{display:none!important}}
+</style>
 </head>
+<body class="pb-20 md:pb-0">
 
-<body class="bg-gray-50 pb-24">
+<!-- TOP NOTICE -->
+<div class="bg-[#241b16] text-white text-[11px] font-semibold text-center py-2 px-4 tracking-wide">QUALITY EVERYDAY ESSENTIALS • FAST LOCAL DELIVERY • ORDER WITH CONFIDENCE</div>
 
-<header class="bg-black text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-md">
-    <h1 class="font-extrabold text-lg tracking-tighter cursor-pointer">
-        TEJU BOSS <span class="text-red-500">ENT.</span>
-    </h1>
-    <button onclick="showCart()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-full font-bold text-sm transition-all flex items-center gap-2">
-        <span>Cart</span>
-        <span id="count" class="bg-white text-red-600 rounded-full px-2 py-0.5 text-xs">0</span>
+<!-- HEADER -->
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-soft">
+  <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center gap-3">
+    <button onclick="toggleCategories()" class="md:hidden w-10 h-10 rounded-xl bg-cream flex items-center justify-center text-xl">☰</button>
+    <button onclick="window.scrollTo({top:0,behavior:'smooth'})" class="shrink-0 text-left">
+      <div class="font-black tracking-tight text-lg md:text-xl">TEJU BOSS</div><div class="text-[9px] font-bold tracking-[.25em] brown">ENTERPRISE</div>
     </button>
+    <button onclick="toggleCategories()" class="desktop-only ml-3 flex items-center gap-2 font-bold text-sm bg-cream px-4 py-2.5 rounded-xl"><span>☰</span> Categories</button>
+    <div class="hidden md:flex flex-1 max-w-2xl mx-auto relative">
+      <input id="search" oninput="searchProducts()" onfocus="showSearchSuggestions()" placeholder="Search products, brands and categories..." class="w-full h-11 rounded-xl border border-soft bg-[#faf8f5] pl-11 pr-4 outline-none focus:ring-2 focus:ring-[#d9c5b5] text-sm">
+      <span class="absolute left-4 top-3 text-lg text-[#8b8179]">⌕</span>
+      <div id="suggestions" class="hidden absolute top-12 left-0 right-0 bg-white rounded-xl shadow-2xl border border-soft p-2 z-50"></div>
+    </div>
+    <div class="ml-auto flex items-center gap-1.5">
+      <button onclick="toggleWishlist()" class="hidden md:flex w-10 h-10 rounded-xl items-center justify-center hover:bg-cream relative">♡<span id="wishCount" class="hidden absolute -top-1 -right-1 bg-brown text-white text-[9px] rounded-full min-w-4 h-4 items-center justify-center">0</span></button>
+      <button onclick="showAccount()" class="hidden md:flex w-10 h-10 rounded-xl items-center justify-center hover:bg-cream">♙</button>
+      <button onclick="showCart()" class="relative w-11 h-11 rounded-xl bg-brown text-white flex items-center justify-center text-xl shadow-sm">🛒<span id="count" class="absolute -top-1 -right-1 bg-[#d7a76d] text-[#241b16] text-[10px] font-black rounded-full min-w-5 h-5 flex items-center justify-center">0</span></button>
+    </div>
+  </div>
+  <div class="md:hidden px-4 pb-3 relative">
+    <input id="mobileSearch" oninput="mobileSearchProducts()" placeholder="Search products, brands..." class="w-full h-11 rounded-xl border border-soft bg-[#faf8f5] pl-11 pr-4 outline-none text-sm">
+    <span class="absolute left-8 top-2.5 text-lg text-[#8b8179]">⌕</span>
+  </div>
 </header>
 
-<main class="max-w-5xl mx-auto">
-    <div id="heroContainer" class="px-4 pt-4 mb-6 relative overflow-hidden group">
-        <div class="rounded-[32px] overflow-hidden shadow-lg bg-gray-200 aspect-[4/3] md:aspect-[21/7] relative">
-            <div id="heroSlider" ontouchstart="handleTouchStart(event)" ontouchmove="handleTouchMove(event)"></div>
-            <div id="heroDots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20"></div>
-        </div>
-    </div>
+<!-- CATEGORY DRAWER -->
+<div id="catShade" onclick="toggleCategories()" class="hidden fixed inset-0 bg-black/45 z-[70]"></div>
+<aside id="catDrawer" class="drawer fixed top-0 left-0 bottom-0 w-[310px] max-w-[88vw] bg-white z-[80] -translate-x-full shadow-2xl overflow-y-auto">
+  <div class="p-5 border-b border-soft flex items-center justify-between"><div><b class="text-lg">Shop by Category</b><p class="text-xs text-[#8b8179] mt-1">Find what you need quickly</p></div><button onclick="toggleCategories()" class="w-9 h-9 rounded-lg bg-cream">×</button></div>
+  <div id="categoryMenu" class="p-4 space-y-1"></div>
+</aside>
 
-    <div class="p-4 space-y-4">
-        <input id="search" placeholder="Search brands (Robb, Carex, Joy...)" 
-               class="w-full p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-red-500 outline-none" 
-               onkeyup="filterProducts()">
-        <div id="catFilters" class="flex gap-2 overflow-x-auto pb-2 no-scrollbar"></div>
-    </div>
+<main>
+<!-- HERO -->
+<section class="max-w-7xl mx-auto px-4 md:px-6 pt-4 md:pt-6">
+  <div id="heroContainer" class="hero-height rounded-3xl overflow-hidden relative bg-[#efe7df] shadow-sm">
+    <div id="heroTrack" class="hero-track"></div>
+    <button onclick="goSlide(currentSlide-1)" class="absolute left-3 md:left-5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 shadow flex items-center justify-center">‹</button>
+    <button onclick="goSlide(currentSlide+1)" class="absolute right-3 md:right-5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 shadow flex items-center justify-center">›</button>
+    <div id="heroDots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5"></div>
+  </div>
+</section>
 
-    <div id="loader" class="flex flex-col items-center justify-center py-20 text-gray-400">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-2"></div>
-        <p class="font-medium">Loading Catalog...</p>
-    </div>
-    
-    <div id="grid" class="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+<!-- QUICK LINKS -->
+<section class="max-w-7xl mx-auto px-4 md:px-6 py-5">
+ <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+  <button onclick="showPromos()" class="bg-cream rounded-2xl p-4 text-left hover:shadow-sm"><div class="text-2xl mb-2">🔥</div><b class="text-sm">Today's Deals</b><p class="text-[11px] text-[#8b8179] mt-1">Save on selected items</p></button>
+  <button onclick="showNewArrivals()" class="bg-[#f3eee9] rounded-2xl p-4 text-left hover:shadow-sm"><div class="text-2xl mb-2">✨</div><b class="text-sm">New Arrivals</b><p class="text-[11px] text-[#8b8179] mt-1">Fresh additions to shop</p></button>
+  <button onclick="showBestSellers()" class="bg-[#f5f0ea] rounded-2xl p-4 text-left hover:shadow-sm"><div class="text-2xl mb-2">⭐</div><b class="text-sm">Best Sellers</b><p class="text-[11px] text-[#8b8179] mt-1">Popular customer picks</p></button>
+  <button onclick="showAccount()" class="bg-[#eee7df] rounded-2xl p-4 text-left hover:shadow-sm"><div class="text-2xl mb-2">📦</div><b class="text-sm">Track an Order</b><p class="text-[11px] text-[#8b8179] mt-1">Your orders, all in one place</p></button>
+ </div>
+</section>
+
+<!-- CATEGORY STRIP -->
+<section class="max-w-7xl mx-auto px-4 md:px-6 pb-4">
+ <div class="flex items-end justify-between mb-3"><div><p class="text-xs font-bold uppercase tracking-[.18em] brown">Explore</p><h2 class="serif text-2xl md:text-3xl">Shop our categories</h2></div><button onclick="toggleCategories()" class="text-xs font-bold brown">View all →</button></div>
+ <div id="catPills" class="flex gap-2 overflow-x-auto no-scrollbar pb-1"></div>
+</section>
+
+<!-- DEALS -->
+<section id="dealsSection" class="bg-[#faf6f1] py-8 md:py-10">
+ <div class="max-w-7xl mx-auto px-4 md:px-6">
+  <div class="flex items-end justify-between mb-5"><div><p class="text-xs font-bold uppercase tracking-[.18em] text-[#a66c32]">Limited offers</p><h2 class="serif text-2xl md:text-3xl">Today's Deals</h2></div><button onclick="showPromos()" class="text-xs font-bold brown">See all deals →</button></div>
+  <div id="dealsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5"></div>
+ </div>
+</section>
+
+<!-- PRODUCTS -->
+<section id="productsSection" class="max-w-7xl mx-auto px-4 md:px-6 py-9">
+ <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-5">
+  <div><p id="listingKicker" class="text-xs font-bold uppercase tracking-[.18em] brown">Our catalogue</p><h2 id="listingTitle" class="serif text-2xl md:text-3xl">Shop all products</h2></div>
+  <div class="flex items-center gap-2"><span id="resultCount" class="text-xs text-[#8b8179]"></span><select id="sort" onchange="applyFilters()" class="text-xs font-semibold border border-soft rounded-xl px-3 py-2 bg-white outline-none"><option value="featured">Featured</option><option value="priceLow">Price: Low to High</option><option value="priceHigh">Price: High to Low</option><option value="name">Name A-Z</option></select></div>
+ </div>
+ <div id="grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5"></div>
+ <div id="empty" class="hidden py-20 text-center"><div class="text-5xl mb-3">🔎</div><h3 class="font-bold text-lg">No products found</h3><p class="text-sm text-[#8b8179] mt-1">Try another search or category.</p><button onclick="clearFilters()" class="mt-5 bg-brown text-white px-5 py-3 rounded-xl text-sm font-bold">View all products</button></div>
+</section>
+
+<!-- TRUST -->
+<section class="border-y border-soft bg-white">
+ <div class="max-w-7xl mx-auto px-4 md:px-6 py-7 grid grid-cols-2 md:grid-cols-4 gap-5">
+  <div class="flex gap-3"><span class="text-2xl">✓</span><div><b class="text-sm">Quality Products</b><p class="text-[11px] text-[#8b8179]">Carefully sourced essentials</p></div></div>
+  <div class="flex gap-3"><span class="text-2xl">🚚</span><div><b class="text-sm">Local Delivery</b><p class="text-[11px] text-[#8b8179]">Convenient doorstep service</p></div></div>
+  <div class="flex gap-3"><span class="text-2xl">💬</span><div><b class="text-sm">WhatsApp Support</b><p class="text-[11px] text-[#8b8179]">Talk to us before you order</p></div></div>
+  <div class="flex gap-3"><span class="text-2xl">🔒</span><div><b class="text-sm">Simple Ordering</b><p class="text-[11px] text-[#8b8179]">Fast, familiar checkout</p></div></div>
+ </div>
+</section>
 </main>
 
-<div id="cartModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end md:items-center justify-center">
-    <div class="bg-white w-full max-w-md rounded-t-[32px] md:rounded-[32px] shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="font-extrabold text-2xl italic text-gray-900">Your Order</h2>
-            <button onclick="hideCart()" class="text-gray-400 p-2 text-2xl">&times;</button>
-        </div>
-        <div id="cartItems" class="space-y-4 mb-8"></div>
-        <div class="bg-gray-50 p-4 rounded-2xl mb-6 space-y-3">
-            <input id="custName" placeholder="Full Name" class="w-full bg-white border-none p-3 rounded-xl shadow-sm text-sm">
-            <input id="custPhone" placeholder="WhatsApp Number" class="w-full bg-white border-none p-3 rounded-xl shadow-sm text-sm">
-            <textarea id="custAddr" placeholder="Delivery Address" class="w-full bg-white border-none p-3 rounded-xl shadow-sm text-sm" rows="2"></textarea>
-        </div>
-        <div class="flex justify-between items-center px-2">
-            <span class="font-bold text-gray-500">Total Payable</span>
-            <span class="text-2xl font-black text-red-600">₦<span id="total">0</span></span>
-        </div>
-        <button onclick="previewOrder()" class="bg-blue-600 text-white w-full py-4 mt-6 rounded-2xl font-black text-lg shadow-xl hover:bg-blue-700 transition-all">
-            Place Order via WhatsApp
-        </button>
-    </div>
+<footer class="bg-[#241b16] text-white mt-8">
+ <div class="max-w-7xl mx-auto px-4 md:px-6 py-10 grid md:grid-cols-4 gap-8">
+  <div class="md:col-span-2"><div class="font-black text-xl">TEJU BOSS</div><div class="text-[9px] tracking-[.28em] text-[#d7a76d] font-bold">ENTERPRISE</div><p class="text-sm text-white/65 max-w-md mt-4">Your convenient destination for everyday household, personal care, baby and lifestyle essentials.</p></div>
+  <div><b class="text-sm">Shop</b><div class="space-y-2 mt-3 text-sm text-white/65"><button onclick="showPromos()" class="block">Today's Deals</button><button onclick="clearFilters()" class="block">All Products</button><button onclick="toggleCategories()" class="block">Categories</button></div></div>
+  <div><b class="text-sm">Need help?</b><div class="space-y-2 mt-3 text-sm text-white/65"><button onclick="showCart()" class="block">My Cart</button><button onclick="showAccount()" class="block">My Orders</button><a href="https://wa.me/?text=Hello%20Teju%20Boss%20Enterprise" class="block">WhatsApp Us</a></div></div>
+ </div>
+ <div class="border-t border-white/10 text-center text-[11px] text-white/45 py-4">© <span id="year"></span> Teju Boss Enterprise. All rights reserved.</div>
+</footer>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-bottom fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-soft grid grid-cols-4 h-16 shadow-[0_-5px_20px_rgba(0,0,0,.06)]">
+ <button onclick="window.scrollTo({top:0,behavior:'smooth'})" class="text-[10px] font-semibold"><div class="text-lg">⌂</div>Home</button>
+ <button onclick="toggleCategories()" class="text-[10px] font-semibold"><div class="text-lg">☰</div>Categories</button>
+ <button onclick="toggleWishlist()" class="text-[10px] font-semibold"><div class="text-lg">♡</div>Wishlist</button>
+ <button onclick="showCart()" class="text-[10px] font-semibold relative"><div class="text-lg">🛒</div>Cart<span id="mobileCount" class="absolute top-0 right-6 bg-brown text-white text-[8px] rounded-full min-w-4 h-4">0</span></button>
+</nav>
+
+<!-- PRODUCT DETAIL MODAL -->
+<div id="productModal" class="modal hidden fixed inset-0 z-[100] bg-black/55 p-0 md:p-6 overflow-y-auto">
+ <div class="min-h-full md:min-h-0 md:max-w-4xl md:mx-auto md:my-8 bg-white md:rounded-3xl overflow-hidden shadow-2xl">
+  <div class="flex justify-end p-3 absolute right-0 z-10"><button onclick="hideProduct()" class="w-10 h-10 rounded-full bg-white/90 shadow text-xl">×</button></div>
+  <div id="productDetail"></div>
+ </div>
 </div>
 
+<!-- CART DRAWER -->
+<div id="cartShade" onclick="hideCart()" class="hidden fixed inset-0 bg-black/50 z-[90]"></div>
+<aside id="cartDrawer" class="drawer fixed top-0 right-0 bottom-0 w-full sm:w-[430px] bg-white z-[95] translate-x-full shadow-2xl flex flex-col">
+ <div class="p-5 border-b border-soft flex items-center justify-between"><div><b class="text-xl">Your Cart</b><p id="cartSubtitle" class="text-xs text-[#8b8179] mt-1">0 items</p></div><button onclick="hideCart()" class="w-9 h-9 rounded-lg bg-cream">×</button></div>
+ <div id="cartItems" class="flex-1 overflow-y-auto p-5 space-y-4"></div>
+ <div class="p-5 border-t border-soft bg-[#fcfaf8]"><div class="flex justify-between text-sm mb-2"><span>Subtotal</span><b id="cartTotal">₦0</b></div><p class="text-[11px] text-[#8b8179] mb-4">Delivery charges, if any, will be confirmed with you.</p><button onclick="openCheckout()" class="w-full py-3.5 rounded-xl bg-brown text-white font-bold">Proceed to Order</button></div>
+</aside>
+
+<!-- CHECKOUT -->
+<div id="checkoutModal" class="hidden fixed inset-0 z-[110] bg-black/55 p-0 md:p-6 overflow-y-auto">
+ <div class="min-h-full md:min-h-0 md:max-w-lg md:mx-auto md:my-10 bg-white md:rounded-3xl shadow-2xl overflow-hidden">
+  <div class="p-5 border-b border-soft flex justify-between"><div><b class="text-xl">Complete your order</b><p class="text-xs text-[#8b8179] mt-1">We'll confirm your order on WhatsApp.</p></div><button onclick="closeCheckout()" class="w-9 h-9 rounded-lg bg-cream">×</button></div>
+  <div class="p-5 space-y-4"><input id="custName" placeholder="Full name" class="field"><input id="custPhone" placeholder="WhatsApp number" class="field"><textarea id="custAddr" rows="3" placeholder="Delivery address" class="field"></textarea><div class="rounded-2xl bg-cream p-4"><div class="flex justify-between text-sm"><span>Order total</span><b id="checkoutTotal">₦0</b></div><p class="text-[11px] text-[#8b8179] mt-2">Your cart will be sent as an order message. You can review it before sending.</p></div><button onclick="previewOrder()" class="w-full py-4 rounded-xl bg-brown text-white font-bold">Review Order on WhatsApp</button></div>
+ </div>
+</div>
+
+<!-- ACCOUNT / ORDERS -->
+<div id="accountModal" class="hidden fixed inset-0 z-[100] bg-black/55 p-0 md:p-6 overflow-y-auto"><div class="min-h-full md:min-h-0 md:max-w-lg md:mx-auto md:my-10 bg-white md:rounded-3xl shadow-2xl p-6"><div class="flex justify-between"><div><b class="text-xl">My TejuBoss</b><p class="text-xs text-[#8b8179] mt-1">Orders and shopping shortcuts</p></div><button onclick="closeAccount()" class="w-9 h-9 rounded-lg bg-cream">×</button></div><div class="grid grid-cols-2 gap-3 mt-6"><button onclick="showCart();closeAccount()" class="p-5 bg-cream rounded-2xl text-left"><div class="text-2xl">🛒</div><b class="text-sm block mt-2">Current Cart</b><span id="accountCartText" class="text-xs text-[#8b8179]"></span></button><button onclick="toggleWishlist();closeAccount()" class="p-5 bg-cream rounded-2xl text-left"><div class="text-2xl">♡</div><b class="text-sm block mt-2">Wishlist</b><span id="accountWishText" class="text-xs text-[#8b8179]"></span></button></div><div class="mt-4 p-5 rounded-2xl border border-soft"><b class="text-sm">Order tracking</b><p class="text-xs text-[#8b8179] mt-2">For now, orders are confirmed through WhatsApp. A full order history and live tracking system can be connected to the TejuBoss manager in the next phase.</p></div></div></div>
+
+<div id="toast" class="hidden fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-[150] bg-[#241b16] text-white px-5 py-3 rounded-xl text-sm font-semibold shadow-xl"></div>
+
+<style>.field{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;outline:none;font-size:14px;background:#fff}.field:focus{box-shadow:0 0 0 3px #eadbce}</style>
 <script>
-    const CKEY = "teju_cart_v6";
-    const UKEY = "teju_user_v6";
+const CKEY='teju_cart_v6', WKEY='teju_wishlist_v1', UKEY='teju_user_v6';
+let products=[],heroes=[],cart=JSON.parse(localStorage.getItem(CKEY)||'[]'),wishlist=JSON.parse(localStorage.getItem(WKEY)||'[]');
+let currentCategory='All', currentSlide=0, slideTimer=null, searchTerm='';
+const fallback='data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><rect width="100%" height="100%" fill="#f1eae3"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#8b8179" font-family="Arial" font-size="24">TejuBoss</text></svg>');
 
-    let products = []; 
-    let heroes = [];
-    let cart = JSON.parse(localStorage.getItem(CKEY)) || [];
-    let currentCategory = 'All';
-    let currentSlide = 0;
-    let slideInterval;
-    let touchStartX = 0;
-
-    window.onload = async () => {
-        await Promise.all([fetchProducts(), fetchHeroes()]);
-        updateUI();
-        loadUser();
-        if(heroes.length > 0) startAutoPlay();
-    };
-
-    async function fetchHeroes() {
-        try {
-            const res = await fetch('heroes.json');
-            if(res.ok) {
-                heroes = await res.json();
-                renderHeroes();
-            } else { document.getElementById("heroContainer").classList.add("hidden"); }
-        } catch (e) { document.getElementById("heroContainer").classList.add("hidden"); }
-    }
-
-    function renderHeroes() {
-        const slider = document.getElementById("heroSlider");
-        const dots = document.getElementById("heroDots");
-        if (!heroes.length) return;
-
-        slider.innerHTML = heroes.map(h => `
-            <div class="hero-slide">
-                <img src="${h.image}" class="absolute inset-0 w-full h-full object-cover">
-                <div class="hero-content absolute inset-0 flex flex-col justify-center p-6 md:p-12 text-white">
-                    <h2 class="text-xl md:text-4xl font-black italic tracking-tighter mb-2 uppercase leading-tight max-w-[85%]">
-                        ${h.title}
-                    </h2>
-                    <p class="text-[10px] md:text-base font-medium opacity-90 max-w-[75%] mb-4 md:mb-6 line-clamp-2">
-                        ${h.subtitle}
-                    </p>
-                    <button onclick="handleHeroAction('${h.action}', '${h.target}')" 
-                            class="bg-red-600 hover:bg-red-700 w-fit px-5 py-2.5 md:px-8 md:py-4 rounded-full font-black text-[10px] md:text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95">
-                        ${h.buttonText}
-                    </button>
-                </div>
-            </div>
-        `).join('');
-
-        dots.innerHTML = heroes.map((_, i) => `
-            <div onclick="goToSlide(${i})" class="cursor-pointer w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all ${i === 0 ? 'bg-red-600 w-4 md:w-6' : 'bg-white/50'}"></div>
-        `).join('');
-    }
-
-    function goToSlide(index) {
-        if (index >= heroes.length) index = 0;
-        if (index < 0) index = heroes.length - 1;
-        currentSlide = index;
-        const slider = document.getElementById("heroSlider");
-        if(slider) slider.style.transform = `translateX(-${index * 100}%)`;
-        
-        const dots = document.getElementById("heroDots").children;
-        for (let i = 0; i < dots.length; i++) {
-            dots[i].className = `cursor-pointer w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all ${i === index ? 'bg-red-600 w-4 md:w-6' : 'bg-white/50'}`;
-        }
-    }
-
-    function startAutoPlay() {
-        clearInterval(slideInterval);
-        slideInterval = setInterval(() => goToSlide(currentSlide + 1), 5000);
-    }
-
-    function handleTouchStart(e) { touchStartX = e.touches[0].clientX; clearInterval(slideInterval); }
-    function handleTouchMove(e) {
-        if (!touchStartX) return;
-        let diff = touchStartX - e.touches[0].clientX;
-        if (Math.abs(diff) > 50) {
-            if (diff > 0) goToSlide(currentSlide + 1);
-            else goToSlide(currentSlide - 1);
-            touchStartX = 0;
-            startAutoPlay();
-        }
-    }
-
-    function handleHeroAction(action, target) {
-        if (action === 'add') {
-            const product = products.find(p => String(p.id) === String(target));
-            if (product) { 
-                addToCart(product.id); 
-                showCart(); 
-            }
-        } else if (action === 'filter') {
-            filterByCategory(target);
-            document.getElementById("catFilters").scrollIntoView({ behavior: 'smooth' });
-        } else if (action === 'search') {
-            document.getElementById("search").value = target;
-            filterProducts();
-            document.getElementById("search").scrollIntoView({ behavior: 'smooth' });
-        }
-    }
-
-    async function fetchProducts() {
-        try {
-            const res = await fetch('products.json');
-            products = await res.json();
-            document.getElementById("loader").classList.add("hidden");
-        } catch (e) {
-            document.getElementById("loader").innerHTML = `<p class="text-red-500">Failed to load catalog.</p>`;
-        }
-    }
-
-    function updateUI() {
-        filterByCategory(currentCategory);
-        renderCategoryButtons();
-        updateCount();
-    }
-
-    function renderProducts(list) {
-        const grid = document.getElementById("grid");
-        grid.innerHTML = list.map(p => {
-            const inCart = cart.find(i => i.id === p.id);
-            const displayPrice = (p.promoPrice && p.promoPrice > 0) ? p.promoPrice : p.price;
-            return `
-                <div class="product bg-white p-3 rounded-[24px] shadow-sm border border-gray-100 flex flex-col">
-                    ${p.promoPrice > 0 ? `<div class="promo-tag">SALE</div>` : ""}
-                    <img src="${p.image || 'https://via.placeholder.com/300'}" class="h-32 w-full object-contain rounded-xl mb-3">
-                    <span class="text-[9px] font-black uppercase text-gray-400 tracking-wider mb-1">${p.category}</span>
-                    <h3 class="font-bold text-gray-800 leading-tight text-xs flex-grow">${p.name}</h3>
-                    <div class="mt-2 mb-3">
-                        <span class="text-red-600 font-black text-sm">₦${displayPrice.toLocaleString()}</span>
-                    </div>
-                    <div class="mt-auto">
-                        ${inCart ? `
-                            <div class="flex items-center justify-between bg-gray-100 rounded-xl p-1">
-                                <button onclick="changeQty(${p.id},-1)" class="w-8 h-8 bg-white rounded-lg shadow-sm font-bold">-</button>
-                                <span class="font-bold text-xs">${inCart.quantity}</span>
-                                <button onclick="changeQty(${p.id},1)" class="w-8 h-8 bg-white rounded-lg shadow-sm font-bold">+</button>
-                            </div>
-                        ` : `
-                            <button onclick="addToCart(${p.id})" class="bg-black text-white w-full py-2.5 rounded-xl font-bold text-xs hover:bg-gray-800">Add</button>
-                        `}
-                    </div>
-                </div>`;
-        }).join('');
-    }
-
-    function renderCategoryButtons() {
-        const cats = ['All', '🔥 Promos', ...new Set(products.map(p => p.category))];
-        document.getElementById("catFilters").innerHTML = cats.map(c => `
-            <button onclick="filterByCategory('${c}')" 
-                    class="whitespace-nowrap px-5 py-2 rounded-full border text-xs font-bold transition-all ${currentCategory === c ? 'active-cat' : 'bg-white text-gray-500 border-gray-200'}">
-                ${c}
-            </button>`).join('');
-    }
-
-    function filterByCategory(cat) {
-        currentCategory = cat;
-        renderCategoryButtons();
-        if (cat === 'All') renderProducts(products);
-        else if (cat === '🔥 Promos') renderProducts(products.filter(p => p.promoPrice > 0));
-        else renderProducts(products.filter(p => p.category === cat));
-    }
-
-    function filterProducts() {
-        const term = document.getElementById("search").value.toLowerCase();
-        renderProducts(products.filter(p => p.name.toLowerCase().includes(term) || p.category.toLowerCase().includes(term)));
-    }
-
-    function addToCart(id) {
-        const p = products.find(i => i.id === id);
-        if(!p) return;
-        const inCart = cart.find(i => i.id === id);
-        if (inCart) inCart.quantity++;
-        else cart.push({...p, quantity: 1});
-        saveCart();
-    }
-
-    function changeQty(id, delta) {
-        const item = cart.find(i => i.id === id);
-        if (item) {
-            item.quantity += delta;
-            if (item.quantity <= 0) cart = cart.filter(i => i.id !== id);
-            saveCart();
-        }
-    }
-
-    function saveCart() {
-        localStorage.setItem(CKEY, JSON.stringify(cart));
-        updateCount();
-        
-        // FIX: Only re-render the grid, do NOT reset the category or search logic
-        const term = document.getElementById("search").value.toLowerCase();
-        let filtered = products;
-        
-        if (currentCategory === '🔥 Promos') filtered = filtered.filter(p => p.promoPrice > 0);
-        else if (currentCategory !== 'All') filtered = filtered.filter(p => p.category === currentCategory);
-        
-        if (term) filtered = filtered.filter(p => p.name.toLowerCase().includes(term) || p.category.toLowerCase().includes(term));
-        
-        renderProducts(filtered);
-
-        if (!document.getElementById("cartModal").classList.contains("hidden")) showCart();
-    }
-
-    function showCart() {
-        if (cart.length === 0) return hideCart();
-        document.getElementById("cartItems").innerHTML = cart.map(i => {
-            const unitPrice = (i.promoPrice > 0) ? i.promoPrice : i.price;
-            return `
-            <div class="flex justify-between items-center border-b border-gray-50 pb-3">
-                <div class="flex-1 pr-4">
-                    <p class="font-bold text-gray-800 text-sm leading-tight mb-1">${i.name}</p>
-                    <div class="flex items-baseline gap-2">
-                        <span class="text-[10px] text-gray-400 font-medium">₦${unitPrice.toLocaleString()} × ${i.quantity}</span>
-                        <span class="text-xs text-red-500 font-black">₦${(unitPrice * i.quantity).toLocaleString()}</span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3 bg-gray-100 p-1 rounded-xl">
-                    <button onclick="changeQty(${i.id},-1)" class="w-7 h-7 bg-white rounded-lg shadow-sm font-bold">-</button>
-                    <span class="font-black text-sm w-4 text-center">${i.quantity}</span>
-                    <button onclick="changeQty(${i.id},1)" class="w-7 h-7 bg-white rounded-lg shadow-sm font-bold">+</button>
-                </div>
-            </div>`;
-        }).join('');
-        const total = cart.reduce((a, b) => a + ((b.promoPrice > 0 ? b.promoPrice : b.price) * b.quantity), 0);
-        document.getElementById("total").textContent = total.toLocaleString();
-        document.getElementById("cartModal").classList.remove("hidden");
-    }
-
-    function hideCart() { document.getElementById("cartModal").classList.add("hidden"); }
-    
-    function updateCount() { 
-        const el = document.getElementById("count");
-        el.textContent = cart.reduce((a, b) => a + b.quantity, 0);
-        el.parentElement.classList.add('cart-pop');
-        setTimeout(() => el.parentElement.classList.remove('cart-pop'), 400);
-    }
-
-    function loadUser() {
-        const u = JSON.parse(localStorage.getItem(UKEY)) || {};
-        document.getElementById("custName").value = u.name || "";
-        document.getElementById("custPhone").value = u.phone || "";
-        document.getElementById("custAddr").value = u.addr || "";
-    }
-
-    function previewOrder() {
-        const name = document.getElementById("custName").value;
-        const phone = document.getElementById("custPhone").value;
-        const addr = document.getElementById("custAddr").value;
-        if (!name || !phone || !addr) return alert("Fill delivery details!");
-        localStorage.setItem(UKEY, JSON.stringify({name, phone, addr}));
-
-        let msg = `*TEJU BOSS ENT - NEW ORDER*%0A%0A`;
-        cart.forEach(i => {
-            const price = (i.promoPrice > 0) ? i.promoPrice : i.price;
-            msg += `• ${i.name}%0A  Qty: ${i.quantity} | ₦${(price * i.quantity).toLocaleString()}%0A%0A`;
-        });
-        const total = cart.reduce((a, b) => a + ((b.promoPrice > 0 ? b.promoPrice : b.price) * b.quantity), 0);
-        msg += `*TOTAL: ₦${total.toLocaleString()}*%0A%0A*Name:* ${name}%0A*Address:* ${addr}`;
-        window.open(`https://wa.me/2347079557886?text=${msg}`);
-        cart = []; saveCart(); hideCart();
-    }
+window.addEventListener('load',async()=>{document.getElementById('year').textContent=new Date().getFullYear();await Promise.all([fetchProducts(),fetchHeroes()]);renderCategories();renderDeals();applyFilters();updateCounts();loadUser();});
+async function fetchProducts(){try{const r=await fetch('products.json');products=await r.json();}catch(e){products=[];}}
+async function fetchHeroes(){try{const r=await fetch('heroes.json');if(r.ok){heroes=await r.json();renderHeroes();startSlides();}}catch(e){heroes=[];}if(!heroes.length)document.getElementById('heroContainer').classList.add('hidden');}
+function renderHeroes(){const track=document.getElementById('heroTrack'),dots=document.getElementById('heroDots');track.innerHTML=heroes.map(h=>`<div class="hero-slide"><img src="${h.image||fallback}" onerror="this.src='${fallback}'" class="absolute inset-0 w-full h-full object-cover"><div class="hero-overlay absolute inset-0"></div><div class="relative h-full max-w-7xl mx-auto px-7 md:px-14 flex flex-col justify-center text-white"><span class="text-[10px] md:text-xs uppercase tracking-[.25em] font-bold text-[#e7c49c] mb-2">TejuBoss Enterprise</span><h1 class="serif text-3xl md:text-5xl max-w-xl leading-tight">${h.title||'Quality essentials for everyday life'}</h1><p class="text-xs md:text-base text-white/80 max-w-lg mt-3 mb-5">${h.subtitle||'Shop trusted household and personal care products.'}</p><button onclick="handleHeroAction('${h.action||'filter'}','${h.target||'All'}')" class="w-fit bg-white text-[#241b16] px-5 py-3 rounded-xl text-xs md:text-sm font-black">${h.buttonText||'Shop Now'} →</button></div></div>`).join('');dots.innerHTML=heroes.map((_,i)=>`<button onclick="goSlide(${i})" class="w-2 h-2 rounded-full ${i===0?'bg-white w-6':'bg-white/45'}"></button>`).join('');}
+function goSlide(i){if(!heroes.length)return;currentSlide=(i+heroes.length)%heroes.length;document.getElementById('heroTrack').style.transform=`translateX(-${currentSlide*100}%)`;[...document.getElementById('heroDots').children].forEach((d,n)=>d.className=`w-2 h-2 rounded-full ${n===currentSlide?'bg-white w-6':'bg-white/45'}`);}
+function startSlides(){clearInterval(slideTimer);slideTimer=setInterval(()=>goSlide(currentSlide+1),5500);}
+function handleHeroAction(action,target){if(action==='add'){const p=products.find(x=>String(x.id)===String(target));if(p){addToCart(p.id);showCart();}}else if(action==='search'){setSearch(target);}else if(action==='filter'){filterByCategory(target);}else showPromos();}
+function renderCategories(){const cats=['All','🔥 Promos',...new Set(products.map(p=>p.category).filter(Boolean))];document.getElementById('catPills').innerHTML=cats.slice(0,9).map(c=>`<button onclick="${c==='🔥 Promos'?'showPromos()':`filterByCategory('${esc(c)}')`}" class="pill whitespace-nowrap px-4 py-2 rounded-full border border-soft bg-white text-xs font-bold ${currentCategory===c?'active':''}">${c}</button>`).join('');document.getElementById('categoryMenu').innerHTML=cats.map(c=>`<button onclick="${c==='🔥 Promos'?'showPromos()':`filterByCategory('${esc(c)}')`};toggleCategories()" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-cream text-sm font-semibold"><span>${c}</span><span>›</span></button>`).join('');}
+function renderDeals(){const deals=products.filter(p=>Number(p.promoPrice)>0).slice(0,4);document.getElementById('dealsGrid').innerHTML=deals.length?deals.map(productCard).join(''):`<div class="col-span-full text-sm text-[#8b8179]">Promotional products will appear here when available.</div>`;}
+function productCard(p){const sale=Number(p.promoPrice)>0,price=sale?p.promoPrice:p.price,wish=wishlist.includes(p.id);return `<article class="product-card bg-white rounded-2xl border border-soft overflow-hidden" onclick="showProduct(${p.id})"><div class="product-img h-36 md:h-44 relative flex items-center justify-center p-3"><img src="${p.image||fallback}" onerror="this.src='${fallback}'" class="w-full h-full object-contain"><button onclick="event.stopPropagation();toggleWish(${p.id})" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-lg ${wish?'text-[#9b5a2b]':''}">${wish?'♥':'♡'}</button>${sale?`<span class="absolute top-2 left-2 bg-[#9b5a2b] text-white text-[9px] font-black px-2 py-1 rounded-md">DEAL</span>`:''}</div><div class="p-3 md:p-4"><div class="text-[9px] font-bold uppercase tracking-wider text-[#9a8d83] mb-1">${esc(p.category||'Product')}</div><h3 class="font-semibold text-xs md:text-sm leading-snug line-clamp-2 min-h-[32px]">${esc(p.name)}</h3><div class="mt-3 flex items-end justify-between gap-2"><div><b class="text-sm md:text-base">₦${Number(price||0).toLocaleString()}</b>${sale?`<div class="text-[10px] text-[#9a8d83] line-through">₦${Number(p.price||0).toLocaleString()}</div>`:''}</div><button onclick="event.stopPropagation();addToCart(${p.id})" class="w-9 h-9 rounded-xl bg-brown text-white font-bold text-lg">+</button></div></div></article>`;}
+function applyFilters(){let list=[...products];if(currentCategory==='🔥 Promos')list=list.filter(p=>Number(p.promoPrice)>0);else if(currentCategory!=='All')list=list.filter(p=>p.category===currentCategory);if(searchTerm)list=list.filter(p=>`${p.name} ${p.category} ${p.description||''} ${p.brand||''}`.toLowerCase().includes(searchTerm));const sort=document.getElementById('sort').value;if(sort==='priceLow')list.sort((a,b)=>(a.promoPrice||a.price)-(b.promoPrice||b.price));if(sort==='priceHigh')list.sort((a,b)=>(b.promoPrice||b.price)-(a.promoPrice||a.price));if(sort==='name')list.sort((a,b)=>a.name.localeCompare(b.name));document.getElementById('grid').innerHTML=list.map(productCard).join('');document.getElementById('empty').classList.toggle('hidden',list.length>0);document.getElementById('resultCount').textContent=`${list.length} item${list.length===1?'':'s'}`;document.getElementById('listingTitle').textContent=searchTerm?'Search results':currentCategory==='All'?'Shop all products':currentCategory==='🔥 Promos'?'Today’s Deals':currentCategory;renderCategories();}
+function filterByCategory(c){currentCategory=c;searchTerm='';document.getElementById('search').value='';document.getElementById('mobileSearch').value='';applyFilters();document.getElementById('productsSection').scrollIntoView({behavior:'smooth',block:'start'});}
+function showPromos(){currentCategory='🔥 Promos';searchTerm='';applyFilters();document.getElementById('productsSection').scrollIntoView({behavior:'smooth'});}
+function showNewArrivals(){clearFilters();const list=[...products].slice(-12).reverse();document.getElementById('listingTitle').textContent='New Arrivals';document.getElementById('grid').innerHTML=list.map(productCard).join('');document.getElementById('resultCount').textContent=`${list.length} items`;}
+function showBestSellers(){clearFilters();const list=[...products].filter(p=>p.inStock!==false).slice(0,12);document.getElementById('listingTitle').textContent='Best Sellers';document.getElementById('grid').innerHTML=list.map(productCard).join('');document.getElementById('resultCount').textContent=`${list.length} items`;}
+function clearFilters(){currentCategory='All';searchTerm='';document.getElementById('search').value='';document.getElementById('mobileSearch').value='';document.getElementById('sort').value='featured';applyFilters();}
+function searchProducts(){setSearch(document.getElementById('search').value);}
+function mobileSearchProducts(){setSearch(document.getElementById('mobileSearch').value);}
+function setSearch(v){searchTerm=v.trim().toLowerCase();document.getElementById('search').value=v;document.getElementById('mobileSearch').value=v;currentCategory='All';applyFilters();if(v)document.getElementById('productsSection').scrollIntoView({behavior:'smooth'});}
+function showSearchSuggestions(){const box=document.getElementById('suggestions');if(!products.length)return;const terms=[...new Set(products.flatMap(p=>[p.name,p.category]).filter(Boolean))].slice(0,8);box.innerHTML=terms.map(t=>`<button onclick="setSearch('${esc(t)}');document.getElementById('suggestions').classList.add('hidden')" class="block w-full text-left p-2.5 rounded-lg hover:bg-cream text-xs">${esc(t)}</button>`).join('');box.classList.remove('hidden');}
+document.addEventListener('click',e=>{if(!e.target.closest('#search')&&!e.target.closest('#suggestions'))document.getElementById('suggestions').classList.add('hidden');});
+function showProduct(id){const p=products.find(x=>x.id===id);if(!p)return;const sale=Number(p.promoPrice)>0,price=sale?p.promoPrice:p.price;document.getElementById('productDetail').innerHTML=`<div class="grid md:grid-cols-2"><div class="product-img min-h-[330px] flex items-center justify-center p-8"><img src="${p.image||fallback}" onerror="this.src='${fallback}'" class="max-h-[360px] max-w-full object-contain"></div><div class="p-6 md:p-10 flex flex-col justify-center"><div class="text-[10px] uppercase tracking-[.2em] font-bold brown">${esc(p.category||'Product')}</div><h2 class="serif text-3xl mt-2">${esc(p.name)}</h2><div class="mt-5 flex items-end gap-3"><b class="text-2xl">₦${Number(price||0).toLocaleString()}</b>${sale?`<span class="text-sm line-through text-[#8b8179]">₦${Number(p.price||0).toLocaleString()}</span>`:''}</div><div class="mt-4 inline-flex w-fit items-center gap-2 text-xs font-bold ${p.inStock===false?'text-red-600':'text-green-700'}"><span>●</span>${p.inStock===false?'Currently unavailable':'Available to order'}</div><p class="text-sm text-[#746b64] leading-6 mt-5">${esc(p.description||'A quality everyday essential from Teju Boss Enterprise. Contact us if you need more information about this product.')}</p><div class="grid grid-cols-2 gap-3 mt-7"><button onclick="addToCart(${p.id});hideProduct();showCart()" class="py-3.5 rounded-xl bg-brown text-white font-bold">Add to Cart</button><button onclick="toggleWish(${p.id})" class="py-3.5 rounded-xl border border-soft font-bold">${wishlist.includes(p.id)?'♥ Saved':'♡ Wishlist'}</button></div></div></div>`;document.getElementById('productModal').classList.remove('hidden');}
+function hideProduct(){document.getElementById('productModal').classList.add('hidden');}
+function addToCart(id){const p=products.find(x=>x.id===id);if(!p||p.inStock===false){toast('This product is currently unavailable');return}const item=cart.find(x=>x.id===id);if(item)item.quantity++;else cart.push({...p,quantity:1});saveCart();toast('Added to cart');}
+function changeQty(id,d){const i=cart.find(x=>x.id===id);if(!i)return;i.quantity+=d;if(i.quantity<=0)cart=cart.filter(x=>x.id!==id);saveCart();}
+function saveCart(){localStorage.setItem(CKEY,JSON.stringify(cart));updateCounts();renderCart();if(!document.getElementById('cartDrawer').classList.contains('translate-x-full'))renderCart();}
+function updateCounts(){const n=cart.reduce((s,x)=>s+x.quantity,0),w=wishlist.length;document.getElementById('count').textContent=n;document.getElementById('mobileCount').textContent=n;document.getElementById('wishCount').textContent=w;document.getElementById('wishCount').classList.toggle('hidden',w===0);document.getElementById('wishCount').classList.toggle('flex',w>0);}
+function renderCart(){const box=document.getElementById('cartItems');const sub=cart.reduce((s,i)=>s+(Number(i.promoPrice>0?i.promoPrice:i.price)||0)*i.quantity,0);document.getElementById('cartSubtitle').textContent=`${cart.reduce((s,i)=>s+i.quantity,0)} item${cart.reduce((s,i)=>s+i.quantity,0)===1?'':'s'}`;document.getElementById('cartTotal').textContent='₦'+sub.toLocaleString();box.innerHTML=cart.length?cart.map(i=>{const price=Number(i.promoPrice>0?i.promoPrice:i.price)||0;return `<div class="flex gap-3"><div class="w-20 h-20 rounded-xl product-img p-2 shrink-0"><img src="${i.image||fallback}" onerror="this.src='${fallback}'" class="w-full h-full object-contain"></div><div class="flex-1 min-w-0"><div class="font-semibold text-sm line-clamp-2">${esc(i.name)}</div><div class="font-bold text-sm mt-1">₦${price.toLocaleString()}</div><div class="flex items-center gap-2 mt-2"><button onclick="changeQty(${i.id},-1)" class="w-7 h-7 rounded-lg bg-cream">−</button><b class="text-xs">${i.quantity}</b><button onclick="changeQty(${i.id},1)" class="w-7 h-7 rounded-lg bg-cream">+</button></div></div><button onclick="changeQty(${i.id},-${i.quantity})" class="text-[#9a8d83]">×</button></div>`}).join(''):`<div class="py-20 text-center"><div class="text-5xl">🛒</div><b class="block mt-3">Your cart is empty</b><p class="text-xs text-[#8b8179] mt-1">Add something you love and it will appear here.</p><button onclick="hideCart();clearFilters()" class="mt-5 bg-brown text-white px-5 py-3 rounded-xl text-sm font-bold">Start Shopping</button></div>`;}
+function showCart(){document.getElementById('cartShade').classList.remove('hidden');document.getElementById('cartDrawer').classList.remove('translate-x-full');renderCart();}
+function hideCart(){document.getElementById('cartShade').classList.add('hidden');document.getElementById('cartDrawer').classList.add('translate-x-full');}
+function openCheckout(){if(!cart.length){toast('Your cart is empty');return}hideCart();const u=JSON.parse(localStorage.getItem(UKEY)||'{}');document.getElementById('custName').value=u.name||'';document.getElementById('custPhone').value=u.phone||'';document.getElementById('custAddr').value=u.addr||'';document.getElementById('checkoutTotal').textContent=document.getElementById('cartTotal').textContent;document.getElementById('checkoutModal').classList.remove('hidden');}
+function closeCheckout(){document.getElementById('checkoutModal').classList.add('hidden');}
+function previewOrder(){const name=document.getElementById('custName').value.trim(),phone=document.getElementById('custPhone').value.trim(),addr=document.getElementById('custAddr').value.trim();if(!name||!phone||!addr){toast('Please complete your name, WhatsApp and address');return}localStorage.setItem(UKEY,JSON.stringify({name,phone,addr}));const lines=cart.map(i=>{const price=Number(i.promoPrice>0?i.promoPrice:i.price)||0;return `• ${i.name} x${i.quantity} — ₦${(price*i.quantity).toLocaleString()}`}).join('%0A');const total=cart.reduce((s,i)=>s+(Number(i.promoPrice>0?i.promoPrice:i.price)||0)*i.quantity,0);const msg=`Hello Teju Boss Enterprise,%0A%0AI would like to place an order:%0A%0A${lines}%0A%0A*Total: ₦${total.toLocaleString()}*%0A%0AName: ${encodeURIComponent(name)}%0AWhatsApp: ${encodeURIComponent(phone)}%0ADelivery address: ${encodeURIComponent(addr)}%0A%0APlease confirm my order.`;window.open('https://wa.me/?text='+msg,'_blank');}
+function toggleWish(id){wishlist=wishlist.includes(id)?wishlist.filter(x=>x!==id):[...wishlist,id];localStorage.setItem(WKEY,JSON.stringify(wishlist));updateCounts();applyFilters();renderDeals();toast(wishlist.includes(id)?'Added to wishlist':'Removed from wishlist');}
+function toggleWishlist(){if(!wishlist.length){toast('Your wishlist is empty');return}currentCategory='All';searchTerm='';const list=products.filter(p=>wishlist.includes(p.id));document.getElementById('listingTitle').textContent='My Wishlist';document.getElementById('grid').innerHTML=list.map(productCard).join('');document.getElementById('resultCount').textContent=`${list.length} item${list.length===1?'':'s'}`;document.getElementById('productsSection').scrollIntoView({behavior:'smooth'});}
+function showAccount(){document.getElementById('accountCartText').textContent=`${cart.reduce((s,x)=>s+x.quantity,0)} items`;document.getElementById('accountWishText').textContent=`${wishlist.length} saved`;document.getElementById('accountModal').classList.remove('hidden');}
+function closeAccount(){document.getElementById('accountModal').classList.add('hidden');}
+function toggleCategories(){const d=document.getElementById('catDrawer');const open=d.classList.contains('-translate-x-full');d.classList.toggle('-translate-x-full',!open);document.getElementById('catShade').classList.toggle('hidden',!open);}
+function loadUser(){const u=JSON.parse(localStorage.getItem(UKEY)||'{}');if(u.name){} }
+function toast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.remove('hidden');x.classList.add('toast');clearTimeout(window.__toast);window.__toast=setTimeout(()=>x.classList.add('hidden'),2200);}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 </script>
 </body>
 </html>
