@@ -82,6 +82,20 @@ Use a deliberately public projection such as `publicPricing/{productVariantKey}`
 
 It must not expose private cost, supplier, gross-margin target, or internal pricing rationale. The projection is generated/updated by trusted admin actions from the authoritative private pricing configuration.
 
+
+
+### Public quantity-tier projection contract
+
+The public projection produced by `buildPublicQuantityTierProjection` is an allowlisted document under `publicPricing/{publicPricingId}`. It contains only:
+
+- `schemaVersion`, `productId`, `variantId`, `ruleId`, and `configVersion`;
+- `enabled` and `publicationState`;
+- `pricingMode`, `qualificationBasis`, `aggregateAcrossOptions`, and eligible selling-option IDs;
+- tier IDs, quantity thresholds/bands, and the applicable public price rates;
+- currency and effective timestamps.
+
+It must never contain private cost, supplier, margin, purchasing, or staff-only fields. Firestore public reads must be constrained to `enabled == true`. Scheduled projections remain inactive until their effective start; a trusted scheduled publisher must activate them. Expired or disabled projections must be made inactive by that same trusted publication workflow. The storefront can display offers from this projection, but checkout always recalculates from private authoritative configuration.
+
 ### Private commercial configuration
 
 #### `pricingConfigs/{variantId}` (or product/variant subcollection)
