@@ -65,3 +65,10 @@ test("converts Naira to integer kobo safely", () => {
   assert.throws(() => nairaToKobo("-1"));
   assert.throws(() => nairaToKobo("1.001"));
 });
+
+test("allows inactive variants and selling options to be retained in a draft", () => {
+  const value = draft();
+  value.variants[0].active = false;
+  value.variants[0].sellingOptions[1].active = false;
+  assert.equal(validateCatalogueDraft(value).valid, true);
+});
