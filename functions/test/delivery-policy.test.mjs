@@ -63,6 +63,11 @@ test("rejects disabled, missing, unsupported and malformed policies", () => {
   assert.throws(() => calculateDeliveryCharge({
     policy,
     fulfilmentMethod: "delivery",
+    lines: [{ sellingOptionId: "piece", quantity: 1 }],
+  }), /DELIVERY_AREA_REQUIRED/);
+  assert.throws(() => calculateDeliveryCharge({
+    policy,
+    fulfilmentMethod: "delivery",
     areaId: "unknown",
     lines: [{ sellingOptionId: "piece", quantity: 1 }],
   }), /DELIVERY_AREA_UNSUPPORTED/);
