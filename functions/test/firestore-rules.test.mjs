@@ -97,10 +97,10 @@ test("tracking token permits one projection read but not enumeration or writes",
   }));
 });
 
-test("owner can read private order and pricing records", async () => {
+test("owner can read private orders but private pricing remains backend-only", async () => {
   const db = env.authenticatedContext("owner-uid", { role: "owner" }).firestore();
   await assertSucceeds(getDoc(doc(db, "orders", "order-1")));
-  await assertSucceeds(getDoc(doc(db, "pricingConfigs", "private")));
+  await assertFails(getDoc(doc(db, "pricingConfigs", "private")));
 });
 
 test("unrelated signed-in customer cannot read another customer's order", async () => {
