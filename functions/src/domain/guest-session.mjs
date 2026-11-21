@@ -24,6 +24,11 @@ export function createGuestSessionCredential({
     throw new RangeError("Guest session lifetime must be between 1 ms and 24 hours");
   }
 
+  const expiresAtMillis = now + lifetimeMs;
+  if (!Number.isSafeInteger(expiresAtMillis)) {
+    throw new RangeError("Guest session expiry exceeds the safe timestamp range");
+  }
+
   const rawToken = randomBytes(TOKEN_BYTES).toString("base64url");
   const tokenHash = sha256(rawToken);
   return {
@@ -31,7 +36,7 @@ export function createGuestSessionCredential({
     tokenHash,
     scopeId: tokenHash,
     createdAtMillis: now,
-    expiresAtMillis: now + lifetimeMs,
+    expiresAtMillis,
   };
 }
 
