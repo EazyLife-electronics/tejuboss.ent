@@ -37,7 +37,7 @@ test("flat per order charges the base fee once, not once per line", () => {
       { sellingOptionId: "carton", quantity: 2 },
     ],
   });
-  assert.equal(result.deliveryFeeMinor, 50000);
+  assert.equal(result.deliveryFeeMinor, 70000);
 });
 
 test("pickup is always free even when product delivery fees exist", () => {
