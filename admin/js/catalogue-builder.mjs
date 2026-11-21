@@ -119,18 +119,18 @@ async function loadCloudDrafts() {
 async function publishDraft(id) {
  const version=cloudVersions.get(id);
  if (!version) { alert("Load account drafts or sync this draft before publishing."); return; }
- if (!confirm("Publish this product to the storefront? This will not create or change stock.")) return;
+ if (!confirm("Publish this structured catalogue record? The current shop listing and stock will remain unchanged.")) return;
  const status=document.getElementById("catalogueCloudStatus");
  status.textContent="Publishing product..."; status.classList.remove("hidden");
  try {
   const result=await publishCloudDraft({draftId:id,expectedVersion:version});
-  status.textContent=`Published ${result.data.productId}. Inventory was not changed.`;
+  status.textContent=`Structured catalogue record ${result.data.productId} published. Existing shop listings and inventory were not changed; storefront integration is a separate next step.`;
  } catch(error) { status.textContent=error.message || "Publication failed. The existing catalogue was not changed."; }
 }
 function renderList() {
  const list = document.getElementById("catalogueDraftList");
  if (!list) return;
- list.innerHTML = drafts.map(d => `<article class="bg-white rounded-xl border p-3 flex items-center gap-3"><div class="min-w-0 flex-1"><b class="block text-sm truncate">${escapeHtml(d.name || "Untitled product")}</b><p class="text-[10px] text-gray-500">${d.variants.length} variant(s) · ${d.published ? "Marked published" : "Unpublished"} · ${cloudVersions.has(d.id) ? "Account-synced" : "Local draft"}</p><p class="text-[9px] font-mono text-gray-400 break-all">${escapeHtml(d.id)}</p></div><button data-edit-draft="${escapeHtml(d.id)}" class="text-xs font-bold bg-gray-100 rounded-lg px-3 py-2">Edit</button>${d.published ? `<button data-publish-draft="${escapeHtml(d.id)}" class="text-xs font-bold bg-red-600 text-white rounded-lg px-3 py-2">Publish</button>` : ""}<button data-delete-draft="${escapeHtml(d.id)}" class="text-xs font-bold text-red-600 px-2 py-2">Delete</button></article>`).join("") || '<p class="text-xs text-gray-400 py-4">No structured drafts saved on this device yet.</p>';
+ list.innerHTML = drafts.map(d => `<article class="bg-white rounded-xl border p-3 flex items-center gap-3"><div class="min-w-0 flex-1"><b class="block text-sm truncate">${escapeHtml(d.name || "Untitled product")}</b><p class="text-[10px] text-gray-500">${d.variants.length} variant(s) · ${d.published ? "Marked published" : "Unpublished"} · ${cloudVersions.has(d.id) ? "Account-synced" : "Local draft"}</p><p class="text-[9px] font-mono text-gray-400 break-all">${escapeHtml(d.id)}</p></div><button data-edit-draft="${escapeHtml(d.id)}" class="text-xs font-bold bg-gray-100 rounded-lg px-3 py-2">Edit</button>${d.published ? `<button data-publish-draft="${escapeHtml(d.id)}" class="text-xs font-bold bg-red-600 text-white rounded-lg px-3 py-2">Publish record</button>` : ""}<button data-delete-draft="${escapeHtml(d.id)}" class="text-xs font-bold text-red-600 px-2 py-2">Delete</button></article>`).join("") || '<p class="text-xs text-gray-400 py-4">No structured drafts saved on this device yet.</p>';
  list.querySelectorAll("[data-edit-draft]").forEach(b=>b.addEventListener("click",()=>openEditor(b.dataset.editDraft)));
  list.querySelectorAll("[data-publish-draft]").forEach(b=>b.addEventListener("click",()=>publishDraft(b.dataset.publishDraft)));
  list.querySelectorAll("[data-delete-draft]").forEach(b=>b.addEventListener("click",()=>{if(confirm("Delete this local draft?")){drafts=drafts.filter(d=>d.id!==b.dataset.deleteDraft);persist();}}));
