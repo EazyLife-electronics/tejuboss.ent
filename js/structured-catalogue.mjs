@@ -1,4 +1,4 @@
-// Read-only adapter for the new structured public catalogue.
+// Read-only adapter for the new structured public catalogue and public tier offers.
 // This module does not write orders, calculate stock availability or reserve stock.
 import { initFirebase } from "./firebase.mjs";
 import {
@@ -9,16 +9,23 @@ import { toPublicCatalogueCard } from "../functions/src/domain/public-catalogue-
 const { db } = initFirebase();
 
 export async function getPublishedStructuredCatalogue() {
-  // The published == true constraint is required by firestore.next.rules.
-  const publishedQuery = query(
+  // These constraints are required by firestore.next.rules.
+  const productsQuery = query(
     collection(db, "catalogueProducts"),
     where("published", "==", true)
   );
-  const snapshot = await getDocs(publishedQuery);
+  const pricingQuery = query(
+    collection(db, "publicPricing"),
+    where("enabled", "==", true)
+  );
+  const [productSnapshot, pricingSnapshot] = await Promise.all([
+    getDocs(productsQuery),
+    getDocs(pricingQuery)
+  ]);
+
   const products = [];
   const rejected = [];
-
-  snapshot.docs.forEach(document => {
+  productSnapshot.docs.forEach(document => {
     try {
       products.push(toPublicCatalogueCard(document.data(), document.id));
     } catch (error) {
@@ -27,5 +34,9 @@ export async function getPublishedStructuredCatalogue() {
     }
   });
 
-  return { products, rejectedCount: rejected.length };
+  const publicPricing = pricingSnapshot.docs
+    .map(document => ({ ...document.data(), publicPricingId: document.id }))
+    .filter(record => record.publicationState === "published" && record.enabled === true);
+
+  return { products, publicPricing, rejectedCount: rejected.length };
 }
