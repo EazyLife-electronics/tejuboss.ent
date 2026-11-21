@@ -40,15 +40,20 @@ function roundedProduct(amountMinor, scaledQuantity, scale) {
 /**
  * Price a single selected selling option.
  *
- * The caller must load the product and any applicable published pricing rules
- * from a trusted backend. Client-submitted prices are never accepted here.
+ * productId should be the Firestore document ID supplied by the trusted
+ * backend. Client-submitted prices are never accepted here.
  */
 export function calculateCatalogueLinePrice({
   product,
+  productId = product?.id,
   variantId,
   sellingOptionId,
   quantity
 }) {
+  if (typeof productId !== "string" || !productId.trim()) {
+    throw new TypeError("Trusted productId is required");
+  }
+
   const { variant, sellingOption } = resolveCheckoutSelection(
     product,
     variantId,
@@ -77,9 +82,7 @@ export function calculateCatalogueLinePrice({
   if (requested.scaled < minimum.scaled) {
     const error = new Error("Quantity is below the minimum order quantity");
     error.code = "MINIMUM_ORDER_QUANTITY";
-    error.details = {
-      minimumOrderQuantity: sellingOption.minimumOrderQuantity
-    };
+    error.details = { minimumOrderQuantity: sellingOption.minimumOrderQuantity };
     throw error;
   }
   if ((requested.scaled - minimum.scaled) % step.scaled !== 0) {
@@ -103,15 +106,13 @@ export function calculateCatalogueLinePrice({
   );
   const stockUnitsConsumed = quantity * sellingOption.stockUnitsPerSaleUnit;
 
-  if (!Number.isSafeInteger(stockUnitsConsumed) && !Number.isFinite(stockUnitsConsumed)) {
-    throw new RangeError("Calculated stock consumption is invalid");
-  }
-  if (!Number.isFinite(stockUnitsConsumed) || stockUnitsConsumed < 0) {
-    throw new RangeError("Calculated stock consumption is invalid");
+  if (!Number.isFinite(stockUnitsConsumed) ||
+      Math.abs(stockUnitsConsumed) > Number.MAX_SAFE_INTEGER) {
+    throw new RangeError("Calculated stock consumption exceeds safe numeric range");
   }
 
   return {
-    productId: product.id ?? null,
+    productId,
     variantId: variant.id,
     sellingOptionId: sellingOption.id,
     sellingUnitCode: sellingOption.unitCode,
