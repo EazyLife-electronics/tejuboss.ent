@@ -8,11 +8,13 @@ The implementation is Tejuboss-specific. Reuse only components and patterns that
 
 ## Business priorities
 
-1. Launch dependable retail product discovery and ordering.
-2. Support wholesale quantities, carton pricing and approved retailer/customer price tiers.
-3. Support inventory and fulfilment across outlets or warehouses.
-4. Add supplier, procurement and replenishment workflows.
-5. Keep the architecture extensible for a future multi-distributor marketplace, without building marketplace complexity into the first release.
+1. Launch dependable public retail ordering with guest checkout.
+2. Make retail and quantity-based wholesale/upsell prices visible to every visitor from the first release.
+3. Support multiple selling options per product, with admin-controlled quantity tiers and cross-unit pricing eligibility.
+4. Track unopened packages and loose stock separately, with automatic audited break-pack conversion when loose stock is insufficient.
+5. Launch with one store/fulfilment location while retaining location IDs for future expansion.
+6. Strengthen supplier, procurement, payment, delivery and reporting workflows after the secure commerce foundation.
+7. Keep the architecture extensible for future multi-distributor marketplace capability, without building marketplace complexity into the first release.
 
 ## Engineering principles
 
@@ -30,33 +32,22 @@ The implementation is Tejuboss-specific. Reuse only components and patterns that
 
 ## Initial domain model proposal
 
-This is a planning model, not yet a deployed schema. Final fields and relationships must be verified against actual Tejuboss product and operational requirements before implementation.
+The detailed target contract is documented in:
+- [Target Data Model and Access Matrix](TARGET-DATA-MODEL-AND-ACCESS.md)
+- [Product Units and Pricing Model](PRODUCT-UNITS-AND-PRICING-MODEL.md)
+- [Pricing Engine and Checkout Workflow](PRICING-ENGINE-AND-CHECKOUT-WORKFLOW.md)
 
-### Catalogue
-- `categories`: category hierarchy, visibility and merchandising order.
-- `products`: identity, description, media, category, publication state and product-level policies.
-- `productVariants` or embedded `variants`: sellable units, SKU, unit/pack/carton definitions, attributes and active state.
-- `priceLists`: retail, wholesale and customer-group pricing rules.
-- `promotions`: time-bounded and eligibility-constrained offers.
+Key confirmed decisions:
+- Public product prices and quantity offers; no account or approval required.
+- Guest checkout; accounts are optional for saved details and order history.
+- Multiple selling options per variant, each with explicit conversion and price.
+- Sealed packages and loose stock are separate inventory forms.
+- Unit sales may trigger automatic carton break-pack conversion, recorded atomically.
+- Quantity-tier qualification and price calculation are administrator-controlled.
+- Cross-unit equivalent pricing is allowed only when explicitly configured.
+- One active fulfilment location for the initial release.
 
-### Inventory and locations
-- `locations`: outlets, stores and warehouses.
-- `inventory`: per-location quantity, reserved quantity and reorder thresholds by sellable variant.
-- `stockMovements`: immutable audit trail for receipts, sales, adjustments, transfers and reversals.
-- `stockReservations`: time-bounded reservations where the checkout workflow requires them.
-
-### Customers and commerce
-- `customers`: customer profile and contact information, with appropriate access controls.
-- `retailerAccounts`: wholesale eligibility, approval state, assigned price list and credit terms where applicable.
-- `orders`: private order record, authoritative item snapshots, customer details and operational state.
-- `publicOrderTracking`: restricted tracking projection with no private contact, address, payment or internal-note fields.
-- `payments`: payment attempts and confirmed payment ledger, separate from order fulfilment.
-- `deliveries`: private fulfilment assignment and operational detail.
-
-### Operations
-- `suppliers`, `purchaseOrders`, `goodsReceipts`: supplier and procurement workflow.
-- `users` / role claims: admin, sales, inventory, fulfilment and other least-privilege roles.
-- `auditLogs`: sensitive administrative and stock-changing actions.
+The target model separates public catalogue/pricing projections from private costs, pricing configuration, inventory ledgers, orders, payments, delivery operations and audit logs. It is a logical contract, not a deployed schema. Do not create every proposed collection before its launch use is established.
 
 ## Security and trust boundaries
 
@@ -71,39 +62,43 @@ This is a planning model, not yet a deployed schema. Final fields and relationsh
 ## Delivery sequence
 
 ### Phase 0: Foundation audit and specification
-- Compare the current Tejuboss branch with the current EazyLife implementation.
-- Inventory reusable modules, missing modules, legacy assumptions and hard-coded brand/domain values.
-- Inspect real product/variant document shapes and existing inventory/order workflows.
-- Confirm the retail checkout and wholesale pricing rules.
-- Produce a reviewed collection schema, access matrix and migration plan.
+- Completed initial repository and architecture audit.
+- Confirmed product-specific selling units and multiple selling options.
+- Confirmed separate sealed-package and loose-stock balances with automatic break-pack conversion.
+- Confirmed one store for initial fulfilment.
+- Confirmed public quantity offers, guest checkout and optional customer accounts.
+- Produced target data model, access matrix, product-unit contract and pricing/checkout workflow specifications.
 
 ### Phase 1: Secure commerce foundation
-- Establish Firebase Functions and local emulator/test configuration.
-- Implement trusted catalogue pricing and order submission.
-- Separate private order data from public tracking projections.
-- Define safe Firestore rules and callable endpoint authorization.
-- Add tests for invalid products, stale prices, quantities, duplicate submissions and unauthorized reads.
+- Establish Firebase Functions and local emulator/test configuration without deploying to production.
+- Implement canonical product/variant/selling-option contracts.
+- Implement private pricing configuration and safe public pricing projections.
+- Implement deterministic quantity-tier evaluation, including configured cross-unit and blended package-equivalent pricing.
+- Implement trusted order submission, idempotency, safe tracking projection and atomic inventory conversion/deduction.
+- Add emulator tests for price tampering, stock races, break-pack conversion, duplicate submissions, authorization and tracking privacy.
+- Design an export, dry-run migration and rollback process before touching live data.
 
-### Phase 2: Retail storefront
+### Phase 2: Public storefront and checkout
 - Deliver responsive home, category, search, product detail, cart and checkout experiences.
-- Make product availability and order confirmation reliable.
-- Provide accessible WhatsApp fallback/contact paths without silently bypassing server validation where online ordering is available.
-- Add SEO metadata, structured data and performance checks.
+- Show public price tiers and next-quantity upsell prompts without requiring sign-in.
+- Support guest checkout and optional customer accounts.
+- Make availability, repricing, order confirmation and tracking reliable.
+- Add SEO metadata, structured data, accessibility and performance checks.
 
 ### Phase 3: Operations admin
-- Product, category, variant, media and price-list management.
+- Product, category, variant, selling-option and media management.
+- Admin controls for base prices, quantity tiers, qualification basis, blended pricing, effective dates and preview/testing.
 - Order processing, payment recording and delivery coordination.
-- Inventory by location with auditable stock movements.
+- One-location inventory balances, goods receiving, break-pack, adjustments and auditable stock movements.
 - Role-based access, activity history and operational reports.
 
-### Phase 4: Wholesale and distribution
-- Retailer applications and approvals.
-- Customer-specific or tier-based price lists.
-- Minimum order quantities, carton pricing and bulk rules.
-- Multi-location stock, transfers, procurement and supplier workflows.
+### Phase 4: Distribution expansion
+- Add additional outlets/warehouses and inter-location transfers when the business is ready.
+- Extend supplier, procurement, replenishment and retailer account workflows.
+- Consider customer-specific negotiated price lists only if the business later requires them.
 
 ### Phase 5: Marketplace readiness
-- Only after the single-business retail and wholesale workflows are stable, assess multi-distributor tenancy, seller onboarding, settlement and marketplace search.
+- Only after first-party retail, public quantity pricing and distribution workflows are stable, assess multi-distributor tenancy, seller onboarding, settlement and marketplace search.
 
 ## Acceptance gates
 
