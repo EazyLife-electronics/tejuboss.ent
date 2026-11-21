@@ -288,7 +288,7 @@ These examples explain the structure only. They are not statements about Tejubos
 
 A single piece/carton product may expose both Piece and Carton options. A roll product need not expose any other option unless Tejuboss actually sells it in another form.
 
-## 11. Confirmed business requirements and remaining decisions
+## 11. Confirmed business requirements
 
 **Confirmed business requirements:**
 1. The same product may have multiple selling options, including carton, pack, roll, and individual unit where applicable.
