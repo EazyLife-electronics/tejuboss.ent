@@ -243,3 +243,22 @@ For selected-option rules, rates are configured per selling option. For base-sto
 The engine is currently a pure, tested calculation module. It is not yet wired into the live cart or order transaction. That integration must preserve a server-generated price snapshot and must use the same configured rule revision for quote and final order calculation.
 
 **Business confirmation still required before enabling any rule:** choose whether the initial Tejuboss offers should use threshold or marginal behaviour. Both are implemented, neither is silently selected as the default. The administrator's future product editor should require an explicit mode per published tier rule.
+
+
+## 13. Quantity-tier checkout integration
+
+The pure tier engine is now connected to the trusted checkout quote composer through `applyQuantityTierRules`.
+
+- Checkout accepts tier rules only as a separate trusted backend argument; the public order request schema does not accept or trust tier definitions.
+- Rules are scoped to a trusted product document ID and variant ID.
+- Selected-option qualification aggregates only the exact eligible selling option.
+- Base-stock qualification uses each catalogue line's explicit `stockUnitsPerSaleUnit` conversion.
+- Cross-option aggregation is rejected unless the rule explicitly enables it.
+- Multiple enabled rules cannot target the same checkout line.
+- Catalogue promotional prices and quantity tiers do not stack. Promotional lines are excluded from tier qualification.
+- Basket-level discounts are allocated to order lines deterministically, with exact integer-minor-unit reconciliation.
+- The final merchandise subtotal, discount and total are recalculated before delivery is calculated.
+
+The quote composer returns the applied rule/tier identifiers and qualification quantity so the final order can preserve an auditable pricing snapshot.
+
+This is quote-layer integration only. The production transaction must read the authoritative tier configuration inside the same transaction as catalogue and inventory, then snapshot the exact rule revision and applied tier results. The Firestore transaction harness has not yet been changed to use tier configuration.
