@@ -1,0 +1,149 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {
+  validateQuantityTierRule,
+  calculateQuantityTierPrice
+} from "../src/domain/quantity-tier-engine.mjs";
+
+const thresholdRule = {
+  enabled: true,
+  qualificationBasis: "selected_option_quantity",
+  aggregateAcrossOptions: false,
+  eligibleSellingOptionIds: ["piece"],
+  pricingMode: "threshold",
+  tiers: [
+    { id: "bulk-5", minimumQuantity: 5, maximumQuantity: 9, priceBySellingOptionId: { piece: 90000 } },
+    { id: "bulk-10", minimumQuantity: 10, priceBySellingOptionId: { piece: 80000 } }
+  ]
+};
+
+const marginalRule = {
+  enabled: true,
+  qualificationBasis: "selected_option_quantity",
+  aggregateAcrossOptions: false,
+  eligibleSellingOptionIds: ["piece"],
+  pricingMode: "marginal",
+  tiers: [
+    { id: "standard", minimumQuantity: 1, maximumQuantity: 4, priceBySellingOptionId: { piece: 100000 } },
+    { id: "bulk-5", minimumQuantity: 5, maximumQuantity: 9, priceBySellingOptionId: { piece: 90000 } },
+    { id: "bulk-10", minimumQuantity: 10, priceBySellingOptionId: { piece: 80000 } }
+  ]
+};
+
+test("threshold mode applies the reached rate to all eligible quantity", () => {
+  const result = calculateQuantityTierPrice({
+    rule: thresholdRule,
+    quantity: 10,
+    baseUnitPriceMinor: 100000,
+    sellingOptionId: "piece"
+  });
+  assert.equal(result.totalMinor, 800000);
+  assert.equal(result.baseTotalMinor, 1000000);
+  assert.equal(result.discountMinor, 200000);
+  assert.equal(result.tierId, "bulk-10");
+  assert.equal(result.pricingMode, "threshold");
+});
+
+test("threshold mode leaves quantity at base price before first threshold", () => {
+  const result = calculateQuantityTierPrice({
+    rule: thresholdRule,
+    quantity: 4,
+    baseUnitPriceMinor: 100000,
+    sellingOptionId: "piece"
+  });
+  assert.equal(result.applied, false);
+  assert.equal(result.totalMinor, 400000);
+  assert.equal(result.reason, "threshold_not_reached");
+});
+
+test("marginal mode prices each quantity band at its own rate", () => {
+  const result = calculateQuantityTierPrice({
+    rule: marginalRule,
+    quantity: 12,
+    baseUnitPriceMinor: 100000,
+    sellingOptionId: "piece"
+  });
+  // 4 x 1,000 + 5 x 900 + 3 x 800 = 10,300
+  assert.equal(result.totalMinor, 1030000);
+  assert.equal(result.baseTotalMinor, 1200000);
+  assert.equal(result.discountMinor, 170000);
+  assert.deepEqual(result.appliedTierIds, ["standard", "bulk-5", "bulk-10"]);
+});
+
+test("base-stock qualification supports an explicit cross-option-equivalent rate", () => {
+  const rule = {
+    enabled: true,
+    qualificationBasis: "base_stock_quantity",
+    aggregateAcrossOptions: true,
+    eligibleSellingOptionIds: ["piece", "pack"],
+    pricingMode: "threshold",
+    tiers: [{
+      id: "equivalent-12",
+      minimumQuantity: 12,
+      pricePerBaseUnitMinor: 85000
+    }]
+  };
+  assert.equal(validateQuantityTierRule(rule).valid, true);
+  const result = calculateQuantityTierPrice({
+    rule,
+    quantity: 12,
+    baseUnitPriceMinor: 100000,
+    sellingOptionId: "piece"
+  });
+  assert.equal(result.totalMinor, 1020000);
+  assert.equal(result.discountMinor, 180000);
+  assert.equal(result.qualificationBasis, "base_stock_quantity");
+});
+
+test("does not apply a rule to an ineligible selling option", () => {
+  const result = calculateQuantityTierPrice({
+    rule: thresholdRule,
+    quantity: 10,
+    baseUnitPriceMinor: 100000,
+    sellingOptionId: "carton"
+  });
+  assert.equal(result.applied, false);
+  assert.equal(result.reason, "selling_option_not_eligible");
+});
+
+test("disabled rule never applies a tier", () => {
+  const result = calculateQuantityTierPrice({
+    rule: { ...thresholdRule, enabled: false },
+    quantity: 20,
+    baseUnitPriceMinor: 100000,
+    sellingOptionId: "piece"
+  });
+  assert.equal(result.applied, false);
+  assert.equal(result.discountMinor, 0);
+});
+
+test("rejects a tier price higher than the normal price", () => {
+  const rule = {
+    ...thresholdRule,
+    tiers: [{ id: "bad", minimumQuantity: 2, priceBySellingOptionId: { piece: 110000 } }]
+  };
+  assert.throws(() => calculateQuantityTierPrice({
+    rule, quantity: 2, baseUnitPriceMinor: 100000, sellingOptionId: "piece"
+  }), error => error.code === "TIER_PRICE_INCREASE");
+});
+
+test("rejects gaps in marginal bands", () => {
+  const invalidRule = {
+    ...marginalRule,
+    tiers: [
+      { id: "first", minimumQuantity: 1, maximumQuantity: 4, priceBySellingOptionId: { piece: 100000 } },
+      { id: "second", minimumQuantity: 6, priceBySellingOptionId: { piece: 90000 } }
+    ]
+  };
+  const validation = validateQuantityTierRule(invalidRule);
+  assert.equal(validation.valid, false);
+  assert.ok(validation.issues.some(issue => issue.includes("contiguous")));
+});
+
+test("requires explicit tier price for the eligible selling option", () => {
+  const invalidRule = {
+    ...thresholdRule,
+    tiers: [{ id: "bulk", minimumQuantity: 5, priceBySellingOptionId: {} }]
+  };
+  assert.equal(validateQuantityTierRule(invalidRule).valid, false);
+});
