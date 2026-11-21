@@ -2,7 +2,7 @@
  * Checkout catalogue contract validation.
  *
  * This deliberately validates the new structured model rather than guessing
- * selling units or conversions from legacy product labels, SKUs or names.
+ * selling units or conversions from product labels, SKUs or names.
  * It is a pure module: no Firestore access and no mutation.
  */
 
@@ -18,6 +18,15 @@ function isRecord(value) {
 
 function safePositiveInteger(value) {
   return Number.isSafeInteger(value) && value > 0;
+}
+
+function validPositiveQuantity(value, precision) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return false;
+  }
+  const scaled = value * (10 ** precision);
+  return Number.isSafeInteger(Math.round(scaled)) &&
+    Math.abs(scaled - Math.round(scaled)) < 1e-8;
 }
 
 /**
@@ -66,8 +75,9 @@ export function validateCheckoutProduct(product) {
         !UNIT_CODE.test(variant.stockUnit.code)) {
       issues.push(issue(`${path}.stockUnit`, "A controlled stock-unit code is required"));
     }
-    if (!Number.isInteger(variant.quantityPrecision) ||
-        variant.quantityPrecision < 0 || variant.quantityPrecision > 6) {
+    const precisionValid = Number.isInteger(variant.quantityPrecision) &&
+      variant.quantityPrecision >= 0 && variant.quantityPrecision <= 6;
+    if (!precisionValid) {
       issues.push(issue(`${path}.quantityPrecision`, "Quantity precision must be an integer from 0 to 6"));
     }
     if (!Array.isArray(variant.sellingOptions) || variant.sellingOptions.length === 0) {
@@ -75,6 +85,7 @@ export function validateCheckoutProduct(product) {
       return;
     }
 
+    const precision = precisionValid ? variant.quantityPrecision : 0;
     const optionIds = new Set();
     variant.sellingOptions.forEach((option, optionIndex) => {
       const optionPath = `${path}.sellingOptions[${optionIndex}]`;
@@ -101,11 +112,11 @@ export function validateCheckoutProduct(product) {
       if (!safePositiveInteger(option.stockUnitsPerSaleUnit)) {
         issues.push(issue(`${optionPath}.stockUnitsPerSaleUnit`, "Explicit positive whole-number stock conversion is required"));
       }
-      if (!safePositiveInteger(option.minimumOrderQuantity)) {
-        issues.push(issue(`${optionPath}.minimumOrderQuantity`, "Minimum order quantity must be a positive integer"));
+      if (!validPositiveQuantity(option.minimumOrderQuantity, precision)) {
+        issues.push(issue(`${optionPath}.minimumOrderQuantity`, "Minimum order quantity must be positive and within the variant quantity precision"));
       }
-      if (!safePositiveInteger(option.orderQuantityStep)) {
-        issues.push(issue(`${optionPath}.orderQuantityStep`, "Order quantity step must be a positive integer"));
+      if (!validPositiveQuantity(option.orderQuantityStep, precision)) {
+        issues.push(issue(`${optionPath}.orderQuantityStep`, "Order quantity step must be positive and within the variant quantity precision"));
       }
       if (!Number.isSafeInteger(option.priceMinor) || option.priceMinor < 0) {
         issues.push(issue(`${optionPath}.priceMinor`, "Price must be a non-negative integer in minor currency units"));
