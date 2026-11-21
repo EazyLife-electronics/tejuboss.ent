@@ -149,7 +149,11 @@ Administrators should be able to preview/test a pricing rule against sample quan
 
 Store monetary values as integer minor units (kobo for NGN) in trusted backend records. Never trust a browser-submitted unit price, discount, subtotal, delivery charge, or order total. The backend must calculate the applicable price from current trusted catalogue and pricing rules at order time.
 
-For launch, customers should be able to see the applicable retail and wholesale/quantity prices on the storefront, with qualifying conditions clearly displayed. If wholesale access is restricted to approved customer accounts, that approval requirement must be explicit in the customer access model; do not silently hide or apply restricted pricing.
+For launch, all applicable retail and quantity-tier prices are public. No account, login, retailer approval, or customer registration is required to view or qualify for an advertised quantity offer. The storefront should present the current unit price and clearly show quantity incentives beside it, such as "Buy 2 or more: ₦X each" or "Buy 6+: save Y%". This is an upsell mechanism intended to encourage customers to add more to their basket, not a private wholesale-gated price list.
+
+A customer may optionally create an account to retain their own details and view their order history. Guest checkout remains available, and account creation must not be a prerequisite for seeing prices, receiving an eligible quantity price, or placing an order. The backend must apply the same published eligibility rules to guest and registered customers unless a future, explicitly approved customer-specific programme is introduced.
+
+The customer-facing price presentation must make the threshold and benefit understandable before checkout. The cart and checkout must recalculate the qualifying tier using the complete eligible basket/order quantity and show the applied unit price, savings, and threshold. The server remains authoritative for the final calculation.
 
 ## 5. Inventory and order arithmetic
 
@@ -296,5 +300,5 @@ A single piece/carton product may expose both Piece and Carton options. A roll p
 7. Bulk qualification and price reductions are independently controlled by the administrator at each selling level. Cross-unit equivalent-quantity qualification is possible only when explicitly enabled.
 8. Pricing eligibility does not change the physical selling form selected by the customer. A unit order remains a unit order even if it qualifies for a pack-level pricing rule.
 
-**Remaining decision:** Is wholesale pricing visible to every website visitor, or should customers create an account and be approved before seeing wholesale prices? The pricing engine can support either, but the storefront and customer access rules need this decision before implementation.
+**Confirmed customer access:** All advertised quantity/wholesale tiers are public. No customer account or approval is required to view or qualify. Guest checkout is supported. Account creation is optional and exists only to help customers retain their details and order history. Public quantity offers are an upsell strategy: show the current price and the next qualifying quantity/price clearly, so customers are encouraged to add more.
 
