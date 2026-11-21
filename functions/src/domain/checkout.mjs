@@ -9,7 +9,7 @@ import { calculateCatalogueLinePrice } from "./order-pricing.mjs";
 
 const MAX_LINES = 50;
 const MAX_QUANTITY = 1_000_000;
-const ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
+const ID_PATTERN = /^[A-Za-z0-9_.-]{1,128}$/;
 
 function fail(code, message, details) {
   const error = new Error(message);
@@ -86,6 +86,12 @@ export function validateCreateOrderRequest(input) {
   if (!input.customer || typeof input.customer !== "object" || Array.isArray(input.customer)) {
     fail("INVALID_ARGUMENT", "Customer contact details are required");
   }
+  const customerExtra = Object.keys(input.customer).filter(key =>
+    !["name", "phone", "email"].includes(key)
+  );
+  if (customerExtra.length) {
+    fail("INVALID_ARGUMENT", "Customer details contain unsupported fields", { fields: customerExtra });
+  }
   const customer = {
     name: requiredText(input.customer.name, "customer.name", 120),
     phone: requiredText(input.customer.phone, "customer.phone", 32)
@@ -97,6 +103,12 @@ export function validateCreateOrderRequest(input) {
   if (!input.fulfilment || typeof input.fulfilment !== "object" || Array.isArray(input.fulfilment)) {
     fail("INVALID_ARGUMENT", "Fulfilment selection is required");
   }
+  const fulfilmentExtra = Object.keys(input.fulfilment).filter(key =>
+    !["method", "address", "area"].includes(key)
+  );
+  if (fulfilmentExtra.length) {
+    fail("INVALID_ARGUMENT", "Fulfilment details contain unsupported fields", { fields: fulfilmentExtra });
+  }
   const method = input.fulfilment.method;
   if (!["delivery", "pickup"].includes(method)) {
     fail("INVALID_ARGUMENT", "Fulfilment method must be delivery or pickup");
@@ -107,7 +119,11 @@ export function validateCreateOrderRequest(input) {
     fulfilment.area = requiredText(input.fulfilment.area, "fulfilment.area", 120);
   }
 
-  const note = input.note === undefined ? "" : requiredText(input.note, "note", 1000);
+  const note = input.note === undefined || input.note === null
+    ? ""
+    : typeof input.note === "string" && input.note.trim().length <= 1000
+      ? input.note.trim()
+      : fail("INVALID_ARGUMENT", "note must be a string of at most 1000 characters");
   return { idempotencyKey, items, customer, fulfilment, note };
 }
 
