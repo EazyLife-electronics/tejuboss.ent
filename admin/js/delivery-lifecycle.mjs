@@ -73,9 +73,9 @@ export function buildDeliveryFromOrder(order, {
   return {
     orderId: order.id || null,
     customerId: order.customerId || null,
-    customerName: order.customerName || order.customer || '',
-    customerPhone: order.customerPhone || order.phone || '',
-    address: order.deliveryAddress || order.address || '',
+    customerName: order.customerName || order.customer?.name || (typeof order.customer === 'string' ? order.customer : ''),
+    customerPhone: order.customerPhone || order.phone || order.customer?.phone || '',
+    address: order.deliveryAddress || order.address || order.customer?.address || '',
     deliveryTypeId,
     deliveryType,
     assignedTo: personnelId,
