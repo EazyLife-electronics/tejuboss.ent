@@ -71,6 +71,7 @@ function variantRowHTML(rowId, v = {}) {
 function upgradeRowHTML(rowId, u = {}) {
   return `
     <div class="upgrade-row bg-white border border-gray-200 rounded-xl p-3 flex gap-2 items-center" data-row-id="${rowId}">
+      <input type="hidden" id="u${rowId}_stableId" value="${escapeHtml(u.id || '')}">
       <input id="u${rowId}_name" placeholder="Add-on name (e.g. Gift wrap)" value="${escapeHtml(u.name || '')}" class="flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
       <input id="u${rowId}_price" type="number" placeholder="+₦" value="${u.price || ''}" class="w-24 p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
       <button type="button" class="remove-upgrade-btn text-red-500 text-[11px] font-bold" data-row-id="${rowId}">Remove</button>
@@ -136,8 +137,11 @@ function collectVariants() {
 function collectUpgrades() {
   return [...document.querySelectorAll('.upgrade-row')].map(row => {
     const rowId = row.dataset.rowId;
+    const stableIdInput = document.getElementById(`u${rowId}_stableId`);
+    const stableId = stableIdInput.value.trim() || `upgrade_${crypto.randomUUID()}`;
+    stableIdInput.value = stableId;
     return {
-      id: 'u' + Date.now() + '_' + rowId,
+      id: stableId,
       name: document.getElementById(`u${rowId}_name`).value.trim(),
       price: parseInt(document.getElementById(`u${rowId}_price`).value, 10) || 0
     };
