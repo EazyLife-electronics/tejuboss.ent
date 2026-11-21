@@ -1,6 +1,6 @@
 # Tejuboss Product Units and Pricing Model
 
-Status: Proposed foundation contract, pending commercial-rule confirmation
+Status: Proposed foundation contract; multi-option selling confirmed by business
 Working branch: `tejuboss-foundation`
 Firebase project: `tejuboss-ent`
 
@@ -28,7 +28,7 @@ A variant has one canonical stock unit at a given time. Changing it later requir
 
 A customer-facing option available for an order line. Examples include `piece`, `carton`, `pack`, `roll`, or `metre`.
 
-A product variant may expose one or multiple selling options. For example, a variant stocked in pieces may be sold as one piece or one carton. A product sold only by roll simply has a roll selling option.
+A product variant may expose multiple selling options where applicable. The business has confirmed that a customer may buy the same product as a carton, roll/pack, or individual unit, depending on that product's actual packaging and sale configuration. The storefront must therefore support multiple selectable options for one product/variant. Do not assume every product supports every option.
 
 ### Conversion
 
@@ -202,13 +202,14 @@ These examples explain the structure only. They are not statements about Tejubos
 
 A single piece/carton product may expose both Piece and Carton options. A roll product need not expose any other option unless Tejuboss actually sells it in another form.
 
-## 10. Decisions still required before finalizing checkout and inventory workflows
+## 10. Confirmed business requirement and decisions still required
 
-The variable-unit requirement is now established. The following operational choices remain open and must not be guessed:
+**Confirmed:** The same product can be offered to customers in more than one selling form. Depending on the product, a customer may choose carton, roll/pack, or individual unit. The storefront and order model must support multiple active selling options per product variant, each with its own price and stock conversion.
 
-1. **Multiple selling options:** Can the same product be sold in more than one form, such as both carton and piece, or does each product normally have only one selling form?
-2. **Stock handling:** Is stock currently counted in the smallest practical unit (for example, pieces inside cartons), or does the store count unopened cartons/rolls as whole units?
-3. **Fulfilment locations:** Will online orders initially be fulfilled from one store/warehouse, or can staff choose among multiple outlets?
-4. **Retail and wholesale launch:** Should the first release show retail prices only, while wholesale pricing is administered later, or must wholesale prices be supported at launch?
+The following operational choices remain open and must not be guessed:
+
+1. **Stock handling:** Is stock currently counted in the smallest practical unit (for example, pieces inside cartons), or does the store count unopened cartons/rolls as whole units? This determines whether a carton conversion can be applied directly to a piece-based stock balance or whether stock must support whole unopened packages and loose quantities.
+2. **Fulfilment locations:** Will online orders initially be fulfilled from one store/warehouse, or can staff choose among multiple outlets?
+3. **Retail and wholesale launch:** Should the first release show retail prices only, while wholesale pricing is administered later, or must wholesale prices be supported at launch?
 
 These answers determine the first implementation scope. They do not change the core principle that stock unit, selling unit, conversion, and price are separate structured values.
