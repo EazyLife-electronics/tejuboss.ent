@@ -257,7 +257,7 @@
                 ` : renderTimeline(order.status || 'new')}
                 <div class="border-t border-gray-100 dark:border-[#2e2e2e] pt-4">
                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-1"><b class="text-gray-700 dark:text-gray-200">Items:</b> ${itemsHtml}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1"><b class="text-gray-700 dark:text-gray-200">Delivery to:</b> ${escapeHtml(order.address || '')}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1"><b class="text-gray-700 dark:text-gray-200">Delivery to:</b> ${escapeHtml(order.address || order.customer?.address || '')}</p>
                     <p class="text-sm font-black text-gray-900 dark:text-gray-100 mt-2">Total: ₦${(order.total || 0).toLocaleString()}</p>
                 </div>
                 <div id="deliverySection-${trackingCode}"></div>
