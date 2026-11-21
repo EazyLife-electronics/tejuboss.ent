@@ -97,22 +97,59 @@ A roll-based variant may instead have:
 
 Do not create a carton option for every product automatically. Only expose options that the business actually sells.
 
-## 4. Pricing contract
+## 4. Retail, wholesale, and administrator-controlled quantity pricing
 
-Prices belong to a specific selling option, not merely to the product name. The same variant may have different prices for piece, pack, carton, or roll.
+Wholesale pricing is required from the first release. It must not be deferred to a later phase.
 
-The model should support:
-- public retail price;
-- wholesale or retailer price;
-- customer-group or approved-account price lists in a later phase;
-- time-bounded promotions;
-- quantity breaks where the business explicitly enables them.
+Each selling option can have its own base retail price and wholesale/quantity-pricing rules. For example, the same variant may have different prices when sold as a piece, pack, roll, or carton.
 
-A price record must identify the product variant, selling option, price list/customer group, currency, amount, and effective period where applicable.
+### Pricing levels
 
-Store monetary values as integer minor units (kobo for NGN) in trusted backend records. Format them for display in the client. Never trust a browser-submitted unit price, discount, subtotal, delivery charge, or order total.
+The pricing engine must support independently configurable pricing at each applicable selling level:
+- individual unit;
+- pack;
+- roll;
+- carton;
+- any additional configured selling option.
 
-For the initial retail launch, the public retail price is the default price list. Wholesale price lists and negotiated account pricing can be added without changing the unit conversion contract.
+Each level can have its own qualifying quantity thresholds and resulting price, discount, or margin rule. Administrators may enable, disable, or configure these rules independently for each product/variant and selling option. There must be no hard-coded assumption that buying a pack or carton always earns a discount.
+
+### Cross-unit quantity qualification
+
+Where the administrator enables it, quantity qualification may compare equivalent quantities across selling forms using the explicit stock conversion values.
+
+For example, if a pack contains 12 pieces, an order for 10 individual pieces may be evaluated against an administrator-configured pack-level quantity tier or equivalent quantity rule. The customer still receives 10 individual pieces; the system does not automatically convert the order into a pack plus loose pieces. Only the price eligibility is evaluated across the configured equivalent quantity.
+
+The administrator must be able to decide:
+- whether a selling level has bulk pricing at all;
+- the minimum qualifying quantity for each tier;
+- whether the threshold is measured in the selected selling unit or an explicitly configured equivalent/base quantity;
+- which price or discount/margin rule applies;
+- whether a tier may be earned by quantities ordered in another selling form;
+- whether the rule applies to retail customers, wholesale customers, or both;
+- whether the rule stacks with promotions or other discounts (default should be no stacking unless explicitly enabled).
+
+A product can therefore have no discount on individual-unit sales, even when a large number of units is purchased, while pack or carton sales may have separate wholesale tiers. This is an intentional commercial decision, not a system error.
+
+### Price calculation and governance
+
+The pricing engine must select the best valid rule only within the administrator-defined eligible rules. It must not invent a discount, infer a wholesale rate, or automatically choose a cheaper package price simply because quantities are mathematically equivalent.
+
+A price record/rule must identify:
+- product and variant;
+- selling option or explicitly defined cross-option scope;
+- customer class/price list (retail or wholesale);
+- qualifying quantity and quantity basis;
+- price or discount/margin method;
+- currency;
+- effective start/end dates where applicable;
+- enabled status and stacking policy.
+
+Administrators should be able to preview/test a pricing rule against sample quantities before publishing it. All rule changes must be audited with actor, timestamp, and before/after values.
+
+Store monetary values as integer minor units (kobo for NGN) in trusted backend records. Never trust a browser-submitted unit price, discount, subtotal, delivery charge, or order total. The backend must calculate the applicable price from current trusted catalogue and pricing rules at order time.
+
+For launch, customers should be able to see the applicable retail and wholesale/quantity prices on the storefront, with qualifying conditions clearly displayed. If wholesale access is restricted to approved customer accounts, that approval requirement must be explicit in the customer access model; do not silently hide or apply restricted pricing.
 
 ## 5. Inventory and order arithmetic
 
@@ -151,31 +188,30 @@ The business has confirmed that unopened packages and loose stock are counted se
 
 For a product that can be sold as cartons and individual pieces, inventory may include:
 - unopened cartons, counted as whole cartons;
-- loose pieces, counted as individual pieces.
+- loose pieces, counted as individual pieces;
+- unopened packs/rolls where these are independently stocked and sold.
 
 Where a carton contains 48 pieces, 1 unopened carton and 48 loose pieces are not interchangeable inventory records. They may represent the same theoretical quantity, but their packaging state is operationally different.
 
 ### Proposed inventory balance
 
-Track stock by location, product variant, and stock/packaging form. For example:
-- sealed carton balance: quantity in cartons;
-- loose balance: quantity in pieces;
-- sealed pack balance: quantity in packs, if packs are separately stocked and sold.
-
-Each package form must have a configured conversion into a canonical base quantity for reporting and reconciliation, but the system must not silently combine balances or treat loose pieces as sealed cartons.
+Track stock by location, product variant, and inventory form. Each form has a configured conversion into a canonical base quantity for reporting and reconciliation. The system must not silently combine balances or treat loose pieces as sealed cartons.
 
 ### Selling and fulfilment rules
 
-A selling option must specify which inventory form(s) it can consume:
+Each selling option identifies the inventory form(s) it can consume:
 - Carton order consumes sealed-carton stock.
-- Individual-piece order consumes loose-piece stock by default.
-- Pack order consumes sealed-pack stock if the business keeps packs separately; otherwise it may consume loose stock only under an explicitly configured packing workflow.
+- Individual-piece order consumes loose-piece stock.
+- Pack or roll order consumes the matching sealed pack/roll stock when that is how the business tracks it.
+- If the business explicitly configures a pack to be assembled from loose units, that is a separate packing workflow and must be recorded.
 
-The business has confirmed the automatic break-pack rule: when loose stock is insufficient for an individual-unit sale, the system may open the required number of sealed cartons, transfer their contents into loose stock, and fulfil the order from that loose balance. For example, with 10 sealed cartons of 48 units and no loose units, a sale of 6 units results in 9 sealed cartons and 42 loose units.
+The business has confirmed the automatic break-pack rule: when loose stock is insufficient for an individual-unit sale, the system opens the required number of sealed cartons, transfers their contents into loose stock, and fulfils the order from that loose balance.
+
+Example: with 10 sealed cartons of 48 units and no loose units, a sale of 6 units results in 9 sealed cartons and 42 loose units.
 
 This conversion and sale must be one atomic backend transaction. The system must:
 1. calculate the loose-stock shortfall;
-2. calculate the whole number of sealed cartons required to cover that shortfall;
+2. calculate the whole number of sealed cartons required to cover the shortfall;
 3. reduce sealed-carton stock by that number;
 4. increase loose stock by the configured contents of those cartons;
 5. deduct the ordered loose quantity;
@@ -184,15 +220,7 @@ This conversion and sale must be one atomic backend transaction. The system must
 
 The transaction must fail safely if there is insufficient eligible stock, if the package conversion is invalid, or if concurrent orders have already consumed the stock. It must not leave a partial conversion or partial deduction.
 
-If a pack-specific stock form is maintained separately, its conversion and replenishment workflow must be configured explicitly; do not silently mix pack stock with loose pieces.
-
-
-1. reduce sealed carton quantity by the number opened;
-2. increase loose quantity by the configured contents of those cartons;
-3. record actor, timestamp, location, reason, package configuration, and before/after balances;
-4. then fulfil the piece/pack order from the resulting loose/pack balance.
-
-Do not silently convert sealed stock into loose stock during checkout. The initial launch can reject/hold an order when the requested form is unavailable, or use a clearly authorized and recorded break-pack workflow if the business approves it.
+The same principle applies to any other package form only where the administrator has configured a valid conversion and the business permits that conversion. Do not assume that a carton, pack, and roll can be opened or converted in the same way.
 
 Available-to-sell quantities must be calculated per selling option and its eligible inventory forms. A general total-stock figure may be shown internally for reporting, but it must not be used as the sole checkout availability check.
 
@@ -256,14 +284,17 @@ These examples explain the structure only. They are not statements about Tejubos
 
 A single piece/carton product may expose both Piece and Carton options. A roll product need not expose any other option unless Tejuboss actually sells it in another form.
 
-## 11. Confirmed business requirement and decisions still required
+## 11. Confirmed business requirements and remaining decisions
 
-**Confirmed:** The same product can be offered to customers in more than one selling form. Depending on the product, a customer may choose carton, roll/pack, or individual unit. The storefront and order model must support multiple active selling options per product variant, each with its own price and stock conversion.
+**Confirmed business requirements:**
+1. The same product may have multiple selling options, including carton, pack, roll, and individual unit where applicable.
+2. Each selling option has an explicit conversion and its own price.
+3. Unopened packages and loose stock are tracked separately.
+4. When loose stock is insufficient for a unit sale, the system automatically opens the required carton(s), transfers the contents to loose stock, and fulfils the sale in one atomic transaction.
+5. Initial fulfilment uses one store/inventory location.
+6. Wholesale and quantity-based pricing must be available from the first release.
+7. Bulk qualification and price reductions are independently controlled by the administrator at each selling level. Cross-unit equivalent-quantity qualification is possible only when explicitly enabled.
+8. Pricing eligibility does not change the physical selling form selected by the customer. A unit order remains a unit order even if it qualifies for a pack-level pricing rule.
 
-The following operational choices remain open and must not be guessed:
+**Remaining decision:** Is wholesale pricing visible to every website visitor, or should customers create an account and be approved before seeing wholesale prices? The pricing engine can support either, but the storefront and customer access rules need this decision before implementation.
 
-1. **Stock handling:** Is stock currently counted in the smallest practical unit (for example, pieces inside cartons), or does the store count unopened cartons/rolls as whole units? This determines whether a carton conversion can be applied directly to a piece-based stock balance or whether stock must support whole unopened packages and loose quantities.
-2. **Fulfilment locations:** Will online orders initially be fulfilled from one store/warehouse, or can staff choose among multiple outlets?
-3. **Retail and wholesale launch:** Should the first release show retail prices only, while wholesale pricing is administered later, or must wholesale prices be supported at launch?
-
-These answers determine the first implementation scope. They do not change the core principle that stock unit, selling unit, conversion, and price are separate structured values.
