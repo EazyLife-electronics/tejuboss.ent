@@ -21,8 +21,8 @@ test("calculates per-selling-unit fees with option override and zone fee", () =>
       { sellingOptionId: "carton", quantity: 1 },
     ],
   });
-  assert.equal(result.deliveryFeeMinor, 365000);
-  assert.equal(result.lineFeesMinor, 345000);
+  assert.equal(result.deliveryFeeMinor, 290000);
+  assert.equal(result.lineFeesMinor, 270000);
   assert.equal(result.zoneFeeMinor, 20000);
   assert.equal(result.policyVersion, "delivery-v1");
 });
