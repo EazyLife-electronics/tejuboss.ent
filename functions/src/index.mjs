@@ -90,8 +90,9 @@ export const publishQuantityPricing = onCall(
           tx.get(productRef),
           tx.get(configRef)
         ]);
-        if (!productSnap.exists || productSnap.data()?.published !== true) {
-          throw new HttpsError("failed-precondition", "Only a published catalogue product can have a public offer.");
+        if (payload.rule.enabled === true &&
+            (!productSnap.exists || productSnap.data()?.published !== true)) {
+          throw new HttpsError("failed-precondition", "A public offer can only be activated for a published catalogue product. Save it as a disabled draft until the product is migrated.");
         }
 
         const current = configSnap.exists ? configSnap.data() : null;
