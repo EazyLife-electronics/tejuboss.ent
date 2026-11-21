@@ -69,7 +69,7 @@ import { buildPublishedCatalogueProduct } from "./domain/catalogue-publication.m
 
 /**
  * Explicit publication step. This never initializes or changes inventory.
- * Existing legacy product IDs are protected from accidental replacement.
+ * The separate collection keeps legacy storefront documents untouched.
  */
 export const publishCatalogueDraft = onCall({ region: "europe-west1" }, async request => {
   authorize(request);
@@ -85,7 +85,7 @@ export const publishCatalogueDraft = onCall({ region: "europe-west1" }, async re
   }
 
   const draftRef = db.collection("catalogueDrafts").doc(data.draftId);
-  const productRef = db.collection("products").doc(data.draftId);
+  const productRef = db.collection("catalogueProducts").doc(data.draftId);
   const auditRef = db.collection("auditLogs").doc();
 
   try {
