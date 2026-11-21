@@ -36,6 +36,7 @@ The detailed target contract is documented in:
 - [Target Data Model and Access Matrix](TARGET-DATA-MODEL-AND-ACCESS.md)
 - [Product Units and Pricing Model](PRODUCT-UNITS-AND-PRICING-MODEL.md)
 - [Pricing Engine and Checkout Workflow](PRICING-ENGINE-AND-CHECKOUT-WORKFLOW.md)
+- [Phase 1 Implementation Checklist](PHASE-1-IMPLEMENTATION-CHECKLIST.md)
 
 Key confirmed decisions:
 - Public product prices and quantity offers; no account or approval required.
