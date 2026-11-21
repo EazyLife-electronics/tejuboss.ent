@@ -47,4 +47,8 @@ test("rejects invalid credential and unsafe session lifetimes", () => {
   assert.throws(() => hashGuestSessionCredential("short"), /invalid/);
   assert.throws(() => createGuestSessionCredential({ lifetimeMs: 0 }), /between 1 ms and 24 hours/);
   assert.throws(() => createGuestSessionCredential({ lifetimeMs: 86400001 }), /between 1 ms and 24 hours/);
+  assert.throws(
+    () => createGuestSessionCredential({ now: Number.MAX_SAFE_INTEGER, lifetimeMs: 1 }),
+    /safe timestamp range/
+  );
 });
