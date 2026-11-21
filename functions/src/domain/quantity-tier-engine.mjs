@@ -195,8 +195,8 @@ export function calculateQuantityTierPrice({
         applied: false,
         reason: "threshold_not_reached",
         quantity,
-        baseTotalMinor: quantity * baseUnitPriceMinor,
-        totalMinor: quantity * baseUnitPriceMinor,
+        baseTotalMinor: configuredBaseTotal,
+        totalMinor: configuredBaseTotal,
         discountMinor: 0,
         tierId: null
       };
