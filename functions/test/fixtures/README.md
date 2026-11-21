@@ -12,4 +12,6 @@ They are imported only by automated Node tests. They are not part of the website
 
 The scenario tests verify trusted quote calculation, selling-option conversion, delivery and pickup pricing, package breakage planning, insufficient-stock rejection, idempotency replay/conflict classification, and tracking-token hashing.
 
-These tests exercise domain decisions and pure planners. They do not yet prove Firestore transaction atomicity or concurrent oversell prevention; those require the transaction adapter and emulator integration tests.
+`sample-firestore-checkout.mjs` is a separate emulator-only harness. It uses an isolated `__checkoutEmulatorFixtures` namespace and proves atomic writes, replay safety, insufficient-stock rollback, current-price reads, customer-safe tracking projections, and concurrent oversell prevention against the Firestore Emulator. It is not imported by production Functions.
+
+The emulator harness deliberately models one sample product and one piece-selling option per request. It is a transaction-pattern test, not the production Firestore schema or a deployable checkout endpoint. The production adapter must be built only after real product/inventory paths, package forms, delivery policy, tier semantics, and stock reservation timing are approved.
