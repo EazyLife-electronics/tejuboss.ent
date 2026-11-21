@@ -81,7 +81,8 @@ export const publishQuantityPricing = onCall(
     const configId = `${productId}__${variantId}`;
     const publicPricingId = `${productId}__${variantId}__${ruleId}`;
     const configRef = db.collection("pricingConfigs").doc(configId);
-    const productRef = db.collection("products").doc(productId);
+    // Quantity offers target the new structured catalogue, not legacy products.
+    const productRef = db.collection("catalogueProducts").doc(productId);
     const publicRef = db.collection("publicPricing").doc(publicPricingId);
     const auditRef = db.collection("auditLogs").doc();
 
