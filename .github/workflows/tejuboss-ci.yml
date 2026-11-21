@@ -1,0 +1,31 @@
+name: Tejuboss foundation checks
+
+on:
+  push:
+    branches: [tejuboss-foundation]
+  pull_request:
+    branches: [main, tejuboss-foundation]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  domain-tests:
+    name: Commerce domain tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Install dependencies
+        working-directory: functions
+        run: npm install --package-lock-only && npm ci
+      - name: Run automated tests
+        working-directory: functions
+        run: npm test
