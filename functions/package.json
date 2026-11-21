@@ -2,10 +2,12 @@
   "name": "tejuboss-functions",
   "private": true,
   "type": "module",
-  "engines": { "node": "22" },
+  "engines": {
+    "node": "22"
+  },
   "main": "src/index.mjs",
   "scripts": {
-    "test": "node --test",
+    "test": "node --test test/quantity-pricing.test.mjs test/inventory.test.mjs",
     "test:rules": "firebase emulators:exec --project tejuboss-rules-test --config ../firebase.test.json --only firestore \"node --test test/firestore-rules.test.mjs\"",
     "serve": "firebase emulators:start --only auth,functions,firestore",
     "shell": "firebase functions:shell",
