@@ -33,10 +33,10 @@ function normalizeForWhatsApp(phone) {
 }
 
 function orderMessageTemplate(order) {
-  const name = escapeHtml(order.customerName || 'there');
+  const name = escapeHtml(order.customerName || order.customer?.name || 'there');
   const code = escapeHtml(order.trackingCode || order.id);
   const itemsList = (order.items || []).map(i => escapeHtml(i.name)).join(', ');
-  const trackUrl = `https://tejuboss.ent/track.html?code=${code}`;
+  const trackUrl = `https://tejuboss.ng/track.html?code=${code}`;
   if (order.status === 'cancelled') {
     const reasonLabel = escapeHtml(cancelReasonLabel(order));
     return reasonLabel
@@ -63,14 +63,14 @@ export function renderOrderList(orders) {
       <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
         <div class="flex justify-between items-start mb-2">
           <div>
-            <p class="font-bold text-sm text-gray-800">${escapeHtml(o.customerName || 'Unknown')}</p>
-            <p class="text-xs text-gray-400">${escapeHtml(o.phone || '')} · ${created}</p>
+            <p class="font-bold text-sm text-gray-800">${escapeHtml(o.customerName || o.customer?.name || 'Unknown')}</p>
+            <p class="text-xs text-gray-400">${escapeHtml(o.phone || o.customer?.phone || '')} · ${created}</p>
             <p class="text-[10px] font-mono text-[#E11D48] font-bold mt-0.5">${escapeHtml(o.trackingCode || o.id)}</p>
           </div>
           <span class="text-[10px] font-bold uppercase px-2 py-1 rounded-full ${STATUS_COLORS[o.status] || 'bg-gray-100 text-gray-500'}">${escapeHtml(o.status || 'new')}</span>
         </div>
         <p class="text-xs text-gray-600 mb-1">${itemsHtml}</p>
-        <p class="text-xs text-gray-400 mb-3">${escapeHtml(o.address || '')}</p>
+        <p class="text-xs text-gray-400 mb-3">${escapeHtml(o.address || o.customer?.address || '')}</p>
         ${isCancelled ? `
           <div class="bg-red-50 border border-red-100 rounded-lg p-2.5 mb-3">
             <p class="text-[11px] text-red-700"><b>Customer was told:</b> ${reasonLabel ? reasonLabel : 'No reason given'}</p>
