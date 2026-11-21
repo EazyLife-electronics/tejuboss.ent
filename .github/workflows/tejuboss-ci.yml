@@ -11,8 +11,8 @@ permissions:
   contents: read
 
 jobs:
-  domain-tests:
-    name: Commerce domain tests
+  commerce-tests:
+    name: Commerce and Firestore security tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
@@ -21,9 +21,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Set up Java for Firebase Emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
       - name: Install dependencies
         working-directory: functions
         run: npm install
-      - name: Run automated tests
+      - name: Run domain tests
         working-directory: functions
         run: npm test
+      - name: Run Firestore security rules tests
+        working-directory: functions
+        run: npm run test:rules
