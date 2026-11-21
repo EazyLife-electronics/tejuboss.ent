@@ -58,10 +58,14 @@ export async function deleteProduct(id) {
 /* ---------------- ORDERS ---------------- */
 
 function generateTrackingCode() {
+  // 80 bits of cryptographically secure randomness; avoid short, guessable codes.
   const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-  let code = 'TB-';
-  for (let i = 0; i < 6; i++) code += alphabet[Math.floor(Math.random() * alphabet.length)];
-  return code;
+  const bytes = new Uint8Array(16);
+  if (!globalThis.crypto?.getRandomValues) {
+    throw new Error('Secure order tracking is unavailable in this browser. Please update your browser and try again.');
+  }
+  globalThis.crypto.getRandomValues(bytes);
+  return 'TB-' + Array.from(bytes, byte => alphabet[byte % alphabet.length]).join('');
 }
 
 function variantLabelForOrder(v, index) {
@@ -98,14 +102,32 @@ async function resolveOrderItems(items) {
 export async function placeOrder(order) {
   const trackingCode = generateTrackingCode();
   const items = await resolveOrderItems(order.items || []);
-  await setDoc(doc(db, 'orders', trackingCode), {
-    ...order,
-    items,
-    trackingCode,
-    status: 'new',
-    inventoryApplied: false,
-    inventoryReturned: false,
-    createdAt: serverTimestamp()
+  // Normalize the checkout's nested customer object into the canonical fields
+  // consumed by Firestore rules, admin order management and delivery workflows.
+  const customer = order.customer && typeof order.customer === 'object' ? order.customer : {};
+  const customerName = String(order.customerName || customer.name || '').trim();
+  const phone = String(order.phone || customer.phone || '').trim();
+  const address = String(order.address || customer.address || '').trim();
+  if (!customerName || !phone || !address) {
+    throw new Error('Customer name, phone and delivery address are required.');
+  }
+  const orderRef = doc(db, 'orders', trackingCode);
+  await runTransaction(db, async tx => {
+    const existing = await tx.get(orderRef);
+    if (existing.exists()) throw new Error('Could not reserve a unique tracking code. Please try again.');
+    tx.set(orderRef, {
+      ...order,
+      customer: { ...customer, name: customerName, phone, address },
+      customerName,
+      phone,
+      address,
+      items,
+      trackingCode,
+      status: 'new',
+      inventoryApplied: false,
+      inventoryReturned: false,
+      createdAt: serverTimestamp()
+    });
   });
   return trackingCode;
 }
