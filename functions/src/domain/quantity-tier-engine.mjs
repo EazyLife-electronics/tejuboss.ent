@@ -254,6 +254,9 @@ export function deriveTierQualificationQuantity({ rule, lines }) {
   if (!Array.isArray(lines) || lines.length === 0) {
     throw new TypeError("At least one trusted basket line is required");
   }
+  if (lines.some(line => !record(line))) {
+    throw new TypeError("Every basket line must be an object");
+  }
   const eligible = lines.filter(line =>
     rule.eligibleSellingOptionIds.includes(line.sellingOptionId)
   );
