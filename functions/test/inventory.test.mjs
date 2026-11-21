@@ -77,3 +77,17 @@ test("rejects invalid package conversion and fractional piece quantities", () =>
     requestedQuantity: 1.5
   }), TypeError);
 });
+
+test("does not open sealed cartons when loose stock fully covers the sale", () => {
+  const result = planLooseSaleFromSealedCartons({
+    looseQuantity: 12,
+    sealedCartonQuantity: 4,
+    unitsPerCarton: 48,
+    requestedQuantity: 12
+  });
+  assert.equal(result.openedCartons, 0);
+  assert.deepEqual(result.balances, {
+    sealedCartons: 4,
+    looseUnits: 0
+  });
+});
