@@ -1,24 +1,46 @@
-# Tejuboss trusted commerce domain
+# Tejuboss trusted commerce backend
 
-This workspace begins with pure, deterministic business calculations. It is intentionally not connected to the live Firebase project yet.
+Firebase project: `tejuboss-ent`  
+Functions runtime: Node.js 22  
+Working branch: `tejuboss-foundation`
 
-## Run tests
+## Local setup
 
-Use Node.js 22:
+Install the Firebase CLI and authenticate locally:
+
+```bash
+npm install -g firebase-tools
+firebase login
+```
+
+From the repository root:
 
 ```bash
 cd functions
-npm test
+npm install
+cd ..
+firebase emulators:start --only auth,functions,firestore
 ```
 
-## Current modules
+The emulator suite uses the project alias in `.firebaserc`. It does not connect to production services while the emulators are running.
 
-- `src/domain/quantity-pricing.mjs`: integer-minor-unit price calculations, blended package-equivalent pricing, quantity conversion and tier threshold helpers.
-- `src/domain/inventory.mjs`: pure planning for automatic sealed-carton-to-loose-unit conversion during a unit sale.
-- `test/`: Node's built-in test runner coverage for the agreed business examples.
+- Auth emulator: http://127.0.0.1:9099
+- Functions emulator: http://127.0.0.1:5001
+- Firestore emulator: http://127.0.0.1:8080
+- Emulator UI: http://127.0.0.1:4000
 
-## Important boundary
+## Smoke test
 
-These functions calculate deterministic results only. They do not read or write Firestore, authorize users, reserve stock, create orders, or provide atomicity by themselves. Production use must wrap them in trusted server handlers and Firestore transactions that read current balances/configuration and commit all related writes together.
+The initial callable endpoint is `backendStatus`. It confirms that the Functions runtime is reachable and returns only service metadata. It does not read or write customer or commerce data.
 
-Do not deploy this workspace or point it at the live Tejuboss project until the Firebase emulator, authorization, idempotency, tracking projection and migration work is implemented and tested.
+## Domain calculations
+
+- `src/domain/quantity-pricing.mjs`: integer-minor-unit pricing calculations.
+- `src/domain/inventory.mjs`: sealed-carton to loose-unit conversion planning.
+- `test/`: Node's built-in test coverage.
+
+## Safety boundary
+
+No production deployment has been performed. Do not run `firebase deploy` until the trusted order, pricing, inventory, tracking and authorization handlers are implemented and emulator-tested.
+
+The existing browser checkout still writes orders directly to Firestore. It must not be considered secured by this initial Functions connection. The migration must replace that path before public order-write rules are tightened.
