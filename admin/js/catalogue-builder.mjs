@@ -29,7 +29,7 @@ function blankDraft() {
   return { id: createCatalogueId("product"), name: "", brand: "", category: "", description: "", published: false, variants: [blankVariant()] };
 }
 function optionCard(option, vi, oi) {
-  return `<div class="rounded-xl border border-gray-200 bg-gray-50 p-3 space-y-2" data-option data-vi="${vi}" data-oi="${oi}">
+  return `<div class="rounded-xl border border-gray-200 bg-gray-50 p-3 space-y-2" data-option data-option-id="${escapeHtml(option.id)}" data-vi="${vi}" data-oi="${oi}">
     <div class="flex items-center justify-between"><b class="text-xs">Selling option ${oi + 1}</b><button type="button" data-remove-option class="text-xs text-red-600 font-bold">Remove</button></div>
     <div class="grid grid-cols-2 gap-2">
       <label class="text-[11px] text-gray-500">Unit code<input data-field="unitCode" value="${escapeHtml(option.unitCode)}" placeholder="piece, pack, carton" class="mt-1 w-full p-2 rounded-lg border text-sm"></label>
@@ -45,7 +45,7 @@ function optionCard(option, vi, oi) {
   </div>`;
 }
 function variantCard(variant, vi) {
-  return `<section class="rounded-2xl border border-gray-200 p-3 space-y-3" data-variant data-vi="${vi}">
+  return `<section class="rounded-2xl border border-gray-200 p-3 space-y-3" data-variant data-variant-id="${escapeHtml(variant.id)}" data-vi="${vi}">
     <div class="flex items-center justify-between"><h4 class="font-bold text-sm">Variant ${vi + 1}</h4><button type="button" data-remove-variant class="text-xs text-red-600 font-bold">Remove variant</button></div>
     <div class="grid grid-cols-2 gap-2">
       <label class="text-[11px] text-gray-500">Stock unit code<input data-vfield="stockCode" value="${escapeHtml(variant.stockUnit.code)}" class="mt-1 w-full p-2 rounded-lg border text-sm"></label>
@@ -75,13 +75,11 @@ function readDraftFromForm(form) {
  const old = drafts.find(d => d.id === editingId);
  const draft = { id: old?.id || createCatalogueId("product"), name: form.elements.name.value.trim(), category: form.elements.category.value.trim(), brand: form.elements.brand.value.trim(), description: form.elements.description.value.trim(), published: form.elements.published.value === "true", variants: [] };
  document.querySelectorAll("#catalogueVariants [data-variant]").forEach((card,vi) => {
-  const previous = old?.variants?.[vi];
-  const variant = { id: previous?.id || createCatalogueId("variant"), active: true, stockUnit: { code: card.querySelector('[data-vfield="stockCode"]').value.trim(), label: card.querySelector('[data-vfield="stockLabel"]').value.trim() }, quantityPrecision: Number(card.querySelector('[data-vfield="quantityPrecision"]').value), sellingOptions: [] };
+  const variant = { id: card.dataset.variantId || createCatalogueId("variant"), active: true, stockUnit: { code: card.querySelector('[data-vfield="stockCode"]').value.trim(), label: card.querySelector('[data-vfield="stockLabel"]').value.trim() }, quantityPrecision: Number(card.querySelector('[data-vfield="quantityPrecision"]').value), sellingOptions: [] };
   card.querySelectorAll("[data-option]").forEach((node,oi) => {
-   const prev = previous?.sellingOptions?.[oi];
    const get = key => node.querySelector(`[data-field="${key}"]`);
    const promo = get("promoNaira").value.trim();
-   variant.sellingOptions.push({ id: prev?.id || createCatalogueId("option"), unitCode: get("unitCode").value.trim(), displayName: get("displayName").value.trim(), stockUnitsPerSaleUnit: Number(get("stockUnitsPerSaleUnit").value), minimumOrderQuantity: Number(get("minimumOrderQuantity").value), orderQuantityStep: Number(get("orderQuantityStep").value), active: get("active").checked, priceMinor: nairaToKobo(get("priceNaira").value, "Price"), ...(promo === "" ? {} : { promoPriceMinor: nairaToKobo(promo, "Promo price") }) });
+   variant.sellingOptions.push({ id: node.dataset.optionId || createCatalogueId("option"), unitCode: get("unitCode").value.trim(), displayName: get("displayName").value.trim(), stockUnitsPerSaleUnit: Number(get("stockUnitsPerSaleUnit").value), minimumOrderQuantity: Number(get("minimumOrderQuantity").value), orderQuantityStep: Number(get("orderQuantityStep").value), active: get("active").checked, priceMinor: nairaToKobo(get("priceNaira").value, "Price"), ...(promo === "" ? {} : { promoPriceMinor: nairaToKobo(promo, "Promo price") }) });
   });
   draft.variants.push(variant);
  });
