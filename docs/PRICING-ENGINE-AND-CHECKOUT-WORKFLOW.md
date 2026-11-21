@@ -262,3 +262,15 @@ The pure tier engine is now connected to the trusted checkout quote composer thr
 The quote composer returns the applied rule/tier identifiers and qualification quantity so the final order can preserve an auditable pricing snapshot.
 
 This is quote-layer integration only. The production transaction must read the authoritative tier configuration inside the same transaction as catalogue and inventory, then snapshot the exact rule revision and applied tier results. The Firestore transaction harness has not yet been changed to use tier configuration.
+
+
+## 14. Public pricing projection
+
+A separate pure projection builder now converts an authoritative private tier rule into an allowlisted public document.
+
+- Public projection contains product/variant/rule IDs, configuration version, pricing mode, qualification basis, eligible selling options, thresholds, public rates, currency and effective dates.
+- Private costs, margin targets, supplier names, internal notes and cost floors are not copied.
+- Future-dated rules are marked `scheduled`; expired and disabled rules are marked inactive.
+- The builder validates the rule and effective-date window before producing the projection.
+
+This module does not write Firestore. A future authorized publication endpoint must atomically update the private configuration/audit history and its public-safe projection. Public storefront reads must query only active public projections, while final checkout continues to read authoritative private configuration inside its transaction.
