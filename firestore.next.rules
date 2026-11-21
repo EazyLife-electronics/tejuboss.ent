@@ -1,0 +1,90 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.role in [
+          'owner', 'catalogue_manager', 'pricing_manager',
+          'inventory_manager', 'order_manager', 'payment_manager',
+          'delivery_manager', 'report_viewer'
+        ];
+    }
+
+    function hasRole(role) {
+      return request.auth != null
+        && (request.auth.token.role == 'owner'
+          || request.auth.token.role == role);
+    }
+
+    // These documents must contain public-safe fields only.
+    match /products/{productId} {
+      allow read: if resource.data.published == true;
+      allow write: if hasRole('catalogue_manager');
+    }
+
+    match /publicPricing/{pricingId} {
+      allow read: if resource.data.enabled == true;
+      allow write: if hasRole('pricing_manager');
+    }
+
+    // Private commercial and operational records.
+    match /pricingConfigs/{configId} {
+      allow read, write: if hasRole('pricing_manager');
+    }
+
+    match /inventoryBalances/{balanceId} {
+      allow read, write: if hasRole('inventory_manager');
+    }
+
+    match /inventoryMovements/{movementId} {
+      allow read: if hasRole('inventory_manager') || hasRole('report_viewer');
+      allow create: if false;
+      allow update, delete: if false;
+    }
+
+    match /orders/{orderId} {
+      // All customer order creation and updates go through trusted Functions.
+      allow read: if hasRole('order_manager') || hasRole('payment_manager');
+      allow write: if false;
+
+      match /payments/{paymentId} {
+        allow read: if hasRole('payment_manager') || hasRole('order_manager');
+        allow write: if false;
+      }
+    }
+
+    // The random, high-entropy document ID is the bearer tracking token.
+    // Projection documents must contain customer-safe fields only.
+    match /orderTracking/{tokenHash} {
+      allow get: if true;
+      allow list, create, update, delete: if false;
+    }
+
+    match /deliveries/{deliveryId} {
+      allow read: if hasRole('delivery_manager') || hasRole('order_manager');
+      allow write: if false;
+    }
+
+    match /deliveryTracking/{tokenHash} {
+      allow get: if true;
+      allow list, create, update, delete: if false;
+    }
+
+    match /customers/{customerId} {
+      allow read: if request.auth != null
+        && request.auth.uid == customerId;
+      allow write: if request.auth != null
+        && request.auth.uid == customerId;
+    }
+
+    match /auditLogs/{logId} {
+      allow read: if hasRole('owner') || hasRole('report_viewer');
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
