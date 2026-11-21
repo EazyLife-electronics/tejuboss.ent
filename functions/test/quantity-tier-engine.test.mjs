@@ -204,3 +204,21 @@ test("ignores selling options excluded from a tier rule", () => {
   });
   assert.equal(quantity, 6);
 });
+
+
+test("basket baseline override is preserved when threshold is not reached", () => {
+  const result = calculateQuantityTierPrice({
+    rule: {
+      ...thresholdRule,
+      tiers: [{ id: "bulk-5", minimumQuantity: 5, priceBySellingOptionId: { piece: 90000 } }]
+    },
+    quantity: 2,
+    baseUnitPriceMinor: 0,
+    baseTotalMinorOverride: 175000,
+    sellingOptionId: "piece"
+  });
+  assert.equal(result.applied, false);
+  assert.equal(result.baseTotalMinor, 175000);
+  assert.equal(result.totalMinor, 175000);
+  assert.equal(result.discountMinor, 0);
+});
