@@ -171,7 +171,22 @@ A selling option must specify which inventory form(s) it can consume:
 - Individual-piece order consumes loose-piece stock by default.
 - Pack order consumes sealed-pack stock if the business keeps packs separately; otherwise it may consume loose stock only under an explicitly configured packing workflow.
 
-If the business permits staff to open a carton to fulfil a piece/pack order, this must be a recorded stock conversion transaction:
+The business has confirmed the automatic break-pack rule: when loose stock is insufficient for an individual-unit sale, the system may open the required number of sealed cartons, transfer their contents into loose stock, and fulfil the order from that loose balance. For example, with 10 sealed cartons of 48 units and no loose units, a sale of 6 units results in 9 sealed cartons and 42 loose units.
+
+This conversion and sale must be one atomic backend transaction. The system must:
+1. calculate the loose-stock shortfall;
+2. calculate the whole number of sealed cartons required to cover that shortfall;
+3. reduce sealed-carton stock by that number;
+4. increase loose stock by the configured contents of those cartons;
+5. deduct the ordered loose quantity;
+6. write linked stock-movement records for the break-pack conversion and sale;
+7. record actor/system source, timestamp, location, reason, package configuration, and before/after balances.
+
+The transaction must fail safely if there is insufficient eligible stock, if the package conversion is invalid, or if concurrent orders have already consumed the stock. It must not leave a partial conversion or partial deduction.
+
+If a pack-specific stock form is maintained separately, its conversion and replenishment workflow must be configured explicitly; do not silently mix pack stock with loose pieces.
+
+
 1. reduce sealed carton quantity by the number opened;
 2. increase loose quantity by the configured contents of those cartons;
 3. record actor, timestamp, location, reason, package configuration, and before/after balances;
