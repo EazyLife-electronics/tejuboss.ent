@@ -82,3 +82,14 @@ test("rejects fractional quantities for countable units", () => {
     stockUnitsPerSaleUnit: 6
   }), TypeError);
 });
+
+test("rejects negative and unsafe money values", () => {
+  assert.throws(() => calculateFixedEffectiveUnitPrice({
+    baseQuantity: 2,
+    pricePerBaseUnitMinor: -1
+  }), TypeError);
+  assert.throws(() => calculateFixedEffectiveUnitPrice({
+    baseQuantity: Number.MAX_SAFE_INTEGER,
+    pricePerBaseUnitMinor: 2
+  }), RangeError);
+});
