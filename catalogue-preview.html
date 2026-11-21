@@ -19,10 +19,11 @@
     label{display:block;font-size:.8rem;font-weight:700;color:#555;margin:14px 0 6px}
     select{width:100%;padding:11px;border:1px solid #ddd;border-radius:9px;background:#fff;font:inherit}
     .price{font-size:1.35rem;font-weight:850;margin:14px 0 4px}.unit{color:#777;font-size:.82rem}
+    .offers{margin-top:16px;padding:12px;border:1px solid #eadede;border-radius:10px;background:#fffafa}.offers h3{font-size:.9rem;margin:0 0 8px}.offer-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid #eee;font-size:.82rem}.offer-row strong{text-align:right}.offer-note{font-size:.72rem;color:#777;line-height:1.4;margin:8px 0 0}.no-offer{font-size:.8rem;color:#777;margin:12px 0 0}
     .unavailable{display:block;margin-top:14px;padding:10px;border-radius:9px;background:#f3f3f3;color:#555;font-size:.82rem;line-height:1.4}
     .state{padding:28px 12px;text-align:center;color:#666;background:#fff;border:1px dashed #ccc;border-radius:14px}
     footer{color:#777;font-size:.8rem;margin-top:28px}
-    @media(prefers-color-scheme:dark){:root{color:#f2f2f2;background:#111}header{background:#651919}.intro,footer{color:#aaa}.card,.toolbar input,.state{background:#1b1b1b;border-color:#333;color:#eee}.desc,.unit,label{color:#aaa}select{background:#222;color:#eee;border-color:#444}.notice{background:#332812;border-color:#6e511e;color:#f2d99d}.unavailable{background:#292929;color:#ccc}}
+    @media(prefers-color-scheme:dark){:root{color:#f2f2f2;background:#111}header{background:#651919}.intro,footer{color:#aaa}.card,.toolbar input,.state{background:#1b1b1b;border-color:#333;color:#eee}.desc,.unit,label{color:#aaa}select{background:#222;color:#eee;border-color:#444}.notice{background:#332812;border-color:#6e511e;color:#f2d99d}.unavailable{background:#292929;color:#ccc}.offers{background:#241b1b;border-color:#4a3333}.offer-row{border-color:#3a3030}.offer-note,.no-offer{color:#aaa}}
   </style>
 </head>
 <body>
@@ -40,11 +41,13 @@
   <script type="module">
     import { getPublishedStructuredCatalogue } from "./js/structured-catalogue.mjs";
     import { publicOptionUnitPrice } from "./functions/src/domain/public-catalogue-view.mjs";
+    import { getPublicOffersForVariant, formatPublicOfferRows } from "./functions/src/domain/public-quantity-offers.mjs";
 
     const grid = document.getElementById("catalogue");
     const status = document.getElementById("status");
     const search = document.getElementById("search");
     let products = [];
+    let publicPricing = [];
 
     const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({
       "&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"
@@ -76,8 +79,44 @@
         <select class="selling-select">${optionOptions}</select>
         <div class="price" data-price>${money(publicOptionUnitPrice(firstOption))}</div>
         <div class="unit" data-unit>per ${escapeHtml(firstOption.label)}</div>
+        <div data-offers></div>
         <span class="unavailable">Availability not connected yet. Ordering will be enabled after stock and trusted checkout are integrated.</span>
       </article>`;
+    }
+
+    function renderOffers(card, product, variant, selectedOption) {
+      const offers = getPublicOffersForVariant({
+        productId: product.id,
+        variant,
+        publicPricing
+      }).filter(offer => offer.eligibleSellingOptionIds.includes(selectedOption.id));
+      const rows = offers.flatMap(offer => formatPublicOfferRows(offer).map(row => {
+        const relevantRates = offer.qualificationBasis === "selected_option_quantity"
+          ? row.rates.filter(rate => rate.unit === selectedOption.label)
+          : row.rates;
+        const range = row.maximumQuantity === null
+          ? `${row.minimumQuantity}+`
+          : `${row.minimumQuantity}–${row.maximumQuantity}`;
+        const qualificationUnit = offer.qualificationBasis === "base_stock_quantity"
+          ? (variant.stockUnitLabel || "stock units")
+          : selectedOption.label;
+        return relevantRates.map(rate => ({
+          label: `Buy ${range} ${qualificationUnit}`,
+          price: `${money(rate.priceMinor)} / ${rate.unit === "base stock unit" ? (variant.stockUnitLabel || "stock unit") : rate.unit}`,
+          aggregate: offer.aggregateAcrossOptions
+        }));
+      })).flat();
+
+      const container = card.querySelector("[data-offers]");
+      if (!rows.length) {
+        container.innerHTML = '<p class="no-offer">No quantity offer currently applies to this selling option.</p>';
+        return;
+      }
+      container.innerHTML = `<section class="offers">
+        <h3>Quantity offers</h3>
+        ${rows.map(row => `<div class="offer-row"><span>${escapeHtml(row.label)}</span><strong>${escapeHtml(row.price)}</strong></div>`).join("")}
+        <p class="offer-note">Offers are recalculated by the secure checkout. They do not combine with catalogue promotional prices.${rows.some(row => row.aggregate) ? " Eligible selling options may contribute to the same base-stock quantity threshold." : ""}</p>
+      </section>`;
     }
 
     function render() {
@@ -109,6 +148,7 @@
       optionSelect.value = option.id;
       card.querySelector("[data-price]").textContent = money(publicOptionUnitPrice(option));
       card.querySelector("[data-unit]").textContent = "per " + option.label;
+      renderOffers(card, product, variant, option);
     });
 
     search.addEventListener("input", render);
@@ -116,6 +156,7 @@
     try {
       const result = await getPublishedStructuredCatalogue();
       products = result.products;
+      publicPricing = result.publicPricing;
       render();
       if (result.rejectedCount) {
         console.warn(result.rejectedCount + " invalid published catalogue record(s) were skipped.");
