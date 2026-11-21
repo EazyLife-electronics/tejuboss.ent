@@ -17,8 +17,8 @@ No laptop is required for normal code changes or automated testing.
 ## Automated checks
 
 Every push to `tejuboss-foundation` runs:
-- Node.js domain tests for pricing and inventory calculations.
-- Firestore Emulator tests against `firestore.next.rules`, including public access, private orders, public tracking projections and owner access.
+- Node.js domain tests for pricing and inventory calculations (`npm test`).
+- A separate Firestore Emulator run (`npm run test:rules`) against `firestore.next.rules`, including public access, private orders, public tracking projections and owner access.
 
 The staged rules are intentionally separate from the currently deployed-compatible `firestore.rules`. They are not ready to replace current rules until the storefront checkout and tracking pages have migrated to trusted Functions and the new tracking projection.
 
