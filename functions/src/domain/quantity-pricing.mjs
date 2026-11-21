@@ -13,12 +13,6 @@ function requireSafeInteger(value, field, { min = 0 } = {}) {
   }
 }
 
-function requireFiniteNumber(value, field, { min = 0, max = 100 } = {}) {
-  if (typeof value !== "number" || !Number.isFinite(value) || value < min || value > max) {
-    throw new TypeError(`${field} must be a number between ${min} and ${max}`);
-  }
-}
-
 /**
  * Calculate a package-equivalent blended total without changing the physical
  * selling option selected by the customer.
@@ -39,13 +33,17 @@ export function calculateBlendedPackagePrice({
 
   const packageCount = Math.floor(baseQuantity / packageBaseQuantity);
   const remainderQuantity = baseQuantity % packageBaseQuantity;
-  const packageTotalMinor = packageCount * packagePriceMinor;
-  const remainderTotalMinor = remainderQuantity * remainderUnitPriceMinor;
-  const totalMinor = packageTotalMinor + remainderTotalMinor;
+  const packageTotalBig = BigInt(packageCount) * BigInt(packagePriceMinor);
+  const remainderTotalBig = BigInt(remainderQuantity) * BigInt(remainderUnitPriceMinor);
+  const totalBig = packageTotalBig + remainderTotalBig;
 
-  if (!Number.isSafeInteger(totalMinor)) {
+  if (totalBig > BigInt(Number.MAX_SAFE_INTEGER)) {
     throw new RangeError("Calculated total exceeds safe integer range");
   }
+
+  const packageTotalMinor = Number(packageTotalBig);
+  const remainderTotalMinor = Number(remainderTotalBig);
+  const totalMinor = Number(totalBig);
 
   return {
     packageCount,
@@ -86,7 +84,10 @@ export function calculatePercentageDiscount({
   if (discountBasisPoints > 10000) {
     throw new RangeError("discountBasisPoints cannot exceed 10000");
   }
-  const discountMinor = Math.round(baseTotalMinor * discountBasisPoints / 10000);
+  const discountBig = (
+    BigInt(baseTotalMinor) * BigInt(discountBasisPoints) + 5000n
+  ) / 10000n;
+  const discountMinor = Number(discountBig);
   return {
     baseTotalMinor,
     discountMinor,
