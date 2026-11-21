@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   validateQuantityTierRule,
-  calculateQuantityTierPrice
+  calculateQuantityTierPrice,
+  deriveTierQualificationQuantity
 } from "../src/domain/quantity-tier-engine.mjs";
 
 const thresholdRule = {
@@ -146,4 +147,60 @@ test("requires explicit tier price for the eligible selling option", () => {
     tiers: [{ id: "bulk", minimumQuantity: 5, priceBySellingOptionId: {} }]
   };
   assert.equal(validateQuantityTierRule(invalidRule).valid, false);
+});
+
+
+test("derives base-stock quantity from explicit pack conversion", () => {
+  const rule = {
+    enabled: true,
+    qualificationBasis: "base_stock_quantity",
+    aggregateAcrossOptions: true,
+    eligibleSellingOptionIds: ["piece", "pack"],
+    pricingMode: "threshold",
+    tiers: [{ id: "tier-12", minimumQuantity: 12, pricePerBaseUnitMinor: 85000 }]
+  };
+  const quantity = deriveTierQualificationQuantity({
+    rule,
+    lines: [
+      { sellingOptionId: "pack", quantity: 1, stockUnitsPerSaleUnit: 6 },
+      { sellingOptionId: "piece", quantity: 6, stockUnitsPerSaleUnit: 1 }
+    ]
+  });
+  assert.equal(quantity, 12);
+});
+
+test("does not combine different selling options unless cross-option aggregation is enabled", () => {
+  const rule = {
+    enabled: true,
+    qualificationBasis: "base_stock_quantity",
+    aggregateAcrossOptions: false,
+    eligibleSellingOptionIds: ["piece", "pack"],
+    pricingMode: "threshold",
+    tiers: [{ id: "tier-12", minimumQuantity: 12, pricePerBaseUnitMinor: 85000 }]
+  };
+  assert.throws(() => deriveTierQualificationQuantity({
+    rule,
+    lines: [
+      { sellingOptionId: "pack", quantity: 1, stockUnitsPerSaleUnit: 6 },
+      { sellingOptionId: "piece", quantity: 6, stockUnitsPerSaleUnit: 1 }
+    ]
+  }), error => error.code === "CROSS_OPTION_AGGREGATION_DISABLED");
+});
+
+test("ignores selling options excluded from a tier rule", () => {
+  const quantity = deriveTierQualificationQuantity({
+    rule: {
+      enabled: true,
+      qualificationBasis: "base_stock_quantity",
+      aggregateAcrossOptions: true,
+      eligibleSellingOptionIds: ["piece"],
+      pricingMode: "threshold",
+      tiers: [{ id: "tier-6", minimumQuantity: 6, pricePerBaseUnitMinor: 85000 }]
+    },
+    lines: [
+      { sellingOptionId: "piece", quantity: 6, stockUnitsPerSaleUnit: 1 },
+      { sellingOptionId: "carton", quantity: 1, stockUnitsPerSaleUnit: 48 }
+    ]
+  });
+  assert.equal(quantity, 6);
 });
