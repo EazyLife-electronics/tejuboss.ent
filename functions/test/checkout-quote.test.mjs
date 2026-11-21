@@ -66,3 +66,45 @@ test("delivery quote fails closed without trusted delivery policy", () => {
     /DELIVERY_POLICY_UNAVAILABLE/
   );
 });
+
+
+test("checkout quote applies trusted quantity tiers before delivery calculation", () => {
+  const quote = calculateCheckoutQuote({
+    request: {
+      ...makeRequest(),
+      items: [{ productId: "lamp", variantId: "white", sellingOptionId: "each", quantity: 5 }]
+    },
+    productsById: products,
+    deliveryPolicy: {
+      enabled: true,
+      version: "v1",
+      method: "flat_per_order",
+      baseFeeMinor: 50000,
+      zoneFeesMinor: { "ibadan-central": 20000 }
+    },
+    quantityTierRules: [{
+      productId: "lamp",
+      variantId: "white",
+      rule: {
+        id: "five-plus",
+        enabled: true,
+        qualificationBasis: "selected_option_quantity",
+        aggregateAcrossOptions: false,
+        eligibleSellingOptionIds: ["each"],
+        pricingMode: "threshold",
+        tiers: [{
+          id: "bulk-five",
+          minimumQuantity: 5,
+          priceBySellingOptionId: { each: 90000 }
+        }]
+      }
+    }]
+  });
+
+  assert.equal(quote.subtotalMinor, 500000);
+  assert.equal(quote.discountMinor, 50000);
+  assert.equal(quote.merchandiseTotalMinor, 450000);
+  assert.equal(quote.deliveryFeeMinor, 70000);
+  assert.equal(quote.grandTotalMinor, 520000);
+  assert.equal(quote.lines[0].quantityTierDiscountMinor, 50000);
+});
