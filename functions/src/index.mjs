@@ -3,6 +3,7 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { buildPublicQuantityTierProjection } from "./domain/public-quantity-pricing.mjs";
 import { validateQuantityTierRule } from "./domain/quantity-tier-engine.mjs";
+import { validatePricingPublicationTarget } from "./domain/pricing-publication-target.mjs";
 
 initializeApp();
 const db = getFirestore();
@@ -90,9 +91,19 @@ export const publishQuantityPricing = onCall(
           tx.get(productRef),
           tx.get(configRef)
         ]);
-        if (payload.rule.enabled === true &&
-            (!productSnap.exists || productSnap.data()?.published !== true)) {
-          throw new HttpsError("failed-precondition", "A public offer can only be activated for a published catalogue product. Save it as a disabled draft until the product is migrated.");
+        if (payload.rule.enabled === true) {
+          const target = validatePricingPublicationTarget({
+            product: productSnap.exists ? productSnap.data() : null,
+            variantId,
+            rule: payload.rule
+          });
+          if (!target.valid) {
+            throw new HttpsError(
+              "failed-precondition",
+              "This offer cannot be activated until its product, variant and selling options are migrated and active.",
+              { issues: target.issues }
+            );
+          }
         }
 
         const current = configSnap.exists ? configSnap.data() : null;
