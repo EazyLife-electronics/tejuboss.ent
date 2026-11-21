@@ -63,10 +63,10 @@ test("marginal mode prices each quantity band at its own rate", () => {
     baseUnitPriceMinor: 100000,
     sellingOptionId: "piece"
   });
-  // 4 x 1,000 + 5 x 900 + 3 x 800 = 10,300
-  assert.equal(result.totalMinor, 1030000);
+  // 4 x 1,000 + 5 x 900 + 3 x 800 = 10,900
+  assert.equal(result.totalMinor, 1090000);
   assert.equal(result.baseTotalMinor, 1200000);
-  assert.equal(result.discountMinor, 170000);
+  assert.equal(result.discountMinor, 110000);
   assert.deepEqual(result.appliedTierIds, ["standard", "bulk-5", "bulk-10"]);
 });
 
