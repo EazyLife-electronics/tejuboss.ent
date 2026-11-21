@@ -224,3 +224,22 @@ Use automated tests for at least these scenarios:
 12. Price changes between preview and submission produce a repricing response.
 13. Repeated submission with the same idempotency key does not create duplicate orders or duplicate stock deductions.
 14. Order snapshots remain stable after admin changes the live price rules.
+
+
+## 12. Quantity-tier engine implementation status
+
+The pure domain engine now supports two explicit modes:
+
+- `threshold`: when a threshold is reached, the configured rate applies to all eligible quantity.
+- `marginal`: each contiguous quantity band is priced at its own configured rate.
+
+It supports two explicit qualification bases:
+
+- `selected_option_quantity`: a rule targets exactly one selling-option ID, allowing unit, pack, roll, or carton tiers to be configured independently.
+- `base_stock_quantity`: a rule qualifies using explicit stock-unit equivalents and can target multiple selling options when cross-option aggregation is enabled.
+
+For selected-option rules, rates are configured per selling option. For base-stock rules, rates are configured per stock unit. The engine rejects malformed tier schedules, missing rates, invalid quantity bands, and a tier result that would exceed the configured base price.
+
+The engine is currently a pure, tested calculation module. It is not yet wired into the live cart or order transaction. That integration must preserve a server-generated price snapshot and must use the same configured rule revision for quote and final order calculation.
+
+**Business confirmation still required before enabling any rule:** choose whether the initial Tejuboss offers should use threshold or marginal behaviour. Both are implemented, neither is silently selected as the default. The administrator's future product editor should require an explicit mode per published tier rule.
