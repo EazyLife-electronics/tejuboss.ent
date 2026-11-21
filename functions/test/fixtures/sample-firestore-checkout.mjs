@@ -6,7 +6,6 @@
  * production checkout service or a production collection mapping.
  */
 import { randomUUID } from "node:crypto";
-import { doc } from "firebase-admin/firestore";
 import { calculateCheckoutQuote } from "../../src/domain/checkout-quote.mjs";
 import { planLooseStockSale } from "../../src/domain/inventory-planning.mjs";
 import {
@@ -80,8 +79,8 @@ export async function commitSampleCheckout({
     }
     if (replay.outcome === "conflict") fail("ALREADY_EXISTS", "Idempotency key was reused with a different request");
     if (replay.outcome === "in_progress") fail("ABORTED", "Checkout is already processing");
-    if (replay.outcome !== "new" && replay.outcome !== "retry") {
-      fail("FAILED_PRECONDITION", "Idempotency record is not retryable");
+    if (replay.outcome !== "new") {
+      fail("FAILED_PRECONDITION", "Existing idempotency state requires explicit recovery handling");
     }
 
     if (!productSnap.exists || !looseSnap.exists || !sealedSnap.exists) {
