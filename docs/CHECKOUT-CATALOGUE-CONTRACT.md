@@ -68,7 +68,7 @@ Pricing configuration is private and separate from public product display. Each 
 - active period, enabled state, stacking policy and priority;
 - public description of the offer.
 
-The launch default is a threshold price: when the qualifying quantity reaches a published threshold, the configured price applies to all eligible units in that line/basket scope. A future admin setting may support marginal/slab pricing separately. No price tier is active merely because it exists; it must be explicitly enabled and published.
+Recommended launch default, pending your confirmation: a threshold price, where reaching a published quantity applies that tier's price to all eligible units in the configured line/basket scope. The alternative is marginal/slab pricing, where only units within each band receive that band's price. The admin model should support an explicit pricing mode so the business can choose; no tier is active merely because it exists, it must be explicitly enabled and published.
 
 ## Inventory balances
 
