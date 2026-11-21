@@ -130,9 +130,10 @@ test("insufficient inventory aborts every write", async () => {
 
 test("checkout uses the current catalogue price read inside the transaction", async () => {
   const { id, root } = await fixture({ priceMinor: 150000 });
-  await root.collection("products").doc("sample-led-bulb").update({
-    "variants.0.sellingOptions.0.priceMinor": 175000
-  });
+  const productRef = root.collection("products").doc("sample-led-bulb");
+  const product = (await productRef.get()).data();
+  product.variants[0].sellingOptions[0].priceMinor = 175000;
+  await productRef.set(product);
   const result = await commitSampleCheckout({
     db, fixtureId: id, scopeId: "fresh-price-scope",
     request: makeRequest({ quantity: 2 }), now: 7000
