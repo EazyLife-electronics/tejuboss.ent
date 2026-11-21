@@ -126,6 +126,13 @@
           .some(value => String(value || "").toLowerCase().includes(term))
       );
       grid.innerHTML = filtered.map(cardMarkup).join("");
+      filtered.forEach(product => {
+        const card = grid.querySelector('[data-product="' + CSS.escape(product.id) + '"]');
+        if (!card) return;
+        const variant = product.variants[0];
+        const option = variant.sellingOptions[0];
+        renderOffers(card, product, variant, option);
+      });
       status.hidden = filtered.length > 0;
       status.textContent = products.length
         ? "No products match your search."
