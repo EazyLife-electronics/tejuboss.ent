@@ -241,3 +241,46 @@ export function calculateQuantityTierPrice({ rule, quantity, baseUnitPriceMinor,
     qualificationBasis: rule.qualificationBasis
   };
 }
+
+
+/**
+ * Derive the exact quantity used by a rule from trusted basket lines.
+ *
+ * Each line must already have been resolved from the trusted catalogue.
+ * This function never infers conversions from labels or product text.
+ */
+export function deriveTierQualificationQuantity({ rule, lines }) {
+  assertRule(rule);
+  if (!Array.isArray(lines) || lines.length === 0) {
+    throw new TypeError("At least one trusted basket line is required");
+  }
+  const eligible = lines.filter(line =>
+    rule.eligibleSellingOptionIds.includes(line.sellingOptionId)
+  );
+  if (eligible.length === 0) return 0;
+
+  for (const [index, line] of eligible.entries()) {
+    if (!record(line)) throw new TypeError(`lines[${index}] must be an object`);
+    safeInteger(line.quantity, `lines[${index}].quantity`, 1);
+    safeInteger(line.stockUnitsPerSaleUnit, `lines[${index}].stockUnitsPerSaleUnit`, 1);
+  }
+
+  if (rule.qualificationBasis === "selected_option_quantity") {
+    return eligible.reduce((sum, line) => sum + line.quantity, 0);
+  }
+
+  const optionIds = new Set(eligible.map(line => line.sellingOptionId));
+  if (optionIds.size > 1 && rule.aggregateAcrossOptions !== true) {
+    invalid(
+      "CROSS_OPTION_AGGREGATION_DISABLED",
+      "This tier does not permit quantities from different selling options to combine"
+    );
+  }
+  const total = eligible.reduce((sum, line) =>
+    sum + line.quantity * line.stockUnitsPerSaleUnit, 0
+  );
+  if (!Number.isSafeInteger(total)) {
+    throw new RangeError("Tier qualification quantity exceeds safe integer range");
+  }
+  return total;
+}
