@@ -145,38 +145,75 @@ Order lines should preserve an immutable commercial snapshot:
 
 This snapshot preserves the meaning of historical orders if an administrator later renames a product or changes a pack configuration. Historical order arithmetic must never be recalculated from today's product setup.
 
-## 6. Purchasing and receiving
+## 6. Inventory: sealed packages and loose stock
 
-Purchases must also record the unit in which goods were received and the conversion into the variant's stock unit.
+The business has confirmed that unopened packages and loose stock are counted separately. The inventory model must preserve that distinction. A single flattened quantity in the smallest unit would lose important operational information.
 
-For example, receiving 10 cartons of 48 pieces adds 480 pieces to stock if the stock unit is piece. Receiving 10 rolls adds 10 rolls if the stock unit is roll.
+For a product that can be sold as cartons and individual pieces, inventory may include:
+- unopened cartons, counted as whole cartons;
+- loose pieces, counted as individual pieces.
+
+Where a carton contains 48 pieces, 1 unopened carton and 48 loose pieces are not interchangeable inventory records. They may represent the same theoretical quantity, but their packaging state is operationally different.
+
+### Proposed inventory balance
+
+Track stock by location, product variant, and stock/packaging form. For example:
+- sealed carton balance: quantity in cartons;
+- loose balance: quantity in pieces;
+- sealed pack balance: quantity in packs, if packs are separately stocked and sold.
+
+Each package form must have a configured conversion into a canonical base quantity for reporting and reconciliation, but the system must not silently combine balances or treat loose pieces as sealed cartons.
+
+### Selling and fulfilment rules
+
+A selling option must specify which inventory form(s) it can consume:
+- Carton order consumes sealed-carton stock.
+- Individual-piece order consumes loose-piece stock by default.
+- Pack order consumes sealed-pack stock if the business keeps packs separately; otherwise it may consume loose stock only under an explicitly configured packing workflow.
+
+If the business permits staff to open a carton to fulfil a piece/pack order, this must be a recorded stock conversion transaction:
+1. reduce sealed carton quantity by the number opened;
+2. increase loose quantity by the configured contents of those cartons;
+3. record actor, timestamp, location, reason, package configuration, and before/after balances;
+4. then fulfil the piece/pack order from the resulting loose/pack balance.
+
+Do not silently convert sealed stock into loose stock during checkout. The initial launch can reject/hold an order when the requested form is unavailable, or use a clearly authorized and recorded break-pack workflow if the business approves it.
+
+Available-to-sell quantities must be calculated per selling option and its eligible inventory forms. A general total-stock figure may be shown internally for reporting, but it must not be used as the sole checkout availability check.
+
+## 7. Purchasing and receiving
+
+Purchases must record the unit in which goods were received and the conversion into the appropriate inventory form.
+
+For example, receiving 10 sealed cartons of 48 pieces adds 10 to the sealed-carton balance, not 480 to the loose-piece balance. If goods are received as loose pieces, they increase the loose-piece balance. Receiving 10 rolls increases the roll balance if roll is the tracked form.
 
 The goods receipt must preserve:
 - supplier's purchase unit;
 - received quantity;
-- conversion factor used;
-- stock quantity added;
+- conversion/package configuration used;
+- inventory form increased;
+- base-equivalent quantity for reporting where meaningful;
 - cost and currency;
 - receiving location;
 - source purchase/order reference.
 
 Do not assume that supplier purchase units always match customer selling units.
 
-## 7. Location-aware stock readiness
+## 8. Location-aware stock readiness
 
 The first retail launch may use one fulfilment location if that reflects current operations. The data contract should nevertheless allow inventory to be keyed by:
 - location ID;
 - product variant ID;
-- stock unit;
+- stock/packaging form ID;
 - on-hand quantity;
 - reserved quantity;
 - reorder threshold.
 
-Available quantity is derived from on-hand less reserved stock. Do not maintain multiple independently editable copies of the same stock balance.
+Available quantity is derived from on-hand less reserved stock within the same inventory form. Do not maintain multiple independently editable copies of the same stock balance.
 
 A multi-location rollout requires an explicit fulfilment policy, transfers, receiving and reconciliation workflows. It should not be implied by merely adding a location field.
 
-## 8. Validation and administration safeguards
+## 9. Validation and administration safeguards
 
 - Unit codes should come from a controlled list, with support for business-specific labels where necessary.
 - Every variant must have exactly one stock unit.
@@ -189,7 +226,7 @@ A multi-location rollout requires an explicit fulfilment policy, transfers, rece
 - Public catalogue documents must contain only fields intended for public display.
 - All stock and price changes should record actor, timestamp, reason, and before/after values in an audit trail.
 
-## 9. Illustrative examples
+## 10. Illustrative examples
 
 These examples explain the structure only. They are not statements about Tejuboss's actual product configurations.
 
@@ -202,7 +239,7 @@ These examples explain the structure only. They are not statements about Tejubos
 
 A single piece/carton product may expose both Piece and Carton options. A roll product need not expose any other option unless Tejuboss actually sells it in another form.
 
-## 10. Confirmed business requirement and decisions still required
+## 11. Confirmed business requirement and decisions still required
 
 **Confirmed:** The same product can be offered to customers in more than one selling form. Depending on the product, a customer may choose carton, roll/pack, or individual unit. The storefront and order model must support multiple active selling options per product variant, each with its own price and stock conversion.
 
