@@ -16,6 +16,7 @@ let upgradeRowCounter = 0;
 function variantRowHTML(rowId, v = {}) {
   return `
     <div class="variant-row bg-white border border-gray-200 rounded-xl p-3" data-row-id="${rowId}">
+      <input type="hidden" id="v${rowId}_stableId" value="${escapeHtml(v.id || '')}">
       <div class="grid grid-cols-2 gap-2 mb-2">
         <input id="v${rowId}_color" placeholder="Variant / Flavour (e.g. Original, Blue)" value="${escapeHtml(v.color || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
         <input id="v${rowId}_processor" placeholder="Unit / Type (e.g. Bottle, Sachet, Piece)" value="${escapeHtml(v.processor || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
@@ -109,8 +110,11 @@ function collectVariants() {
     const deliveryFeeRaw = document.getElementById(`v${rowId}_deliveryFee`).value.trim();
     const bulkEnabled = document.getElementById(`v${rowId}_bulkEnabled`).checked;
     const bulkModeOwn = document.querySelector(`input[name="v${rowId}_bulkMode"][value="own"]`).checked;
+    const stableIdInput = document.getElementById(`v${rowId}_stableId`);
+    const stableId = stableIdInput.value.trim() || `variant_${crypto.randomUUID()}`;
+    stableIdInput.value = stableId;
     return {
-      id: 'v' + Date.now() + '_' + rowId,
+      id: stableId,
       color: document.getElementById(`v${rowId}_color`).value.trim(),
       processor: document.getElementById(`v${rowId}_processor`).value.trim(),
       ram: document.getElementById(`v${rowId}_ram`).value.trim(),
