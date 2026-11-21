@@ -148,17 +148,26 @@ function roundMoney(numerator, denominator) {
  * Price a quantity in the configured qualification unit.
  * Returns a detailed breakdown suitable for a cart/order snapshot.
  */
-export function calculateQuantityTierPrice({ rule, quantity, baseUnitPriceMinor, sellingOptionId }) {
+export function calculateQuantityTierPrice({
+  rule, quantity, baseUnitPriceMinor, sellingOptionId, baseTotalMinorOverride
+}) {
   assertRule(rule);
   safeInteger(quantity, "quantity", 1);
   safeInteger(baseUnitPriceMinor, "baseUnitPriceMinor");
+  if (baseTotalMinorOverride !== undefined) {
+    safeInteger(baseTotalMinorOverride, "baseTotalMinorOverride");
+  }
+  const configuredBaseTotal = baseTotalMinorOverride ?? quantity * baseUnitPriceMinor;
+  if (!Number.isSafeInteger(configuredBaseTotal)) {
+    throw new RangeError("Base total exceeds safe integer range");
+  }
   if (!rule.enabled) {
     return {
       applied: false,
       reason: "disabled",
       quantity,
-      baseTotalMinor: quantity * baseUnitPriceMinor,
-      totalMinor: quantity * baseUnitPriceMinor,
+      baseTotalMinor: configuredBaseTotal,
+      totalMinor: configuredBaseTotal,
       discountMinor: 0,
       tierId: null
     };
@@ -170,8 +179,8 @@ export function calculateQuantityTierPrice({ rule, quantity, baseUnitPriceMinor,
       applied: false,
       reason: "selling_option_not_eligible",
       quantity,
-      baseTotalMinor: quantity * baseUnitPriceMinor,
-      totalMinor: quantity * baseUnitPriceMinor,
+      baseTotalMinor: configuredBaseTotal,
+      totalMinor: configuredBaseTotal,
       discountMinor: 0,
       tierId: null
     };
@@ -221,10 +230,7 @@ export function calculateQuantityTierPrice({ rule, quantity, baseUnitPriceMinor,
     totalMinor = roundMoney(total, 1n);
   }
 
-  const baseTotalMinor = quantity * baseUnitPriceMinor;
-  if (!Number.isSafeInteger(baseTotalMinor)) {
-    throw new RangeError("Base total exceeds safe integer range");
-  }
+  const baseTotalMinor = configuredBaseTotal;
   if (totalMinor > baseTotalMinor) {
     invalid("TIER_PRICE_INCREASE", "Quantity tier price cannot exceed the configured base total");
   }
