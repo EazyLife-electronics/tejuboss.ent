@@ -4,6 +4,7 @@
  */
 import { calculateMerchandiseQuote, validateCreateOrderRequest } from "./checkout.mjs";
 import { calculateDeliveryCharge } from "./delivery-policy.mjs";
+import { applyQuantityTierRules } from "./apply-quantity-tier-rules.mjs";
 
 function safeMoneyTotal(...values) {
   const total = values.reduce((sum, value) => sum + BigInt(value), 0n);
@@ -15,9 +16,19 @@ function safeMoneyTotal(...values) {
   return Number(total);
 }
 
-export function calculateCheckoutQuote({ request, productsById, deliveryPolicy }) {
+export function calculateCheckoutQuote({
+  request, productsById, deliveryPolicy, quantityTierRules = []
+}) {
   const validated = validateCreateOrderRequest(request);
-  const merchandise = calculateMerchandiseQuote(validated, productsById);
+  const baseMerchandise = calculateMerchandiseQuote(validated, productsById);
+  const tiered = applyQuantityTierRules({
+    lines: baseMerchandise.lines,
+    rules: quantityTierRules
+  });
+  const merchandise = {
+    ...baseMerchandise,
+    ...tiered
+  };
   const delivery = calculateDeliveryCharge({
     policy: deliveryPolicy,
     fulfilmentMethod: validated.fulfilment.method,
