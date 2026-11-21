@@ -5,6 +5,20 @@ Working branch: `tejuboss-foundation`
 
 This checklist translates the approved business rules and target architecture into a safe implementation order. It is not evidence that any item has already been implemented.
 
+## Implementation progress (21 November 2026)
+
+The following foundation work has now been implemented on `tejuboss-foundation` and covered by automated tests:
+
+- Firestore Emulator-only checkout transaction harness using synthetic product, delivery, pricing and inventory records.
+- Atomic sample order, customer-safe tracking projection, idempotency record, stock balance changes and movement writes.
+- Emulator tests for replay, changed-payload conflict, insufficient-stock rollback, current catalogue price reads, concurrent oversell prevention, and quantity-tier pricing snapshots.
+- Pure threshold and marginal tier calculation modes.
+- Explicit selected-option and base-stock-equivalent qualification, including opt-in cross-option aggregation.
+- Trusted basket quote integration, deterministic line-level discount allocation, and non-stacking behaviour with catalogue promotions.
+- CI pure-domain tests passed, and Firestore security/emulator tests passed on the transaction-tier integration commit. A subsequent documentation and baseline-edge-case test run is still completing.
+
+These are foundation/test implementations, not a production checkout endpoint or a completed admin editor. The remaining checklist below continues to describe the full Phase 1 scope. The production schema, public pricing projection, admin publication workflow, guest-session endpoint, App Check rollout, inventory reservation timing, and live storefront integration remain outstanding.
+
 ## 0. Current repository constraints observed
 
 - The repository has an existing `firestore.rules` file with public order creation and public reads of full order and delivery documents.
