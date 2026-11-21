@@ -53,7 +53,10 @@ export function calculateDeliveryCharge({
   }
 
   assertMoney(policy.baseFeeMinor, "policy.baseFeeMinor");
-  const zoneFeeMinor = areaId && policy.zoneFeesMinor
+  if (policy.zoneFeesMinor && !areaId) {
+    throw new Error("DELIVERY_AREA_REQUIRED");
+  }
+  const zoneFeeMinor = policy.zoneFeesMinor
     ? (policy.zoneFeesMinor[areaId] ?? null)
     : 0;
 
