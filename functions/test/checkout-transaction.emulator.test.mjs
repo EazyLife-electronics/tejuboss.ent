@@ -164,3 +164,39 @@ test("concurrent orders cannot oversell the last sealed carton", async () => {
   assert.equal(loose.quantityOnHand, 18);
   assert.equal(sealed.quantityOnHand, 0);
 });
+
+
+test("transaction reads authoritative quantity tiers and snapshots applied pricing", async () => {
+  const quantityTierRules = [{
+    id: "sample-piece-bulk",
+    productId: "sample-led-bulb",
+    variantId: "warm-white",
+    rule: {
+      id: "piece-12-plus",
+      enabled: true,
+      qualificationBasis: "selected_option_quantity",
+      aggregateAcrossOptions: false,
+      eligibleSellingOptionIds: ["single-piece"],
+      pricingMode: "threshold",
+      tiers: [{
+        id: "twelve-plus",
+        minimumQuantity: 12,
+        priceBySellingOptionId: { "single-piece": 140000 }
+      }]
+    }
+  }];
+  const { id, root } = await fixture({ quantityTierRules });
+  const result = await commitSampleCheckout({
+    db, fixtureId: id, scopeId: "tier-transaction-scope",
+    request: makeRequest({ key: "tier-order", quantity: 12 }), now: 9000
+  });
+
+  assert.equal(result.grandTotalMinor, 1780000);
+  const order = (await root.collection("orders").doc(result.orderId).get()).data();
+  assert.equal(order.pricingConfigVersion, "fixture-pricing-v1");
+  assert.equal(order.appliedTierRules.length, 1);
+  assert.equal(order.appliedTierRules[0].tierId, "twelve-plus");
+  assert.equal(order.lines[0].totalMinor, 1680000);
+  assert.equal(order.lines[0].quantityTierDiscountMinor, 120000);
+  assert.equal(order.lines[0].quantityTier.qualificationQuantity, 12);
+});
