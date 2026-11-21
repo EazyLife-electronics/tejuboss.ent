@@ -31,7 +31,7 @@ service cloud.firestore {
 
     // Private commercial and operational records are never client-writable.
     // Pricing configuration is read only through authorized backend handlers.
-    match /pricingConfigs/{configId} {
+    match /catalogueDrafts/{draftId} {\n      allow read, write: if false;\n    }\n\n    match /pricingConfigs/{configId} {
       allow read, write: if false;
     }
 
