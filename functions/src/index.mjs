@@ -230,4 +230,4 @@ export const backendStatus = onCall(
   }
 );
 
-export { saveCatalogueDraft, listCatalogueDrafts } from "./catalogue-drafts.mjs";
+export { saveCatalogueDraft, listCatalogueDrafts, publishCatalogueDraft } from "./catalogue-drafts.mjs";
