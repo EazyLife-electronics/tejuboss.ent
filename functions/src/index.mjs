@@ -164,6 +164,41 @@ export const publishQuantityPricing = onCall(
 );
 
 /**
+ * Retrieve private tier configuration for the authenticated pricing editor.
+ * Private pricing is never exposed through direct client Firestore reads.
+ */
+export const getQuantityPricingConfig = onCall(
+  { region: "europe-west1", enforceAppCheck: false },
+  async request => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in with an authorized admin account.");
+    }
+    const role = request.auth.token.role;
+    if (role !== "owner" && role !== "pricing_manager") {
+      throw new HttpsError("permission-denied", "Pricing manager access is required.");
+    }
+    const data = request.data ?? {};
+    assertOnlyKeys(data, new Set(["productId", "variantId"]), "request");
+    if (typeof data.productId !== "string" || !ID_PATTERN.test(data.productId) ||
+        typeof data.variantId !== "string" || !ID_PATTERN.test(data.variantId)) {
+      throw new HttpsError("invalid-argument", "A valid productId and variantId are required.");
+    }
+    const configId = `${data.productId}__${data.variantId}`;
+    const snap = await db.collection("pricingConfigs").doc(configId).get();
+    if (!snap.exists) {
+      return { productId: data.productId, variantId: data.variantId, version: 0, rules: {} };
+    }
+    const config = snap.data();
+    return {
+      productId: data.productId,
+      variantId: data.variantId,
+      version: Number.isSafeInteger(config.version) ? config.version : 0,
+      rules: config.rules && typeof config.rules === "object" ? config.rules : {}
+    };
+  }
+);
+
+/**
  * Deployment and emulator smoke-test endpoint.
  * This endpoint deliberately exposes no customer, catalogue, pricing or stock data.
  */
