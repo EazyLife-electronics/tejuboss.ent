@@ -47,6 +47,9 @@ beforeEach(async () => {
       enabled: true,
       tiers: [{ minimumQuantity: 2, priceMinor: 90000 }]
     });
+    await setDoc(doc(db, "catalogueProducts", "structured-published"), { name: "Structured item", published: true });
+    await setDoc(doc(db, "catalogueProducts", "structured-draft"), { name: "Structured draft", published: false });
+    await setDoc(doc(db, "catalogueDrafts", "private-draft"), { draft: { name: "Private draft" } });
     await setDoc(doc(db, "pricingConfigs", "private"), {
       costPriceMinor: 50000,
       marginTarget: 20
@@ -68,6 +71,9 @@ test("visitors can read published products and public quantity offers", async ()
   await assertSucceeds(getDoc(doc(db, "products", "published")));
   await assertFails(getDoc(doc(db, "products", "draft")));
   await assertSucceeds(getDoc(doc(db, "publicPricing", "offer")));
+  await assertSucceeds(getDoc(doc(db, "catalogueProducts", "structured-published")));
+  await assertFails(getDoc(doc(db, "catalogueProducts", "structured-draft")));
+  await assertFails(getDoc(doc(db, "catalogueDrafts", "private-draft")));
 });
 
 test("visitors cannot read private prices or full orders", async () => {
@@ -106,4 +112,10 @@ test("owner can read private orders but private pricing remains backend-only", a
 test("unrelated signed-in customer cannot read another customer's order", async () => {
   const db = env.authenticatedContext("customer-uid", { role: "customer" }).firestore();
   await assertFails(getDoc(doc(db, "orders", "order-1")));
+});
+
+test("catalogue drafts and structured catalogue are not client-writable", async () => {
+  const db = env.authenticatedContext("owner-uid", { role: "owner" }).firestore();
+  await assertFails(setDoc(doc(db, "catalogueDrafts", "forged"), { draft: {} }));
+  await assertFails(setDoc(doc(db, "catalogueProducts", "forged"), { published: true }));
 });
