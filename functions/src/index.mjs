@@ -232,3 +232,5 @@ export const backendStatus = onCall(
 );
 
 export { saveCatalogueDraft, listCatalogueDrafts, publishCatalogueDraft } from "./catalogue-drafts.mjs";
+
+export { createGuestCheckoutSession } from "./guest-checkout-session.mjs";
