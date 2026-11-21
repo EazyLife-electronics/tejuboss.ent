@@ -8,9 +8,10 @@
 
 1. The page imports `js/structured-catalogue.mjs`.
 2. The adapter queries `catalogueProducts` with the explicit constraint `published == true`, matching the public-read condition in `firestore.next.rules`.
-3. Each returned document is checked by the shared structured catalogue validator and projected into a customer-facing view model.
-4. The page displays product name, brand, category, description, variant, selling option and current unit price.
-5. Invalid public records are skipped and logged; they are not silently rendered.
+3. It separately queries `publicPricing` with `enabled == true`, matching that collection's public-read rule.
+4. Each catalogue document is checked by the shared structured catalogue validator and projected into a customer-facing view model.
+5. Published quantity offers are matched by stable product, variant and selling-option IDs. The preview shows tier thresholds and rates in their configured qualification units.
+6. Invalid catalogue records are skipped and logged; they are not silently rendered.
 
 ## Safety boundaries
 
@@ -18,7 +19,9 @@
 - It has no add-to-cart, checkout, order-write, inventory-write or stock-availability action.
 - The public view model omits stock balances and private operational fields.
 - A displayed price is informational only. Trusted checkout must re-read the authoritative catalogue and calculate the final quote on the server.
-- Quantity-tier public pricing is not yet connected to this preview.
+- Quantity-tier offers are displayed from public-safe projections. They are informational only; trusted checkout must independently apply the authoritative private rules.
+- Catalogue promotions and quantity tiers do not stack. The preview explicitly explains this restriction.
+- The quantity-pricing publisher validates and targets `catalogueProducts`, not the legacy `products` collection.
 - The structured catalogue publisher still writes to `catalogueProducts`, not the legacy `products` collection.
 
 ## Before enabling customer ordering
