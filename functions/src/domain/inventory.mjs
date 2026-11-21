@@ -33,14 +33,16 @@ export function planLooseSaleFromSealedCartons({
   const looseShortfall = Math.max(0, requestedQuantity - looseQuantity);
   const shortfallBig = BigInt(looseShortfall);
   const cartonSizeBig = BigInt(unitsPerCarton);
-  const cartonsToOpen = Number(
-    (shortfallBig + cartonSizeBig - 1n) / cartonSizeBig
-  );
+  const cartonsToOpenBig =
+    (shortfallBig + cartonSizeBig - 1n) / cartonSizeBig;
 
-  if (cartonsToOpen > sealedCartonQuantity) {
+  if (cartonsToOpenBig > BigInt(sealedCartonQuantity)) {
     const availableBig =
       BigInt(looseQuantity) +
       BigInt(sealedCartonQuantity) * BigInt(unitsPerCarton);
+    if (availableBig > BigInt(Number.MAX_SAFE_INTEGER)) {
+      throw new RangeError("Available inventory exceeds safe integer range");
+    }
     const availableLooseEquivalent = Number(availableBig);
     const error = new Error(
       `Insufficient stock: requested ${requestedQuantity}, available ${availableLooseEquivalent}`
@@ -56,6 +58,7 @@ export function planLooseSaleFromSealedCartons({
     throw error;
   }
 
+  const cartonsToOpen = Number(cartonsToOpenBig);
   const transferredBig = BigInt(cartonsToOpen) * BigInt(unitsPerCarton);
   const transferredUnits = Number(transferredBig);
   const looseAfterOpening = looseQuantity + transferredUnits;
