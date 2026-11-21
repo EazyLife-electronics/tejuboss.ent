@@ -23,7 +23,7 @@ jobs:
           node-version: 22
       - name: Validate Functions module syntax
         working-directory: functions
-        run: node --check src/index.mjs && node --check src/catalogue-drafts.mjs && node --check src/domain/catalogue-publication.mjs && node --check ../admin/js/catalogue-builder.mjs
+        run: node --check src/index.mjs && node --check src/catalogue-drafts.mjs && node --check src/domain/catalogue-publication.mjs && node --check src/domain/public-catalogue-view.mjs && node --check ../js/structured-catalogue.mjs && node --check ../admin/js/catalogue-builder.mjs
       - name: Run pure domain tests
         working-directory: functions
         run: npm test
