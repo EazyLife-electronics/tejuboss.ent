@@ -15,3 +15,6 @@ The scenario tests verify trusted quote calculation, selling-option conversion, 
 `sample-firestore-checkout.mjs` is a separate emulator-only harness. It uses an isolated `__checkoutEmulatorFixtures` namespace and proves atomic writes, replay safety, insufficient-stock rollback, current-price reads, customer-safe tracking projections, and concurrent oversell prevention against the Firestore Emulator. It is not imported by production Functions.
 
 The emulator harness deliberately models one sample product and one piece-selling option per request. It is a transaction-pattern test, not the production Firestore schema or a deployable checkout endpoint. The production adapter must be built only after real product/inventory paths, package forms, delivery policy, tier semantics, and stock reservation timing are approved.
+
+
+The emulator transaction fixture now also reads its tier-rule document inside the Firestore transaction and snapshots the pricing configuration version, applied tier IDs, qualification quantity, and line-level discount into the synthetic order. This verifies that the sample transaction uses the trusted rule document it read, rather than any tier definition supplied in the guest request.
