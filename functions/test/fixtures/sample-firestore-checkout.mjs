@@ -51,6 +51,7 @@ export async function commitSampleCheckout({
   const looseRef = root.collection("inventory").doc("loose-pieces");
   const sealedRef = root.collection("inventory").doc("sealed-cartons");
   const policyRef = root.collection("settings").doc("delivery-policy");
+  const pricingRef = root.collection("pricing").doc("tier-rules");
   const candidate = buildIdempotencyRecord({
     scopeId,
     idempotencyKey: validated.idempotencyKey,
@@ -72,6 +73,7 @@ export async function commitSampleCheckout({
     const policySnap = validated.fulfilment.method === "delivery"
       ? await tx.get(policyRef)
       : null;
+    const pricingSnap = await tx.get(pricingRef);
 
     const replay = inspectIdempotencyReplay(idempotencySnap.exists ? idempotencySnap.data() : null, candidate);
     if (replay.outcome === "replay") {
@@ -95,7 +97,8 @@ export async function commitSampleCheckout({
     const quote = calculateCheckoutQuote({
       request: validated,
       productsById,
-      deliveryPolicy
+      deliveryPolicy,
+      quantityTierRules: pricingSnap.exists ? pricingSnap.data().rules : []
     });
 
     const loose = looseSnap.data();
@@ -125,6 +128,8 @@ export async function commitSampleCheckout({
       deliveryFeeMinor: quote.deliveryFeeMinor,
       grandTotalMinor: quote.grandTotalMinor,
       deliveryPolicyVersion: quote.delivery?.policyVersion ?? null,
+      appliedTierRules: quote.appliedTierRules ?? [],
+      pricingConfigVersion: pricingSnap.exists ? pricingSnap.data().version : null,
       createdAtMillis
     };
     const trackingProjection = {
@@ -184,7 +189,8 @@ export async function commitSampleCheckout({
 export async function seedSampleCheckoutFixture(db, fixtureId, {
   looseUnits = 0,
   sealedCartons = 10,
-  priceMinor = 150000
+  priceMinor = 150000,
+  quantityTierRules = []
 } = {}) {
   const root = db.collection(ROOT).doc(fixtureId);
   const batch = db.batch();
@@ -213,6 +219,10 @@ export async function seedSampleCheckoutFixture(db, fixtureId, {
   batch.set(root.collection("inventory").doc("sealed-cartons"), {
     quantityOnHand: sealedCartons,
     unitsPerPackage: 48
+  });
+  batch.set(root.collection("pricing").doc("tier-rules"), {
+    version: "fixture-pricing-v1",
+    rules: quantityTierRules
   });
   batch.set(root.collection("settings").doc("delivery-policy"), {
     enabled: true,
