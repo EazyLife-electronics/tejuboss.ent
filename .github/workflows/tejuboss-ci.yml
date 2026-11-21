@@ -21,9 +21,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Run pure domain tests
+      - name: Validate Functions module syntax
         working-directory: functions
-        run: npm test
+        run: node --check src/index.mjs && node --check src/catalogue-drafts.mjs\n      - name: Run pure domain tests\n        working-directory: functions\n        run: npm test
 
   firestore-rules:
     name: Firestore security rules emulator tests
