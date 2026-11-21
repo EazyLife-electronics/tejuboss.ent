@@ -216,7 +216,9 @@ Do not assume that supplier purchase units always match customer selling units.
 
 ## 8. Location-aware stock readiness
 
-The first retail launch may use one fulfilment location if that reflects current operations. The data contract should nevertheless allow inventory to be keyed by:
+The business has confirmed that it currently operates one store, and the initial online-order fulfilment model will use that single stock location. Implement one active fulfilment location for launch, while keeping location IDs in the inventory contract so additional outlets or warehouses can be introduced later without redesigning stock records. Do not build multi-location transfer and fulfilment workflows into the first release unless the business requirement changes.
+
+The inventory data contract should be keyed by:
 - location ID;
 - product variant ID;
 - stock/packaging form ID;
