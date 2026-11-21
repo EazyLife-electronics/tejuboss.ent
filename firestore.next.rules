@@ -23,6 +23,13 @@ service cloud.firestore {
       allow write: if hasRole('catalogue_manager');
     }
 
+    // Structured catalogue is a separate additive collection until the storefront
+    // adapter is migrated. Public clients may read published records only.
+    match /catalogueProducts/{productId} {
+      allow read: if resource.data.published == true;
+      allow write: if false;
+    }
+
     match /publicPricing/{pricingId} {
       allow read: if resource.data.enabled == true;
       // Public projections are written only by the trusted publisher (Admin SDK).
