@@ -159,3 +159,42 @@ export function resolveCheckoutSelection(product, variantId, sellingOptionId) {
   }
   return { variant, sellingOption };
 }
+
+/**
+ * Convert an ordered selling quantity into canonical stock units.
+ * This function deliberately uses the configured conversion only.
+ */
+export function calculateStockUnitsRequired({ quantity, sellingOption, quantityPrecision = 0 }) {
+  if (typeof quantity !== "number" || !Number.isFinite(quantity) || quantity <= 0) {
+    const error = new Error("Order quantity must be a positive number");
+    error.code = "INVALID_ORDER_QUANTITY";
+    throw error;
+  }
+  if (!Number.isInteger(quantityPrecision) || quantityPrecision < 0 || quantityPrecision > 6) {
+    const error = new Error("Stock quantity precision is invalid");
+    error.code = "INVALID_QUANTITY_PRECISION";
+    throw error;
+  }
+  if (!isRecord(sellingOption) || !safePositiveInteger(sellingOption.stockUnitsPerSaleUnit)) {
+    const error = new Error("A valid explicit selling-option conversion is required");
+    error.code = "INVALID_STOCK_CONVERSION";
+    throw error;
+  }
+  const scale = 10 ** quantityPrecision;
+  const scaledQuantity = quantity * scale;
+  if (!Number.isSafeInteger(Math.round(scaledQuantity)) ||
+      Math.abs(scaledQuantity - Math.round(scaledQuantity)) >= 1e-8) {
+    const error = new Error("Order quantity exceeds configured precision");
+    error.code = "QUANTITY_PRECISION_EXCEEDED";
+    throw error;
+  }
+  const stockUnits = quantity * sellingOption.stockUnitsPerSaleUnit;
+  const scaledStockUnits = stockUnits * scale;
+  if (!Number.isSafeInteger(Math.round(scaledStockUnits)) ||
+      Math.abs(scaledStockUnits - Math.round(scaledStockUnits)) >= 1e-8) {
+    const error = new Error("Stock conversion exceeds configured precision");
+    error.code = "STOCK_CONVERSION_PRECISION_EXCEEDED";
+    throw error;
+  }
+  return stockUnits;
+}
