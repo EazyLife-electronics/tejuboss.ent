@@ -31,6 +31,7 @@ test("flat per order charges the base fee once, not once per line", () => {
   const result = calculateDeliveryCharge({
     policy: { ...policy, method: "flat_per_order", baseFeeMinor: 50000 },
     fulfilmentMethod: "delivery",
+    areaId: "ibadan_southwest",
     lines: [
       { sellingOptionId: "piece", quantity: 10 },
       { sellingOptionId: "carton", quantity: 2 },
@@ -74,6 +75,7 @@ test("rejects disabled, missing, unsupported and malformed policies", () => {
   assert.throws(() => calculateDeliveryCharge({
     policy,
     fulfilmentMethod: "delivery",
+    areaId: "ibadan_southwest",
     lines: [{ sellingOptionId: "piece", quantity: 0 }],
   }), /positive finite number/);
 });
