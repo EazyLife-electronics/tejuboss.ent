@@ -38,6 +38,11 @@ service cloud.firestore {
 
     // Private commercial and operational records are never client-writable.
     // Pricing configuration is read only through authorized backend handlers.
+    // Guest checkout credentials are server-created, hash-keyed and private.
+    match /guestSessions/{sessionHash} {
+      allow read, write: if false;
+    }
+
     match /catalogueDrafts/{draftId} {
       allow read, write: if false;
     }
