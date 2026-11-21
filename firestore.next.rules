@@ -25,12 +25,14 @@ service cloud.firestore {
 
     match /publicPricing/{pricingId} {
       allow read: if resource.data.enabled == true;
-      allow write: if hasRole('pricing_manager');
+      // Public projections are written only by the trusted publisher (Admin SDK).
+      allow write: if false;
     }
 
-    // Private commercial and operational records.
+    // Private commercial and operational records are never client-writable.
+    // Pricing configuration is read only through authorized backend handlers.
     match /pricingConfigs/{configId} {
-      allow read, write: if hasRole('pricing_manager');
+      allow read, write: if false;
     }
 
     match /inventoryBalances/{balanceId} {
