@@ -2,7 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { validateCatalogueDraft } from "./domain/catalogue-draft.mjs";
 
-const db = getFirestore();
+const db = () => getFirestore();
 const ID = /^[A-Za-z0-9_.-]{1,128}$/;
 
 function authorize(request) {
@@ -41,9 +41,9 @@ export const saveCatalogueDraft = onCall({ region: "europe-west1" }, async reque
       (!Number.isSafeInteger(data.expectedVersion) || data.expectedVersion < 0)) {
     throw new HttpsError("invalid-argument", "Expected version is invalid.");
   }
-  const ref = db.collection("catalogueDrafts").doc(draft.id);
-  const audit = db.collection("auditLogs").doc();
-  return db.runTransaction(async tx => {
+  const ref = db().collection("catalogueDrafts").doc(draft.id);
+  const audit = db().collection("auditLogs").doc();
+  return db().runTransaction(async tx => {
     const snap = await tx.get(ref);
     const version = snap.exists && Number.isSafeInteger(snap.data().version) ? snap.data().version : 0;
     if (data.expectedVersion !== undefined && data.expectedVersion !== version) {
@@ -61,7 +61,7 @@ export const listCatalogueDrafts = onCall({ region: "europe-west1" }, async requ
   if (request.data && Object.keys(request.data).length) {
     throw new HttpsError("invalid-argument", "This endpoint accepts no input.");
   }
-  const snap = await db.collection("catalogueDrafts").orderBy("updatedAt", "desc").limit(100).get();
+  const snap = await db().collection("catalogueDrafts").orderBy("updatedAt", "desc").limit(100).get();
   return { drafts: snap.docs.map(doc => ({ id: doc.id, draft: doc.data().draft, version: doc.data().version || 0 })) };
 });
 
@@ -84,12 +84,12 @@ export const publishCatalogueDraft = onCall({ region: "europe-west1" }, async re
     throw new HttpsError("invalid-argument", "The current draft version is required.");
   }
 
-  const draftRef = db.collection("catalogueDrafts").doc(data.draftId);
-  const productRef = db.collection("catalogueProducts").doc(data.draftId);
-  const auditRef = db.collection("auditLogs").doc();
+  const draftRef = db().collection("catalogueDrafts").doc(data.draftId);
+  const productRef = db().collection("catalogueProducts").doc(data.draftId);
+  const auditRef = db().collection("auditLogs").doc();
 
   try {
-    return await db.runTransaction(async tx => {
+    return await db().runTransaction(async tx => {
       const [draftSnap, productSnap] = await Promise.all([
         tx.get(draftRef),
         tx.get(productRef)
