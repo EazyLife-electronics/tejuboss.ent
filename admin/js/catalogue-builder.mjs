@@ -6,6 +6,7 @@ const firebase = initFirebase();
 const functions = getFunctions(firebase.app, "europe-west1");
 const saveCloudDraft = httpsCallable(functions, "saveCatalogueDraft");
 const listCloudDrafts = httpsCallable(functions, "listCatalogueDrafts");
+const publishCloudDraft = httpsCallable(functions, "publishCatalogueDraft");
 const cloudVersions = new Map();
 
 const STORAGE_KEY = "tejuboss.catalogueDrafts.v1";
@@ -92,11 +93,46 @@ function readDraftFromForm(form) {
  });
  return draft;
 }
-async function syncDraftsToCloud() {\n const status=document.getElementById("catalogueCloudStatus");\n status.textContent="Syncing drafts securely..."; status.classList.remove("hidden");\n try {\n  for (const draft of drafts) {\n   const result=await saveCloudDraft({draft,expectedVersion:cloudVersions.get(draft.id) ?? 0});\n   cloudVersions.set(draft.id,result.data.version);\n  }\n  status.textContent=`Synced ${drafts.length} draft(s) to your Tejuboss account.`;\n } catch(error) {\n  status.textContent=error.code==="functions/permission-denied" ? "Your account needs the catalogue_manager or owner role before cloud sync can be enabled." : (error.message || "Cloud sync failed. Your local drafts are safe.");\n }\n}\nasync function loadCloudDrafts() {\n const status=document.getElementById("catalogueCloudStatus");\n status.textContent="Loading account drafts..."; status.classList.remove("hidden");\n try {\n  const result=await listCloudDrafts({});\n  const map=new Map(drafts.map(d=>[d.id,d]));\n  for(const item of result.data.drafts || []) { map.set(item.id,item.draft); cloudVersions.set(item.id,item.version); }\n  drafts=[...map.values()]; persist(); status.textContent=`Loaded ${result.data.drafts.length} account draft(s). Local drafts were retained.`;\n } catch(error) { status.textContent=error.code==="functions/permission-denied" ? "Your account needs the catalogue_manager or owner role before account drafts can be loaded." : (error.message || "Could not load account drafts."); }\n}\nfunction renderList() {
+async function syncDraftsToCloud() {
+ const status=document.getElementById("catalogueCloudStatus");
+ status.textContent="Syncing drafts securely..."; status.classList.remove("hidden");
+ try {
+  for (const draft of drafts) {
+   const result=await saveCloudDraft({draft,expectedVersion:cloudVersions.get(draft.id) ?? 0});
+   cloudVersions.set(draft.id,result.data.version);
+  }
+  status.textContent=`Synced ${drafts.length} draft(s) to your Tejuboss account.`;
+ } catch(error) {
+  status.textContent=error.code==="functions/permission-denied" ? "Your account needs the catalogue_manager or owner role before cloud sync can be enabled." : (error.message || "Cloud sync failed. Your local drafts are safe.");
+ }
+}
+async function loadCloudDrafts() {
+ const status=document.getElementById("catalogueCloudStatus");
+ status.textContent="Loading account drafts..."; status.classList.remove("hidden");
+ try {
+  const result=await listCloudDrafts({});
+  const map=new Map(drafts.map(d=>[d.id,d]));
+  for(const item of result.data.drafts || []) { map.set(item.id,item.draft); cloudVersions.set(item.id,item.version); }
+  drafts=[...map.values()]; persist(); status.textContent=`Loaded ${result.data.drafts.length} account draft(s). Local drafts were retained.`;
+ } catch(error) { status.textContent=error.code==="functions/permission-denied" ? "Your account needs the catalogue_manager or owner role before account drafts can be loaded." : (error.message || "Could not load account drafts."); }
+}
+async function publishDraft(id) {
+ const version=cloudVersions.get(id);
+ if (!version) { alert("Load account drafts or sync this draft before publishing."); return; }
+ if (!confirm("Publish this product to the storefront? This will not create or change stock.")) return;
+ const status=document.getElementById("catalogueCloudStatus");
+ status.textContent="Publishing product..."; status.classList.remove("hidden");
+ try {
+  const result=await publishCloudDraft({draftId:id,expectedVersion:version});
+  status.textContent=`Published ${result.data.productId}. Inventory was not changed.`;
+ } catch(error) { status.textContent=error.message || "Publication failed. The existing catalogue was not changed."; }
+}
+function renderList() {
  const list = document.getElementById("catalogueDraftList");
  if (!list) return;
- list.innerHTML = drafts.map(d => `<article class="bg-white rounded-xl border p-3 flex items-center gap-3"><div class="min-w-0 flex-1"><b class="block text-sm truncate">${escapeHtml(d.name || "Untitled product")}</b><p class="text-[10px] text-gray-500">${d.variants.length} variant(s) · ${d.published ? "Marked published" : "Unpublished"} · Local draft</p><p class="text-[9px] font-mono text-gray-400 break-all">${escapeHtml(d.id)}</p></div><button data-edit-draft="${escapeHtml(d.id)}" class="text-xs font-bold bg-gray-100 rounded-lg px-3 py-2">Edit</button><button data-delete-draft="${escapeHtml(d.id)}" class="text-xs font-bold text-red-600 px-2 py-2">Delete</button></article>`).join("") || '<p class="text-xs text-gray-400 py-4">No structured drafts saved on this device yet.</p>';
+ list.innerHTML = drafts.map(d => `<article class="bg-white rounded-xl border p-3 flex items-center gap-3"><div class="min-w-0 flex-1"><b class="block text-sm truncate">${escapeHtml(d.name || "Untitled product")}</b><p class="text-[10px] text-gray-500">${d.variants.length} variant(s) · ${d.published ? "Marked published" : "Unpublished"} · ${cloudVersions.has(d.id) ? "Account-synced" : "Local draft"}</p><p class="text-[9px] font-mono text-gray-400 break-all">${escapeHtml(d.id)}</p></div><button data-edit-draft="${escapeHtml(d.id)}" class="text-xs font-bold bg-gray-100 rounded-lg px-3 py-2">Edit</button>${d.published ? `<button data-publish-draft="${escapeHtml(d.id)}" class="text-xs font-bold bg-red-600 text-white rounded-lg px-3 py-2">Publish</button>` : ""}<button data-delete-draft="${escapeHtml(d.id)}" class="text-xs font-bold text-red-600 px-2 py-2">Delete</button></article>`).join("") || '<p class="text-xs text-gray-400 py-4">No structured drafts saved on this device yet.</p>';
  list.querySelectorAll("[data-edit-draft]").forEach(b=>b.addEventListener("click",()=>openEditor(b.dataset.editDraft)));
+ list.querySelectorAll("[data-publish-draft]").forEach(b=>b.addEventListener("click",()=>publishDraft(b.dataset.publishDraft)));
  list.querySelectorAll("[data-delete-draft]").forEach(b=>b.addEventListener("click",()=>{if(confirm("Delete this local draft?")){drafts=drafts.filter(d=>d.id!==b.dataset.deleteDraft);persist();}}));
 }
 function openEditor(id=null) {
@@ -142,9 +178,12 @@ function render() {
  root.innerHTML=`<div class="space-y-4">
   <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4"><h2 class="font-black text-base mb-1">Structured Catalogue Builder</h2><p class="text-xs text-blue-900">Build products with explicit selling units and stock conversions. Drafts save locally first. Use account sync to access them across devices after your admin account receives the required catalogue role. Export/Import remains available as a backup.</p><p class="text-[10px] text-blue-800 mt-2 font-bold">Important: Saving locally does not publish a product or change inventory. Account sync stores private drafts only.</p></div>
   <div class="flex gap-2"><button id="newCatalogueDraft" class="flex-1 py-3 bg-gray-900 text-white rounded-xl text-sm font-bold">+ New product draft</button><button id="exportCatalogueDrafts" class="px-4 py-3 bg-white border rounded-xl text-xs font-bold">Export</button><label class="px-4 py-3 bg-white border rounded-xl text-xs font-bold cursor-pointer">Import<input id="importCatalogueDrafts" type="file" accept=".json,application/json" class="hidden"></label></div>
-  <div class="grid grid-cols-2 gap-2"><button id="syncCatalogueCloud" class="py-3 bg-red-600 text-white rounded-xl text-xs font-bold">Sync to account</button><button id="loadCatalogueCloud" class="py-3 bg-white border rounded-xl text-xs font-bold">Load account drafts</button></div><p id="catalogueCloudStatus" class="hidden text-xs rounded-xl bg-gray-100 p-3 break-words"></p>\n  <div id="catalogueEditorHost"></div><div><h3 class="font-black text-sm mb-2">Saved drafts on this device</h3><div id="catalogueDraftList" class="space-y-2"></div></div>
+  <div class="grid grid-cols-2 gap-2"><button id="syncCatalogueCloud" class="py-3 bg-red-600 text-white rounded-xl text-xs font-bold">Sync to account</button><button id="loadCatalogueCloud" class="py-3 bg-white border rounded-xl text-xs font-bold">Load account drafts</button></div><p id="catalogueCloudStatus" class="hidden text-xs rounded-xl bg-gray-100 p-3 break-words"></p>
+  <div id="catalogueEditorHost"></div><div><h3 class="font-black text-sm mb-2">Saved drafts on this device</h3><div id="catalogueDraftList" class="space-y-2"></div></div>
  </div>`;
- document.getElementById("newCatalogueDraft").addEventListener("click",()=>openEditor());\n document.getElementById("syncCatalogueCloud").addEventListener("click",syncDraftsToCloud);\n document.getElementById("loadCatalogueCloud").addEventListener("click",loadCloudDrafts);
+ document.getElementById("newCatalogueDraft").addEventListener("click",()=>openEditor());
+ document.getElementById("syncCatalogueCloud").addEventListener("click",syncDraftsToCloud);
+ document.getElementById("loadCatalogueCloud").addEventListener("click",loadCloudDrafts);
  document.getElementById("exportCatalogueDrafts").addEventListener("click",downloadJson);
  document.getElementById("importCatalogueDrafts").addEventListener("change",e=>{if(e.target.files[0])importJson(e.target.files[0]);e.target.value="";});
  renderList();
