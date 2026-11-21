@@ -26,7 +26,7 @@ export function validateCatalogueDraft(draft) {
   if (!Array.isArray(draft.variants) || draft.variants.length === 0) {
     issues.push({ path: "variants", message: "Add at least one variant" });
   } else {
-    const checkoutShape = { ...draft, published: true };
+    const checkoutShape = { ...draft, published: true, variants: draft.variants.map(variant => ({ ...variant, active: true, sellingOptions: Array.isArray(variant.sellingOptions) ? variant.sellingOptions.map(option => ({ ...option, active: true })) : variant.sellingOptions })) };
     const result = validateCheckoutProduct(checkoutShape);
     issues.push(...result.issues);
   }
