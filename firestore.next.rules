@@ -43,6 +43,14 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /checkoutIdempotency/{keyHash} {
+      allow read, write: if false;
+    }
+
+    match /inventoryMappings/{mappingId} {
+      allow read, write: if false;
+    }
+
     match /catalogueDrafts/{draftId} {
       allow read, write: if false;
     }
