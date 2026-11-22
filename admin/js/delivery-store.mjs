@@ -42,7 +42,11 @@ export const createDelivery = data => createDeliveryCall({
   personnelId: data.assignedTo || data.personnelId || null
 }).then(result => ({ id: result.data.id, alreadyExists: Boolean(result.data.alreadyExists) }));
 export const watchDeliveries = cb => watch('deliveries',cb);
-export const updateDelivery = (id,data) => updateDeliveryCall({ deliveryId:id, patch:data });
+export const updateDelivery = (id,data) => {
+  const patch = { ...data };
+  for (const field of ['assignedToName','assignedToPhone','deliveryType','lastCheckpointName']) delete patch[field];
+  return updateDeliveryCall({ deliveryId:id, patch });
+};
 
 // Read-only compatibility helper. Creation itself is idempotent and authoritative in Functions.
 export async function findActiveDeliveryForOrder(orderId) {
