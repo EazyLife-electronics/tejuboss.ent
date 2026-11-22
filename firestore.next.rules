@@ -99,6 +99,22 @@ service cloud.firestore {
       allow list, create, update, delete: if false;
     }
 
+    // Delivery managers need read-only access to the operational reference data.
+    match /deliveryPersonnel/{personId} {
+      allow read: if hasRole('delivery_manager');
+      allow write: if false;
+    }
+
+    match /deliveryTypes/{typeId} {
+      allow read: if hasRole('delivery_manager');
+      allow write: if false;
+    }
+
+    match /deliveryCheckpoints/{checkpointId} {
+      allow read: if hasRole('delivery_manager');
+      allow write: if false;
+    }
+
     match /deliveries/{deliveryId} {
       allow read: if hasRole('delivery_manager') || hasRole('order_manager');
       allow write: if false;
