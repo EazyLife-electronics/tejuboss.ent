@@ -1,0 +1,5 @@
+import test from "node:test";import assert from "node:assert/strict";import {inventoryBalanceId,validateOpeningCount} from "../src/domain/inventory-setup.mjs";
+const v={productId:"prod_1",variantId:"var_1",locationId:"ibadan_main",inventoryFormId:"piece",formLabel:"Loose pieces",stockUnitCode:"piece",quantityOnHand:12,stockUnitsPerBalanceUnit:1,reason:"Physical count before launch",countConfirmed:true};
+test("balance IDs stable and tuple-safe",()=>{assert.equal(inventoryBalanceId(v),inventoryBalanceId({...v}));assert.notEqual(inventoryBalanceId({...v,inventoryFormId:"pack"}),inventoryBalanceId(v));});
+test("opening count requires confirmation and explicit conversion",()=>{assert.equal(validateOpeningCount(v).quantityOnHand,12);assert.throws(()=>validateOpeningCount({...v,countConfirmed:false}));assert.throws(()=>validateOpeningCount({...v,quantityOnHand:1.5}));assert.throws(()=>validateOpeningCount({...v,stockUnitsPerBalanceUnit:0}));});
+test("rejects unexpected fields",()=>assert.throws(()=>validateOpeningCount({...v,price:100})));
