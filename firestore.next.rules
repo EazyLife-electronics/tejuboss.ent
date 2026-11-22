@@ -63,6 +63,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /inventoryForms/{formId} {
+      allow read: if hasRole('inventory_manager') || hasRole('order_manager');
+      allow write: if false;
+    }
+
     match /inventoryBalances/{balanceId} {
       allow read: if hasRole('inventory_manager') || hasRole('order_manager');
       // Balances change only through atomic trusted checkout/confirmation functions.
