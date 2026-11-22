@@ -9,7 +9,7 @@ import { saveInventoryMapping } from "../src/inventory-mapping.mjs";
 import { createGuestOrder } from "../src/guest-order.mjs";
 import { decideOrder } from "../src/order-confirmation.mjs";
 import { updateOrderFulfilment } from "../src/order-fulfilment.mjs";
-import { recordOrderPayment } from "../src/order-payment.mjs";
+import { recordOrderPayment, listOrderPaymentHistory } from "../src/order-payment.mjs";
 import { getGuestOrderTracking, recoverGuestOrderTracking } from "../src/order-tracking.mjs";
 import { inventoryBalanceId } from "../src/domain/inventory-setup.mjs";
 import { inventoryMappingDocumentId } from "../src/domain/inventory-mapping.mjs";
@@ -197,6 +197,18 @@ test("production commerce callables: open stock, map option, guest order, confir
     }, paymentStaff);
     assert.equal(finalPayment.paymentStatus, "paid");
     assert.equal(finalPayment.paidTotalMinor, 50000);
+
+    const history = await call(listOrderPaymentHistory, { orderId }, paymentStaff);
+    assert.equal(history.payments.length, 2);
+    assert.deepEqual(history.payments.map(p => p.amountMinor), [20000, 30000]);
+    assert.deepEqual(history.payments.map(p => p.reference), ["TEST-TRANSFER-1", ""]);
+    assert.equal(history.paymentTotalMinor, 50000);
+    assert.equal(history.paymentStatus, "paid");
+    assert.equal("receivedBy" in history.payments[0], false);
+    await assert.rejects(
+      call(listOrderPaymentHistory, { orderId }, { uid: "emulator-order-manager", token: { role: "order_manager" } }),
+      error => error.code === "permission-denied"
+    );
     const paidOrder = (await db.collection("orders").doc(orderId).get()).data();
     assert.equal(paidOrder.paymentStatus, "paid");
     assert.equal(paidOrder.paymentTotalMinor, 50000);
