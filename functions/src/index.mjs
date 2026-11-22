@@ -242,3 +242,5 @@ export { createGuestOrder } from "./guest-order.mjs";
 export { initializeInventoryBalance } from "./inventory-setup.mjs";
 
 export { saveInventoryMapping } from "./inventory-mapping.mjs";
+
+export { listInventorySetup } from "./inventory-overview.mjs";
