@@ -35,7 +35,7 @@ Example: 10 sealed cartons × 48 pieces, 0 loose pieces. Confirm a 6-piece order
 
 - Test products and balances must be seeded only in emulator fixtures or an isolated development database.
 - No inventory initialization or stock count should be guessed from product labels.
-- Staff confirmation callable requires a verified `owner` or `order_manager` custom claim and App Check. Firebase login alone is not authorization. It accepts only an order ID and decision, never browser-supplied stock IDs or quantities. The order must contain a trusted `inventoryDeductions` snapshot written by the future server-side order creator; otherwise confirmation fails closed.
+- Staff confirmation callable requires a verified `owner` or `order_manager` custom claim and App Check. It uses the tested pure inventory planner for explicit balance-unit conversions and loose-stock-first sealed-package break-pack fallback. It rejects overlapping balance configurations instead of risking double deductions. Firebase login alone is not authorization. It accepts only an order ID and decision, never browser-supplied stock IDs or quantities. The order must contain a trusted `inventoryDeductions` snapshot written by the future server-side order creator; otherwise confirmation fails closed.
 - Confirmations must be serialized by Firestore transaction contention; two orders cannot both consume the same last stock.
 - A pending order is not a stock guarantee. The customer-facing message must state that confirmation is pending.
 - No live inventory or order cutover until an authorized admin role, stock opening-balance workflow, and approved delivery policy are ready.
