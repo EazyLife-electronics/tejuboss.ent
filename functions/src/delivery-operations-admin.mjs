@@ -112,18 +112,34 @@ export const updateLegacyDelivery=onCall({region:"europe-west1",enforceAppCheck:
   try{return await db.runTransaction(async tx=>{
     const snap=await tx.get(ref);if(!snap.exists)fail("not-found","Delivery record no longer exists.");
     const current=snap.data(),next={...patch};
-    if("status" in next&&next.status!==current.status){
-      if(!(NEXT[current.status]||[]).includes(next.status))fail("failed-precondition","This delivery status transition is not allowed.");
-      const now=Date.now();next.updatedAt=now;
-      const timeFields={picked_up:"pickedUpAt",in_transit:"outForDeliveryAt",delivered:"deliveredAt",failed:"failedAt",returned:"returnedAt"};
-      if(timeFields[next.status])next[timeFields[next.status]]=now;
+    if("status" in next){
+      if(!Object.hasOwn(NEXT,next.status))fail("invalid-argument","Unknown delivery status.");
+      if(next.status!==current.status&&!(NEXT[current.status]||[]).includes(next.status))fail("failed-precondition","This delivery status transition is not allowed.");
+      if(next.status===current.status&&next.status!=="checkpoint")fail("failed-precondition","Delivery is already in that status.");
+      const now=Date.now(),timeFields={picked_up:"pickedUpAt",in_transit:"outForDeliveryAt",delivered:"deliveredAt",failed:"failedAt",returned:"returnedAt"};
+      if(timeFields[next.status]&&next.status!==current.status)next[timeFields[next.status]]=now;
       if(next.status==="assigned")next.assignedAt=current.assignedAt||now;
     }
-    if("lastCheckpointId" in next){
-      const cp=await tx.get(db.collection("deliveryCheckpoints").doc(next.lastCheckpointId));
-      if(!cp.exists||cp.get("active")===false)fail("failed-precondition","Selected checkpoint is unavailable.");
-      if(!Array.isArray(next.checkpoints)||next.checkpoints.length!==(current.checkpoints||[]).length+1)fail("invalid-argument","A checkpoint update must append exactly one checkpoint.");
+    const reads=[];
+    if("assignedTo" in next&&next.assignedTo)reads.push(["person",tx.get(db.collection("deliveryPersonnel").doc(next.assignedTo))]);
+    if("deliveryTypeId" in next&&next.deliveryTypeId)reads.push(["type",tx.get(db.collection("deliveryTypes").doc(next.deliveryTypeId))]);
+    if("lastCheckpointId" in next&&next.lastCheckpointId)reads.push(["checkpoint",tx.get(db.collection("deliveryCheckpoints").doc(next.lastCheckpointId))]);
+    const resolved=await Promise.all(reads.map(x=>x[1]));
+    for(let i=0;i<reads.length;i++){
+      const [kind]=reads[i],record=resolved[i];
+      if(!record.exists||record.get("active")===false)fail("failed-precondition",`Selected delivery ${kind} is unavailable.`);
+      if(kind==="person"){next.assignedToName=record.get("name")||"";next.assignedToPhone=record.get("phone")||"";}
+      if(kind==="type")next.deliveryType=record.get("name")||"";
+      if(kind==="checkpoint"){
+        if(!Array.isArray(next.checkpoints)||next.checkpoints.length!==(current.checkpoints||[]).length+1)fail("invalid-argument","A checkpoint update must append exactly one checkpoint.");
+        const last=next.checkpoints[next.checkpoints.length-1];
+        if(!last||last.checkpointId!==next.lastCheckpointId)fail("invalid-argument","Checkpoint history must match the selected checkpoint.");
+        next.lastCheckpointName=record.get("name")||"";
+        next.lastCheckpointAt=Date.now();
+      }
     }
+    if("assignedTo" in next&&!next.assignedTo){next.assignedToName="";next.assignedToPhone="";}
+    if("deliveryTypeId" in next&&!next.deliveryTypeId)next.deliveryType="";
     next.updatedAt=Date.now();
     tx.update(ref,next);
     tx.create(auditRef,{action:"delivery_updated",entityType:"delivery",entityId:d.deliveryId,fields:keys,actorUid:request.auth.uid,actorRole:request.auth.token.role,createdAt:FieldValue.serverTimestamp()});
