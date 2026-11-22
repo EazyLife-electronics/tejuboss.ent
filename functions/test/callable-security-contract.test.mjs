@@ -221,10 +221,10 @@ test("TejuBoss product manager supports safe bulk catalogue operations", () => {
   const ui = read("../../admin/js/admin-products.mjs");
   const page = read("../../admin/index.html");
   const shared = read("../../admin/js/admin-shared.mjs");
-  for (const control of ["selectedProductIds", "selectAllVisibleProducts", "bulkDeleteProducts", "bulkShowProducts", "bulkHideProducts", "productCategoryFilter", "productVisibilityFilter", "productAvailabilityFilter", "productMinPrice", "productMaxPrice", "productSort"]) {
+  for (const control of ["selectAllVisibleProducts", "bulkDeleteProducts", "bulkShowProducts", "bulkHideProducts", "productCategoryFilter", "productVisibilityFilter", "productAvailabilityFilter", "productMinPrice", "productMaxPrice", "productSort"]) {
     assert.ok(page.includes('id="' + control + '"'), control + " control should exist in the admin page");
   }
-  for (const contract of ["bulkDeleteSelectedProducts", "type DELETE", "Existing order records will remain", "bulkSetProductVisibility", "productUpdatePayload", "adminProductOperation"]) {
+  for (const contract of ["bulkDeleteSelectedProducts", "type DELETE", "Existing order records will remain", "bulkSetProductVisibility", "productUpdatePayload", "updateProduct"]) {
     assert.ok(ui.includes(contract), contract + " should be present in the product manager");
   }
   assert.ok(ui.includes("selectedProductIds.add(input.dataset.selectProduct)"));
