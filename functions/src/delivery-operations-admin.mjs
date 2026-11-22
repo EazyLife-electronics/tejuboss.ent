@@ -102,7 +102,7 @@ export const updateLegacyDelivery=onCall({region:"europe-west1",enforceAppCheck:
   const d=request.data||{};
   const allowed=["deliveryId","patch"];
   if(!d||typeof d!=="object"||Array.isArray(d)||Object.keys(d).some(k=>!allowed.includes(k))||typeof d.deliveryId!=="string"||!ID.test(d.deliveryId)||!d.patch||typeof d.patch!=="object"||Array.isArray(d.patch))fail("invalid-argument","Invalid delivery update request.");
-  const patch=d.patch,keys=Object.keys(patch),allowedPatch=["status","assignedTo","assignedToName","assignedToPhone","deliveryTypeId","deliveryType","lastCheckpointId","lastCheckpointName","lastCheckpointAt","checkpoints","updatedAt"];
+  const patch=d.patch,keys=Object.keys(patch),allowedPatch=["status","assignedTo","assignedToName","assignedToPhone","deliveryTypeId","deliveryType","lastCheckpointId","lastCheckpointName","lastCheckpointAt","checkpoints","updatedAt","assignedAt","pickedUpAt","outForDeliveryAt","deliveredAt","failedAt","returnedAt"];
   if(!keys.length||keys.some(k=>!allowedPatch.includes(k)))fail("invalid-argument","Delivery update contains unsupported fields.");
   for(const k of ["assignedTo","deliveryTypeId","lastCheckpointId"])if(k in patch&&patch[k]!=null&&(typeof patch[k]!=="string"||!ID.test(patch[k])))fail("invalid-argument",k+" is invalid.");
   for(const k of ["assignedToName","assignedToPhone","deliveryType","lastCheckpointName"])if(k in patch&&(typeof patch[k]!=="string"||patch[k].length>180))fail("invalid-argument",k+" is invalid.");
