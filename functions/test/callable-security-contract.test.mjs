@@ -148,3 +148,21 @@ test("purchase receiving retains the same idempotency key across uncertain retri
   assert.ok(receiving.includes("JSON.stringify(pendingPurchaseSubmission.payload) !== JSON.stringify(payload)"));
   assert.ok(receiving.includes("localStorage.removeItem('tejuboss.pendingPurchaseSubmission')"));
 });
+
+test("legacy delivery configuration and lifecycle mutations use trusted callables", () => {
+  const delivery = read("../src/delivery-operations-admin.mjs");
+  for (const name of ["manageLegacyDeliveryConfig", "createLegacyDelivery", "updateLegacyDelivery"]) {
+    assert.ok(callableConfig(delivery, name).includes("enforceAppCheck:true"), name + " must require App Check");
+  }
+  assert.ok(delivery.includes("delivery_manager"));
+  assert.ok(delivery.includes("delivery_config_created"));
+  assert.ok(delivery.includes("delivery_updated"));
+  assert.ok(delivery.includes("A previous delivery for this order was closed"));
+  const store = read("../../admin/js/delivery-store.mjs");
+  assert.ok(store.includes("manageLegacyDeliveryConfig"));
+  assert.ok(store.includes("createLegacyDelivery"));
+  assert.ok(store.includes("updateLegacyDelivery"));
+  for (const directWrite of ["addDoc(", "updateDoc(", "deleteDoc(", "setDoc("]) {
+    assert.equal(store.includes(directWrite), false, "delivery store must not use " + directWrite);
+  }
+});
