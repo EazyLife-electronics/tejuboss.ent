@@ -168,8 +168,13 @@ export async function placeOrder(order) {
   const trackingCode = generateTrackingCode();
   const items = await resolveOrderItems(order.items || []);
   await setDoc(doc(db, 'orders', trackingCode), {
-    ...order,
+    customerName: String(order.customerName || '').trim(),
+    phone: String(order.phone || '').trim(),
+    address: String(order.address || '').trim(),
     items,
+    subtotal: Number(order.subtotal),
+    deliveryFee: Number(order.deliveryFee),
+    total: Number(order.total),
     trackingCode,
     status: 'new',
     inventoryApplied: false,
