@@ -20,14 +20,13 @@ main{border:1px solid #ddd;border-radius:14px;padding:22px}
 <p class="muted">A successful result confirms token acquisition in this browser. It does not enable enforcement or prove every protected workflow.</p>
 </main>
 <script type="module">
-import { getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAppCheck, getToken } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
+import { getToken } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 import { initFirebase } from "./js/firebase.mjs";
 const status = document.getElementById("status");
 const show = (message) => { status.textContent = message; };
 try {
-  initFirebase();
-  const appCheck = getAppCheck(getApp());
+  const { appCheck } = initFirebase();
+  if (!appCheck) throw new Error("Firebase App Check did not initialize.");
   const result = await getToken(appCheck, false);
   if (!result || !result.token) throw new Error("Firebase returned an empty App Check token.");
   show("SUCCESS: This browser obtained a Firebase App Check token.\nToken value: hidden.\nPlease send a screenshot of this result.");
