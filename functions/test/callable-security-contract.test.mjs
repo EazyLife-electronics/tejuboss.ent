@@ -179,3 +179,20 @@ test("delivery queue uses a minimized App Check protected order projection", () 
   assert.ok(ui.includes("watchDeliveryOrders"));
   assert.equal(ui.includes("watchOrders"), false);
 });
+
+test("legacy public content operations use an App Check-protected, role-scoped callable", () => {
+  const content = read("../src/legacy-public-content-admin.mjs");
+  assert.ok(content.includes("manageLegacyPublicContent"));
+  assert.match(content, /enforceAppCheck:\s*true/);
+  assert.match(content, /permission-denied/);
+  assert.match(content, /HERO_FIELDS/);
+  assert.match(content, /REVIEW_FIELDS/);
+  assert.match(content, /PUBLIC_SETTINGS/);
+  assert.match(content, /query\.limit\(100\)/);
+  assert.match(content, /approved\s*===\s*true|where\("approved",\s*"==",\s*true\)/);
+  assert.match(content, /Requests are retained for business records/);
+  const store = read("../../js/store.mjs");
+  const legacyBlock = store.slice(store.indexOf("LEGACY CONTENT VIA TRUSTED FUNCTIONS"), store.indexOf("INVENTORY ADMIN TAB"));
+  assert.match(legacyBlock, /contentCall\(/);
+  assert.doesNotMatch(legacyBlock, /addDoc\(collection\(db,\s*['"]heroes|updateDoc\(doc\(db,\s*['"]reviews|setDoc\(doc\(db,\s*['"]settings/);
+});
