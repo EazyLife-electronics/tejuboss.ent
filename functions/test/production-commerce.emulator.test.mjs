@@ -207,7 +207,7 @@ test("production commerce callables: open stock, map option, guest order, confir
       call(recordOrderPayment, {
         orderId, amountMinor: 100, method: "Cash",
         idempotencyKey: "payment-unauthorized-" + suffix
-      }, staff),
+      }, { uid: "emulator-order-manager", token: { role: "order_manager" } }),
       error => error.code === "permission-denied"
     );
 
