@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
+import { planLooseStockSale } from "./domain/inventory-planning.mjs";
 
 const ID = /^[A-Za-z0-9_.-]{1,128}$/;
 const db = () => getFirestore();
@@ -76,22 +77,30 @@ export const decideOrder = onCall(
           if (!item || typeof item.balanceId !== "string" || !ID.test(item.balanceId) ||
               typeof item.stockUnits !== "number" || !Number.isSafeInteger(item.stockUnits) ||
               item.stockUnits <= 0 || seen.has(item.balanceId) ||
-              !["productId", "variantId", "locationId", "inventoryFormId", "stockUnitCode"].every(key => typeof item[key] === "string" && ID.test(item[key]))) {
+              !Number.isSafeInteger(item.stockUnitsPerBalanceUnit) || item.stockUnitsPerBalanceUnit <= 0 ||
+              !["productId", "variantId", "locationId", "inventoryFormId", "stockUnitCode"].every(key => typeof item[key] === "string" && ID.test(item[key])) ||
+              (item.sealedBalanceId !== null && item.sealedBalanceId !== undefined && (!ID.test(item.sealedBalanceId) || !Number.isSafeInteger(item.unitsPerPackage) || item.unitsPerPackage <= 0))) {
             throw new HttpsError("failed-precondition", "Order inventory snapshot is invalid or duplicated.");
           }
           seen.add(item.balanceId);
           normalized.push(item);
         }
 
-        const balanceRefs = normalized.map(item =>
-          firestore.collection("inventoryBalances").doc(item.balanceId)
-        );
+        const allBalanceIds = [...new Set(normalized.flatMap(item =>
+          item.sealedBalanceId ? [item.balanceId, item.sealedBalanceId] : [item.balanceId]
+        ))];
+        const balanceRefs = new Map(allBalanceIds.map(id => [
+          id, firestore.collection("inventoryBalances").doc(id)
+        ]));
         const balanceSnaps = decision === "confirm"
-          ? await Promise.all(balanceRefs.map(ref => tx.get(ref)))
-          : [];
+          ? new Map(await Promise.all([...balanceRefs.entries()].map(async ([id, ref]) => [id, await tx.get(ref)])))
+          : new Map();
         const trackingSnap = trackingRef ? await tx.get(trackingRef) : null;
 
-        const movements = normalized.map(() =>
+        const movementRefs = normalized.map(() =>
+          firestore.collection("inventoryMovements").doc()
+        );
+        const breakMovementRefs = normalized.map(() =>
           firestore.collection("inventoryMovements").doc()
         );
         const nextStatus = decision === "confirm" ? "confirmed" : "rejected";
@@ -110,23 +119,89 @@ export const decideOrder = onCall(
         if (decision === "confirm") {
           for (let i = 0; i < normalized.length; i++) {
             const item = normalized[i];
-            const snap = balanceSnaps[i];
-            if (!snap.exists) {
+            const primarySnap = balanceSnaps.get(item.balanceId);
+            if (!primarySnap?.exists) {
               throw new HttpsError("failed-precondition", "One or more inventory balances have not been initialized.");
             }
-            const balance = snap.data();
-            if (!Number.isSafeInteger(balance.quantityOnHand) || balance.quantityOnHand < 0 || balance.quantityOnHand < item.stockUnits) {
-              throw new HttpsError("failed-precondition", "Insufficient stock to confirm this order.", {
-                balanceId: item.balanceId
+            const primary = primarySnap.data();
+            if (!Number.isSafeInteger(primary.quantityOnHand) || primary.quantityOnHand < 0) {
+              throw new HttpsError("failed-precondition", "Inventory balance is malformed.");
+            }
+
+            let primaryAfter;
+            let sealedAfter = null;
+            let packagesOpened = 0;
+            let transferredUnits = 0;
+            let deductedBalanceUnits;
+
+            if (item.sealedBalanceId) {
+              if (item.stockUnitsPerBalanceUnit !== 1) {
+                throw new HttpsError("failed-precondition", "Loose-stock fallback requires base stock units in the primary balance.");
+              }
+              const sealedSnap = balanceSnaps.get(item.sealedBalanceId);
+              if (!sealedSnap?.exists) {
+                throw new HttpsError("failed-precondition", "Sealed-package inventory has not been initialized.");
+              }
+              const sealed = sealedSnap.data();
+              if (!Number.isSafeInteger(sealed.quantityOnHand) || sealed.quantityOnHand < 0) {
+                throw new HttpsError("failed-precondition", "Sealed-package balance is malformed.");
+              }
+              const plan = planLooseStockSale({
+                requestedUnits: item.stockUnits,
+                looseUnits: primary.quantityOnHand,
+                sealedPackages: sealed.quantityOnHand,
+                unitsPerSealedPackage: item.unitsPerPackage
+              });
+              if (!plan.feasible) {
+                throw new HttpsError("failed-precondition", "Insufficient loose and sealed stock to confirm this order.");
+              }
+              primaryAfter = plan.looseUnitsAfter;
+              sealedAfter = plan.sealedPackagesAfter;
+              packagesOpened = plan.packagesToOpen;
+              transferredUnits = plan.transferredUnits;
+              deductedBalanceUnits = item.stockUnits;
+              tx.update(balanceRefs.get(item.balanceId), {
+                quantityOnHand: primaryAfter,
+                updatedAt: FieldValue.serverTimestamp(),
+                updatedBy: request.auth.uid
+              });
+              tx.update(balanceRefs.get(item.sealedBalanceId), {
+                quantityOnHand: sealedAfter,
+                updatedAt: FieldValue.serverTimestamp(),
+                updatedBy: request.auth.uid
+              });
+            } else {
+              if (item.stockUnits % item.stockUnitsPerBalanceUnit !== 0) {
+                throw new HttpsError("failed-precondition", "Order quantity cannot be represented in the selected inventory form.");
+              }
+              deductedBalanceUnits = item.stockUnits / item.stockUnitsPerBalanceUnit;
+              if (primary.quantityOnHand < deductedBalanceUnits) {
+                throw new HttpsError("failed-precondition", "Insufficient stock in the configured inventory form.");
+              }
+              primaryAfter = primary.quantityOnHand - deductedBalanceUnits;
+              tx.update(balanceRefs.get(item.balanceId), {
+                quantityOnHand: primaryAfter,
+                updatedAt: FieldValue.serverTimestamp(),
+                updatedBy: request.auth.uid
               });
             }
-            const after = balance.quantityOnHand - item.stockUnits;
-            tx.update(balanceRefs[i], {
-              quantityOnHand: after,
-              updatedAt: FieldValue.serverTimestamp(),
-              updatedBy: request.auth.uid
-            });
-            tx.create(movements[i], {
+
+            if (packagesOpened > 0) {
+              tx.create(breakMovementRefs[i], {
+                movementType: "break_pack",
+                orderId,
+                productId: item.productId,
+                variantId: item.variantId,
+                locationId: item.locationId,
+                sourceInventoryFormId: item.sealedBalanceId,
+                destinationInventoryFormId: item.inventoryFormId,
+                packagesOpened,
+                unitsTransferred: transferredUnits,
+                createdAt: FieldValue.serverTimestamp(),
+                createdBy: request.auth.uid
+              });
+            }
+            tx.create(movementRefs[i], {
               movementType: "sale",
               orderId,
               productId: item.productId,
@@ -134,9 +209,10 @@ export const decideOrder = onCall(
               locationId: item.locationId,
               inventoryFormId: item.inventoryFormId,
               stockUnitCode: item.stockUnitCode,
-              quantity: item.stockUnits,
-              balanceBefore: balance.quantityOnHand,
-              balanceAfter: after,
+              quantity: deductedBalanceUnits,
+              canonicalStockUnits: item.stockUnits,
+              balanceBefore: primary.quantityOnHand,
+              balanceAfter: primaryAfter,
               createdAt: FieldValue.serverTimestamp(),
               createdBy: request.auth.uid
             });
