@@ -25,6 +25,7 @@ export const adjustInventoryPhysicalCount = onCall(
             currentQuantityOnHand: current.quantityOnHand
           });
         }
+        if (input.countedQuantity < (current.quantityReserved ?? 0)) throw new HttpsError("failed-precondition", "Physical count cannot be below the reserved quantity.");
         const delta = input.countedQuantity - current.quantityOnHand;
         if (delta === 0) return { success: true, unchanged: true, quantityOnHand: current.quantityOnHand };
         tx.update(balanceRef, {
