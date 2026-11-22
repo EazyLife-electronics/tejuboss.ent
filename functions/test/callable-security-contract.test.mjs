@@ -196,3 +196,20 @@ test("legacy public content operations use an App Check-protected, role-scoped c
   assert.match(legacyBlock, /contentCall\(/);
   assert.doesNotMatch(legacyBlock, /addDoc\(collection\(db,\s*['"]heroes|updateDoc\(doc\(db,\s*['"]reviews|setDoc\(doc\(db,\s*['"]settings/);
 });
+
+
+test("legacy product writes and admin listing use role-scoped App Check callables", () => {
+  const products = read("../src/legacy-product-admin.mjs");
+  assert.match(products, /manageLegacyProducts/);
+  assert.match(products, /enforceAppCheck:\\s*true/);
+  assert.match(products, /catalogue_manager/);
+  assert.match(products, /PRODUCT_FIELDS/);
+  assert.match(products, /VARIANT_FIELDS/);
+  assert.match(products, /auditLogs/);
+  const store = read("../../js/store.mjs");
+  const productBlock = store.slice(store.indexOf("PRODUCTS ----------------"), store.indexOf("ORDERS ----------------"));
+  assert.match(productBlock, /manageLegacyProducts/);
+  assert.match(productBlock, /productCall\\('publicList'\\)/);
+  assert.match(productBlock, /productCall\\('list'\\)/);
+  assert.doesNotMatch(productBlock, /addDoc\\(collection\\(db,\\s*['\"]products|updateDoc\\(doc\\(db,\\s*['\"]products|deleteDoc\\(doc\\(db,\\s*['\"]products/);
+});
