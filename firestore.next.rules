@@ -52,7 +52,9 @@ service cloud.firestore {
     }
 
     match /inventoryBalances/{balanceId} {
-      allow read, write: if hasRole('inventory_manager');
+      allow read: if hasRole('inventory_manager') || hasRole('order_manager');
+      // Balances change only through atomic trusted checkout/confirmation functions.
+      allow write: if false;
     }
 
     match /inventoryMovements/{movementId} {
