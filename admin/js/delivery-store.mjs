@@ -11,7 +11,17 @@ const manageConfigCall = httpsCallable(functions, 'manageLegacyDeliveryConfig');
 const createDeliveryCall = httpsCallable(functions, 'createLegacyDelivery');
 const updateDeliveryCall = httpsCallable(functions, 'updateLegacyDelivery');
 const watch = (name, cb) => onSnapshot(collection(db,name), s => cb(s.docs.map(d=>({id:d.id,...d.data()}))));
-const manage = (collectionName, action, id, data) => manageConfigCall({ collectionName, action, ...(id ? { id } : {}), ...(data ? { data } : {}) });
+const CONFIG_FIELDS = {
+  deliveryPersonnel: ['name','phone','email','active'],
+  deliveryTypes: ['name','description','active'],
+  deliveryCheckpoints: ['name','address','active']
+};
+const cleanConfig = (collectionName, data) => Object.fromEntries(
+  Object.entries(data || {}).filter(([key]) => CONFIG_FIELDS[collectionName]?.includes(key))
+);
+const manage = (collectionName, action, id, data) => manageConfigCall({
+  collectionName, action, ...(id ? { id } : {}), ...(data ? { data: cleanConfig(collectionName, data) } : {})
+});
 
 export const watchDeliveryPersonnel = cb => watch('deliveryPersonnel',cb);
 export const addDeliveryPersonnel = data => manage('deliveryPersonnel','create',null,data);
