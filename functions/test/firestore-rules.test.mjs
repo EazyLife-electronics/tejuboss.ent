@@ -54,6 +54,7 @@ beforeEach(async () => {
       costPriceMinor: 50000,
       marginTarget: 20
     });
+    await setDoc(doc(db, "inventoryBalances", "sample-balance"), { quantityOnHand: 50 });
     await setDoc(doc(db, "orders", "order-1"), {
       customerName: "Private customer",
       phone: "08000000000",
@@ -118,4 +119,11 @@ test("catalogue drafts and structured catalogue are not client-writable", async 
   const db = env.authenticatedContext("owner-uid", { role: "owner" }).firestore();
   await assertFails(setDoc(doc(db, "catalogueDrafts", "forged"), { draft: {} }));
   await assertFails(setDoc(doc(db, "catalogueProducts", "forged"), { published: true }));
+});
+
+test("inventory staff can inspect balances but cannot bypass movement transactions", async () => {
+  const staffDb = env.authenticatedContext("stock-uid", { role: "inventory_manager" }).firestore();
+  await assertSucceeds(getDoc(doc(staffDb, "inventoryBalances", "sample-balance")));
+  await assertFails(updateDoc(doc(staffDb, "inventoryBalances", "sample-balance"), { quantityOnHand: 0 }));
+  await assertFails(setDoc(doc(staffDb, "inventoryMovements", "forged"), { movementType: "sale" }));
 });
