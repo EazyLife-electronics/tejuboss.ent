@@ -7,7 +7,6 @@
  */
 import { randomUUID } from "node:crypto";
 import { calculateCheckoutQuote } from "../../src/domain/checkout-quote.mjs";
-import { planLooseStockSale } from "../../src/domain/inventory-planning.mjs";
 import {
   buildIdempotencyRecord,
   inspectIdempotencyReplay,
