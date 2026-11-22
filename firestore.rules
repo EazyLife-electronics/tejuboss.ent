@@ -9,7 +9,9 @@ service cloud.firestore {
     }
 
     match /products/{productId} {
-      allow read: if true;
+      // Public reads are limited to products explicitly marked in stock.
+      // The storefront query must include the same predicate; admins retain full access.
+      allow read: if isAdmin() || resource.data.inStock == true;
       allow write: if isAdmin();
     }
 
