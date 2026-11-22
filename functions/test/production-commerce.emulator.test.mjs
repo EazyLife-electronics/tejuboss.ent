@@ -155,7 +155,16 @@ test("production commerce callables: open stock, map option, guest order, confir
     assert.equal("trackingToken" in replay, false);
   } finally {
     const batch = db.batch();
-    if (orderId) batch.delete(db.collection("orders").doc(orderId));
+    if (orderId) {
+      batch.delete(db.collection("orders").doc(orderId));
+      const [moves, orderAudits] = await Promise.all([
+        db.collection("inventoryMovements").where("orderId", "==", orderId).get(),
+        db.collection("auditLogs").where("entityId", "==", orderId).get()
+      ]);
+      for (const doc of [...moves.docs, ...orderAudits.docs]) batch.delete(doc.ref);
+    }
+    const setupAudits = await db.collection("auditLogs").where("productId", "==", productId).get();
+    for (const doc of setupAudits.docs) batch.delete(doc.ref);
     if (trackingToken) batch.delete(db.collection("orderTracking").doc(hashTrackingCredential(trackingToken)));
     if (newTrackingToken) batch.delete(db.collection("orderTracking").doc(hashTrackingCredential(newTrackingToken)));
     if (sessionToken) {
