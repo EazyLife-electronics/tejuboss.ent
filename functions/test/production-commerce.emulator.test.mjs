@@ -9,6 +9,7 @@ import { saveInventoryMapping } from "../src/inventory-mapping.mjs";
 import { createGuestOrder } from "../src/guest-order.mjs";
 import { decideOrder } from "../src/order-confirmation.mjs";
 import { updateOrderFulfilment } from "../src/order-fulfilment.mjs";
+import { recordOrderPayment } from "../src/order-payment.mjs";
 import { getGuestOrderTracking, recoverGuestOrderTracking } from "../src/order-tracking.mjs";
 import { inventoryBalanceId } from "../src/domain/inventory-setup.mjs";
 import { inventoryMappingDocumentId } from "../src/domain/inventory-mapping.mjs";
@@ -169,6 +170,44 @@ test("production commerce callables: open stock, map option, guest order, confir
       error => error.code === "aborted"
     );
 
+    const paymentStaff = { uid: "emulator-payment-manager", token: { role: "payment_manager" } };
+    const partialPayment = await call(recordOrderPayment, {
+      orderId, amountMinor: 20000, method: "Bank transfer", reference: "TEST-TRANSFER-1",
+      idempotencyKey: "payment-partial-" + suffix
+    }, paymentStaff);
+    assert.equal(partialPayment.paymentStatus, "partially_paid");
+    assert.equal(partialPayment.paidTotalMinor, 20000);
+    assert.equal(partialPayment.outstandingMinor, 30000);
+    const paymentReplay = await call(recordOrderPayment, {
+      orderId, amountMinor: 20000, method: "Bank transfer", reference: "TEST-TRANSFER-1",
+      idempotencyKey: "payment-partial-" + suffix
+    }, paymentStaff);
+    assert.equal(paymentReplay.outcome, "already_recorded");
+    assert.equal((await db.collection("orders").doc(orderId).collection("payments").get()).size, 1);
+    await assert.rejects(
+      call(recordOrderPayment, {
+        orderId, amountMinor: 30001, method: "Cash",
+        idempotencyKey: "payment-overpay-" + suffix
+      }, paymentStaff),
+      error => error.code === "failed-precondition"
+    );
+    const finalPayment = await call(recordOrderPayment, {
+      orderId, amountMinor: 30000, method: "Cash",
+      idempotencyKey: "payment-final-" + suffix
+    }, paymentStaff);
+    assert.equal(finalPayment.paymentStatus, "paid");
+    assert.equal(finalPayment.paidTotalMinor, 50000);
+    const paidOrder = (await db.collection("orders").doc(orderId).get()).data();
+    assert.equal(paidOrder.paymentStatus, "paid");
+    assert.equal(paidOrder.paymentTotalMinor, 50000);
+    await assert.rejects(
+      call(recordOrderPayment, {
+        orderId, amountMinor: 100, method: "Cash",
+        idempotencyKey: "payment-unauthorized-" + suffix
+      }, staff),
+      error => error.code === "permission-denied"
+    );
+
     const replay = await call(createGuestOrder, {
       sessionToken,
       order: {
@@ -211,6 +250,8 @@ test("production commerce callables: open stock, map option, guest order, confir
     const batch = db.batch();
     for (const id of [orderId, secondOrderId].filter(Boolean)) {
       batch.delete(db.collection("orders").doc(id));
+      const paymentDocs = await db.collection("orders").doc(id).collection("payments").get();
+      for (const payment of paymentDocs.docs) batch.delete(payment.ref);
       const [moves, orderAudits] = await Promise.all([
         db.collection("inventoryMovements").where("orderId", "==", id).get(),
         db.collection("auditLogs").where("entityId", "==", id).get()
