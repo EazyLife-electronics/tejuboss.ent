@@ -5,7 +5,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 
 import "../admin/js/settings-ui.mjs";
 import "../admin/js/tejuboss-brand.mjs";
@@ -20,9 +20,9 @@ const firebaseConfig = {
   measurementId: "G-195KYYZY1H"
 };
 
-// Add the TejuBoss reCAPTCHA v3 site key here later.
-// Leave Firebase App Check enforcement OFF until the real key is added.
-const RECAPTCHA_V3_SITE_KEY = "REPLACE_WITH_RECAPTCHA_V3_SITE_KEY";
+// TejuBoss reCAPTCHA Enterprise site key.
+// Keep Firebase App Check enforcement OFF until staging verification is complete.
+const RECAPTCHA_ENTERPRISE_SITE_KEY = "6LfYMy0uAAAAAD-WU-l6gEzXq7CzFrlyE4M-Gmvi";
 
 let cached = null;
 
@@ -33,14 +33,11 @@ export function initFirebase() {
   const db = getFirestore(app);
   const auth = getAuth(app);
 
-  // Initialize App Check only after a real reCAPTCHA v3 key is supplied.
-  if (
-    RECAPTCHA_V3_SITE_KEY &&
-    RECAPTCHA_V3_SITE_KEY !== "REPLACE_WITH_RECAPTCHA_V3_SITE_KEY"
-  ) {
+  // Initialize App Check with the matching reCAPTCHA Enterprise provider.
+  if (RECAPTCHA_ENTERPRISE_SITE_KEY) {
     try {
       initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(RECAPTCHA_V3_SITE_KEY),
+        provider: new ReCaptchaEnterpriseProvider(RECAPTCHA_ENTERPRISE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
     } catch (err) {
