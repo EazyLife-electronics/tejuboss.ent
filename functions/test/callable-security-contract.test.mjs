@@ -120,3 +120,23 @@ test("manual legacy stock adjustments are server-authoritative and reasoned", ()
   assert.equal(changeStock.includes("runTransaction"), false);
   assert.ok(inventory.includes("runTransaction"), "metadata-only settings retain their current-value-preserving transaction");
 });
+
+test("supplier master and legacy inventory metadata use trusted callable operations", () => {
+  const operations = read("../src/purchase-operations.mjs");
+  for (const name of ["listLegacySuppliers", "saveLegacySupplier", "syncLegacyPurchaseSupplierLinks", "updateLegacyVariantMetadata"]) {
+    assert.ok(callableConfig(operations, name).includes("enforceAppCheck: true"), name + " must require App Check");
+  }
+  assert.ok(operations.includes("normalizedName"));
+  assert.ok(operations.includes("supplier_created"));
+  assert.ok(operations.includes("legacy_variant_metadata_updated"));
+  const suppliers = read("../../admin/js/suppliers.mjs");
+  const inventory = read("../../admin/js/inventory.mjs");
+  assert.ok(suppliers.includes("listLegacySuppliers"));
+  assert.ok(suppliers.includes("saveLegacySupplier"));
+  assert.ok(suppliers.includes("syncLegacyPurchaseSupplierLinks"));
+  assert.equal(suppliers.includes("getDocs(collection(db"), false);
+  assert.equal(suppliers.includes("addDoc(collection(db"), false);
+  assert.equal(suppliers.includes("updateDoc(doc(db"), false);
+  assert.ok(inventory.includes("updateLegacyVariantMetadata"));
+  assert.equal(inventory.includes("tx.update(productRef"), false);
+});
