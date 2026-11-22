@@ -200,6 +200,9 @@ test("production commerce callables: open stock, map option, guest order, confir
     const paidOrder = (await db.collection("orders").doc(orderId).get()).data();
     assert.equal(paidOrder.paymentStatus, "paid");
     assert.equal(paidOrder.paymentTotalMinor, 50000);
+    const paidTracking = await call(getGuestOrderTracking, { trackingToken: newTrackingToken });
+    assert.equal(paidTracking.tracking.paymentStatus, "paid");
+    assert.equal(paidTracking.tracking.paymentTotalMinor, 50000);
     await assert.rejects(
       call(recordOrderPayment, {
         orderId, amountMinor: 100, method: "Cash",
