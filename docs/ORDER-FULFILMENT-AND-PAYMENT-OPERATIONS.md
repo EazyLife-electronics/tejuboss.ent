@@ -42,7 +42,7 @@ Payment is independent from order acceptance and fulfilment. The callable `recor
 - Every receipt creates an audit log entry.
 - Payment staff can see order/payment totals but the staff queue omits customer phone, email and delivery address for that role.
 
-The first version does not implement refunds, reversals, payment disputes, automatic bank verification, gateway webhooks, reconciliation exports or cash-drawer accounting. Incorrect entries require a controlled correction process before live use; do not edit payment ledger records directly.
+The authorized owner/payment staff can open a read-only payment history for each order. It lists receipts chronologically with amount, method, optional reference, receipt time and cumulative paid total. Staff UIDs are not exposed to the browser. The history is limited to 200 entries per order in this view.\n\nThe first version does not implement refunds, reversals, payment disputes, automatic bank verification, gateway webhooks, reconciliation exports or cash-drawer accounting. Incorrect entries require a controlled correction process before live use; do not edit payment ledger records directly.
 
 ## Roles
 
@@ -55,7 +55,7 @@ These are custom-claim role names. Existing sign-in does not automatically grant
 
 ## Verification
 
-The emulator integration test covers pickup fulfilment progression, customer tracking timeline, stale transition rejection, partial payment, idempotent replay, overpayment rejection, final settlement, customer tracking payment status and payment-role authorization.
+The emulator integration test covers pickup fulfilment progression, customer tracking timeline, stale transition rejection, partial payment, idempotent replay, overpayment rejection, final settlement, customer tracking payment status, payment history ordering and field minimization, and payment-role authorization.
 
 ## Rollout boundary
 
