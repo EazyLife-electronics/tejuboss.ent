@@ -28,6 +28,7 @@ export function toPublicCatalogueCard(document, documentId = "") {
     variants: document.variants.map(variant => ({
       id: variant.id,
       stockUnitLabel: String(variant.stockUnit?.label || variant.stockUnit?.code || ""),
+      quantityPrecision: variant.quantityPrecision,
       sellingOptions: variant.sellingOptions.map(option => ({
         id: option.id,
         label: option.displayName,
