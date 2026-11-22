@@ -181,11 +181,11 @@ test("production commerce callables: open stock, map option, guest order, confir
     assert.equal(rejectedTracking.tracking.status, "rejected");
   } finally {
     const batch = db.batch();
-    if (orderId) {
-      batch.delete(db.collection("orders").doc(orderId));
+    for (const id of [orderId, secondOrderId].filter(Boolean)) {
+      batch.delete(db.collection("orders").doc(id));
       const [moves, orderAudits] = await Promise.all([
-        db.collection("inventoryMovements").where("orderId", "==", orderId).get(),
-        db.collection("auditLogs").where("entityId", "==", orderId).get()
+        db.collection("inventoryMovements").where("orderId", "==", id).get(),
+        db.collection("auditLogs").where("entityId", "==", id).get()
       ]);
       for (const doc of [...moves.docs, ...orderAudits.docs]) batch.delete(doc.ref);
     }
