@@ -11,6 +11,8 @@ import { decideOrder } from "../src/order-confirmation.mjs";
 import { getGuestOrderTracking, recoverGuestOrderTracking } from "../src/order-tracking.mjs";
 import { inventoryBalanceId } from "../src/domain/inventory-setup.mjs";
 import { inventoryMappingDocumentId } from "../src/domain/inventory-mapping.mjs";
+import { hashGuestSessionCredential } from "../src/domain/guest-session.mjs";
+import { buildIdempotencyRecord, hashTrackingCredential } from "../src/domain/order-security.mjs";
 
 const projectId = "tejuboss-rules-test";
 let app, db;
@@ -152,27 +154,25 @@ test("production commerce callables: open stock, map option, guest order, confir
     assert.equal(replay.orderId, orderId);
     assert.equal("trackingToken" in replay, false);
   } finally {
-    const orderRef = orderId ? db.collection("orders").doc(orderId) : null;
-    const orderSnap = orderRef ? await orderRef.get() : null;
-    const trackingHashes = [trackingToken, newTrackingToken].filter(Boolean);
     const batch = db.batch();
-    if (orderRef && orderSnap?.exists) batch.delete(orderRef);
-    for (const token of trackingHashes) {
-      const { hashTrackingCredential } = await import("../src/domain/order-security.mjs");
-      batch.delete(db.collection("orderTracking").doc(hashTrackingCredential(token)));
-    }
-    batch.delete(db.collection("guestSessions").doc((await import("../src/domain/guest-session.mjs")).hashGuestSessionCredential(sessionToken)));
-    batch.delete(db.collection("checkoutIdempotency").doc((await import("../src/domain/order-security.mjs")).buildIdempotencyRecord({
-      scopeId: (await import("../src/domain/guest-session.mjs")).hashGuestSessionCredential(sessionToken),
-      idempotencyKey: "grocery-" + suffix,
-      payload: {
+    if (orderId) batch.delete(db.collection("orders").doc(orderId));
+    if (trackingToken) batch.delete(db.collection("orderTracking").doc(hashTrackingCredential(trackingToken)));
+    if (newTrackingToken) batch.delete(db.collection("orderTracking").doc(hashTrackingCredential(newTrackingToken)));
+    if (sessionToken) {
+      const sessionHash = hashGuestSessionCredential(sessionToken);
+      batch.delete(db.collection("guestSessions").doc(sessionHash));
+      batch.delete(db.collection("checkoutIdempotency").doc(buildIdempotencyRecord({
+        scopeId: sessionHash,
         idempotencyKey: "grocery-" + suffix,
-        items: [{ productId, variantId, sellingOptionId: optionId, quantity: 1 }],
-        customer: { name: "Emulator Buyer", phone: "08000000000" },
-        fulfilment: { method: "pickup" },
-        note: ""
-      }
-    })).keyHash);
+        payload: {
+          idempotencyKey: "grocery-" + suffix,
+          items: [{ productId, variantId, sellingOptionId: optionId, quantity: 1 }],
+          customer: { name: "Emulator Buyer", phone: "08000000000" },
+          fulfilment: { method: "pickup" },
+          note: ""
+        }
+      }).keyHash));
+    }
     batch.delete(db.collection("inventoryMappings").doc(mappingId));
     batch.delete(db.collection("inventoryBalances").doc(balanceId));
     batch.delete(db.collection("inventoryForms").doc(formId));
