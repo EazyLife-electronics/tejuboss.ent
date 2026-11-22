@@ -86,7 +86,7 @@ service cloud.firestore {
       allow write: if false;
 
       match /payments/{paymentId} {
-        allow read: if hasRole('payment_manager') || hasRole('order_manager');
+        allow read: if hasRole('payment_manager');
         allow write: if false;
       }
     }
