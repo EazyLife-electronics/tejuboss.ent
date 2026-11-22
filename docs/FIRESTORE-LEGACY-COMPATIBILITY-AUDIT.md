@@ -50,3 +50,50 @@ The branch now contains an initial compatibility migration:
 - The public tracking page no longer loads saved legacy codes automatically because each lookup needs the phone suffix.
 
 This is source-level implementation, not a deployment. The real App Check site key is still a prerequisite. The legacy code plus phone suffix is a compatibility factor, not equivalent to the 256-bit token used by new guest orders. Privacy-safe per-IP/application throttling and emulator/staging tests of the callable response remain required before any public rollout. The separate structured checkout preview continues to use its high-entropy tracking token flow.
+
+
+## Broader legacy collection and admin workflow audit
+
+The source review confirms that `firestore.next.rules` is intentionally a strict security boundary, but it is not yet a compatible replacement for `firestore.rules`. The following live source modules still use direct Firestore client operations:
+
+| Collection | Existing use | Current legacy rule behavior | Hardened candidate status | Required migration / decision |
+|---|---|---|---|---|
+| `products` | Public shop reads; admin create/edit/delete; inventory and purchase transactions update variant stock | Public read, admin write | Public read only when `published == true`; catalogue-manager write | Existing product documents may not have `published`. Audit real document shape and storefront query before enforcing this predicate. Move stock mutations to trusted inventory functions before disabling admin transaction writes. |
+| `heroes` | Public homepage content; admin CRUD | Public read, admin write | Denied by catch-all | Add public-safe read and owner/marketing role writes after checking the hero schema and public fields. |
+| `reviews` | Public review display; public submission; admin approve/edit/delete | Public read/create, admin update/delete | Denied by catch-all | Add strict public create validation and approved-only public reads. Staff moderation should be role-gated. |
+| `requests` | Public sourcing request submission; admin queue and status updates | Public create, admin read/update/delete | Denied by catch-all | Preserve validated public create; restrict reads and status changes to owner/order-support role. Add field/type/length limits and abuse controls. |
+| `settings` | Public storefront settings read; admin settings update | Public read, admin write | Denied by catch-all | Split public-safe settings from private operational configuration. Do not expose payment, staff, or private delivery settings through a general public document. |
+| `orders` | Legacy order create/tracking; admin order/customer/payment views and status changes | Constrained public create, public get, admin list/update/delete | Staff reads only; all client writes denied | Migrate all customer order creation, status changes, payment records and tracking to trusted Functions. The tracking page migration is in progress; audit other order readers and admin UI adapters before rules rollout. |
+| `orders/{id}/payments` | Admin payment ledger direct reads/writes | Admin CRUD | Payment-role read only; all client writes denied | Finish callable migration for payment recording/refunds and test customer ledger, reports and payment history. |
+| `inventoryMovements` | Legacy stock adjustment, purchase receipt and void transactions; inventory reports | Admin CRUD | Inventory/report role read; all client writes denied | Route all stock mutations through trusted atomic Functions, including purchase receipt/void. Preserve report access through a safe role-specific read or callable projection. |
+| `purchases` | Purchase receiving, history, void transaction | Admin CRUD | Denied by catch-all | Move receive/void transactions to trusted Functions; retain immutable purchase history and role-limited reads. |
+| `suppliers` | Supplier master create/read/update and purchase linking | Admin CRUD | Denied by catch-all | Add supplier-manager/inventory-manager access or trusted callable APIs. Supplier contact details are private. |
+| `deliveryPersonnel`, `deliveryTypes`, `deliveryCheckpoints` | Delivery operations configuration and admin CRUD | Admin CRUD | Denied by catch-all | Add delivery-manager access with field validation, or move operations to callables. These collections are not public. |
+| `deliveries` | Admin delivery queue and lifecycle; legacy tracking read | Public get, admin list/write | Delivery/order role read; client writes denied | Finish server-side delivery lifecycle writes and customer-safe tracking projection. Never restore public reads of full delivery documents. |
+| `customers` | Customer account records | No explicit legacy match | Customer can read/write own UID document in candidate | Verify whether this collection is used by the current site and whether customer self-write fields can be abused before retaining this rule. |
+| `catalogueProducts`, `publicPricing` | New structured storefront projections | Not present in legacy rules | Public read of published/enabled projections; no client writes | Retain trusted publisher-only writes and test exact public projection contents. |
+| `guestSessions`, `checkoutIdempotency`, `catalogueDrafts`, `pricingConfigs`, `inventoryMappings`, `deliveryPolicies` | Private backend state | Not present in legacy rules | All direct client access denied | Keep backend-only. |
+| `inventoryForms`, `inventoryBalances`, `auditLogs`, `orderTracking`, `deliveryTracking` | New structured inventory, audit and token tracking | Not present in legacy rules | Role-limited reads or token-only single-document reads; no client writes | Keep private or customer-safe by projection. Confirm each UI uses the corresponding callable/token adapter. |
+
+### Important implementation observations
+
+1. The legacy admin dashboard currently signs in with email/password and then subscribes to collections. The browser UI does not itself provision or enforce the custom role claims used by the hardened rules. A signed-in account without a verified `role` claim will be denied by the candidate rules.
+2. The current legacy rules use an email allow-list for admin access. The hardened candidate uses a custom claim. Staff claim provisioning and least-privilege role assignment must be completed and tested before rollout.
+3. The current inventory and purchase modules still use Firestore client transactions to update product variant stock and write purchase/movement records. Simply granting broad client writes would preserve the UI but undermine the new trusted inventory boundary. These transactions need backend replacements.
+4. The current delivery operations UI still directly creates and updates delivery records and configuration collections. It needs a delivery-manager callable migration before the candidate's no-client-write policy can be adopted.
+5. Public reads of entire `settings`, `orders`, or `deliveries` documents are not acceptable as a compatibility shortcut. Use purpose-built public projections or callable responses with explicit field allow-lists.
+6. Existing product documents and public homepage content need a data-shape audit. A rule predicate such as `published == true` can make legacy documents disappear if the field was never populated.
+7. The candidate rules are tested as a security candidate, not as a drop-in deployment. The emulator suite currently validates the new security boundaries. It must be expanded with migrated legacy workflow tests as each adapter is replaced.
+
+### Current rollout decision
+
+Do not replace the live rules yet. The next implementation slices should be:
+
+- Public content: migrate heroes, reviews, public settings and requests to explicitly scoped rules/projections.
+- Inventory and purchases: move receive, adjustment, void and stock mutation transactions behind trusted Functions.
+- Delivery: move create, assign, transition, checkpoint and configuration writes behind delivery-manager Functions; keep full delivery records private.
+- Orders and payments: finish all legacy admin/customer adapters and test the customer ledger and reporting flows.
+- Roles: provision test identities with each supported custom claim and verify both allowed and denied operations.
+- End-to-end emulator tests: cover public shop, homepage, review/request forms, admin tabs, purchasing, supplier master, stock reports, delivery operations, customer records and tracking.
+
+No production rules or Functions have been deployed as part of this audit.
