@@ -81,7 +81,12 @@ export const createGuestOrder = onCall(
   async request => {
     if (request.auth) fail("invalid-argument", "This endpoint is for guest checkout.");
     const rawSessionToken = sessionToken(request.data);
-    const validated = validateCreateOrderRequest(request.data.order);
+    let validated;
+    try { validated = validateCreateOrderRequest(request.data.order); }
+    catch (error) {
+      if (error?.code === "INVALID_ARGUMENT") fail("invalid-argument", error.message, error.details);
+      throw error;
+    }
     let sessionHash;
     try { sessionHash = hashGuestSessionCredential(rawSessionToken); }
     catch { fail("unauthenticated", "Guest checkout session is invalid or expired."); }
@@ -212,6 +217,9 @@ export const createGuestOrder = onCall(
       });
     } catch (error) {
       if (error instanceof HttpsError) throw error;
+      if (["PRODUCT_UNAVAILABLE", "CATALOGUE_NOT_READY", "MINIMUM_ORDER_QUANTITY", "INVALID_ORDER_QUANTITY_STEP", "DELIVERY_POLICY_UNAVAILABLE", "DELIVERY_AREA_UNSUPPORTED", "DELIVERY_AREA_REQUIRED", "DELIVERY_METHOD_NOT_SUPPORTED"].includes(error?.code)) {
+        throw new HttpsError("failed-precondition", error.message);
+      }
       console.error("createGuestOrder failed", error);
       throw new HttpsError("internal", "Could not create this order. No stock was deducted.");
     }
