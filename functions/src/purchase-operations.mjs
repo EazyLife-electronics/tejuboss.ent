@@ -239,3 +239,101 @@ export const adjustLegacyVariantStock = onCall({ region: "europe-west1", enforce
     throw new HttpsError("internal", "Stock adjustment was not saved.");
   }
 });
+
+function validateSupplier(data, updating = false) {
+  const allowed = ["supplierId","name","business","contactPerson","phone","whatsapp","email","address","notes"];
+  if (!data || typeof data !== "object" || Array.isArray(data) || Object.keys(data).some(k => !allowed.includes(k))) fail("invalid-argument", "Supplier request contains unsupported fields.");
+  if (updating && (typeof data.supplierId !== "string" || !ID.test(data.supplierId))) fail("invalid-argument", "Supplier ID is invalid.");
+  const fields = {};
+  for (const key of ["name","business","contactPerson","phone","whatsapp","email","address","notes"]) {
+    const value = data[key] ?? "";
+    if (typeof value !== "string" || value.length > (key === "notes" || key === "address" ? 1000 : 180)) fail("invalid-argument", key + " is invalid or too long.");
+    fields[key] = value.trim();
+  }
+  fields.name = fields.name.replace(/\s+/g, " ");
+  if (!fields.name) fail("invalid-argument", "Supplier name is required.");
+  if (fields.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) fail("invalid-argument", "Supplier email is invalid.");
+  fields.normalizedName = fields.name.toLowerCase();
+  return fields;
+}
+export const listLegacySuppliers = onCall({ region: "europe-west1", enforceAppCheck: true }, async request => {
+  authorize(request);
+  if (request.data && Object.keys(request.data).length) fail("invalid-argument", "This request accepts no filters.");
+  const db = getFirestore();
+  try {
+    const [suppliersSnap, purchasesSnap] = await Promise.all([
+      db.collection("suppliers").orderBy("name").limit(500).get(),
+      db.collection("purchases").orderBy("createdAt","desc").limit(1000).get()
+    ]);
+    return {
+      suppliers: suppliersSnap.docs.map(d => ({ id:d.id, name:d.get("name")||"", normalizedName:d.get("normalizedName")||"", business:d.get("business")||"", contactPerson:d.get("contactPerson")||"", phone:d.get("phone")||"", whatsapp:d.get("whatsapp")||"", email:d.get("email")||"", address:d.get("address")||"", notes:d.get("notes")||"", source:d.get("source")||"legacy", createdAtMillis:d.get("createdAt")?.toMillis?.()||0, updatedAtMillis:d.get("updatedAt")?.toMillis?.()||0 })),
+      purchases: purchasesSnap.docs.map(d => ({ id:d.id, supplier:d.get("supplier")||"", supplierId:d.get("supplierId")||"", quantity:Number.isSafeInteger(d.get("quantity"))?d.get("quantity"):0, totalCost:Number.isSafeInteger(d.get("totalCost"))?d.get("totalCost"):0, status:d.get("status")||"received", createdAtMillis:d.get("createdAt")?.toMillis?.()||0 })),
+      truncated: suppliersSnap.size===500 || purchasesSnap.size===1000
+    };
+  } catch(e) { console.error("listLegacySuppliers failed",e); throw new HttpsError("internal","Could not load supplier records."); }
+});
+export const saveLegacySupplier = onCall({ region: "europe-west1", enforceAppCheck: true }, async request => {
+  authorize(request);
+  const input=validateSupplier(request.data, Boolean(request.data?.supplierId));
+  const db=getFirestore(), ref=input.supplierId?db.collection("suppliers").doc(input.supplierId):db.collection("suppliers").doc(), auditRef=db.collection("auditLogs").doc();
+  try {
+    return await db.runTransaction(async tx=>{
+      const existing=await tx.get(ref);
+      if(input.supplierId&&!existing.exists) fail("not-found","Supplier record no longer exists.");
+      const duplicate=await tx.get(db.collection("suppliers").where("normalizedName","==",input.normalizedName).limit(5));
+      if(duplicate.docs.some(d=>d.id!==ref.id)) fail("already-exists","A supplier with this name already exists. Edit that record instead.");
+      const now={updatedAt:FieldValue.serverTimestamp(),updatedBy:request.auth.uid};
+      if(existing.exists) tx.update(ref,{...input,...now});
+      else tx.create(ref,{...input,source:"manual",createdAt:FieldValue.serverTimestamp(),createdBy:request.auth.uid,...now});
+      tx.create(auditRef,{action:existing.exists?"supplier_updated":"supplier_created",entityType:"supplier",entityId:ref.id,actorUid:request.auth.uid,actorRole:request.auth.token.role,createdAt:FieldValue.serverTimestamp()});
+      return {success:true,supplierId:ref.id,created:!existing.exists};
+    });
+  } catch(e) { if(e instanceof HttpsError)throw e; console.error("saveLegacySupplier failed",e); throw new HttpsError("internal","Supplier record was not saved."); }
+});
+export const syncLegacyPurchaseSupplierLinks = onCall({ region: "europe-west1", enforceAppCheck: true }, async request => {
+  authorize(request);
+  if(request.data && Object.keys(request.data).length) fail("invalid-argument","This request accepts no filters.");
+  const db=getFirestore();
+  try {
+    const snap=await db.collection("purchases").orderBy("createdAt","desc").limit(1000).get();
+    let linked=0,created=0,skipped=0;
+    for(const purchaseDoc of snap.docs){
+      const p=purchaseDoc.data();
+      if(p.status==="voided"||p.supplierId||typeof p.supplier!=="string"||!p.supplier.trim()){skipped++;continue;}
+      const name=p.supplier.trim().replace(/\s+/g," "), normalizedName=name.toLowerCase();
+      const result=await db.runTransaction(async tx=>{
+        const fresh=await tx.get(purchaseDoc.ref);
+        if(!fresh.exists||fresh.get("status")==="voided"||fresh.get("supplierId")) return {linked:false,created:false};
+        const matches=await tx.get(db.collection("suppliers").where("normalizedName","==",normalizedName).limit(1));
+        let supplierRef,wasCreated=false;
+        if(!matches.empty) supplierRef=matches.docs[0].ref;
+        else {
+          supplierRef=db.collection("suppliers").doc();wasCreated=true;
+          tx.create(supplierRef,{name,normalizedName,business:"",contactPerson:"",phone:"",whatsapp:"",email:"",address:"",notes:"Linked from legacy purchase history.",source:"purchase",createdAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp(),createdBy:request.auth.uid});
+        }
+        tx.update(purchaseDoc.ref,{supplier:supplierRef?name:name,supplierId:supplierRef.id,supplierSyncedAt:FieldValue.serverTimestamp()});
+        return {linked:true,created:wasCreated};
+      });
+      if(result.linked){linked++;if(result.created)created++;}else skipped++;
+    }
+    return {success:true,linked,created,skipped,limited:snap.size===1000};
+  } catch(e) { if(e instanceof HttpsError)throw e; console.error("syncLegacyPurchaseSupplierLinks failed",e); throw new HttpsError("internal","Supplier purchase links were not fully synchronized. Refresh and retry."); }
+});
+export const updateLegacyVariantMetadata = onCall({ region: "europe-west1", enforceAppCheck: true }, async request => {
+  authorize(request);
+  const d=request.data||{}, allowed=["productId","variantId","sku","reorderLevel","costPrice","expectedQuantity"];
+  if(!d||typeof d!=="object"||Array.isArray(d)||Object.keys(d).some(k=>!allowed.includes(k)))fail("invalid-argument","Inventory settings contain unsupported fields.");
+  for(const k of ["productId","variantId"])if(typeof d[k]!=="string"||!ID.test(d[k]))fail("invalid-argument",k+" is invalid.");
+  if(typeof d.sku!=="string"||d.sku.length>60||!Number.isSafeInteger(d.reorderLevel)||d.reorderLevel<0||d.reorderLevel>100000000||!Number.isSafeInteger(d.costPrice)||d.costPrice<0||d.costPrice>100000000000||!Number.isSafeInteger(d.expectedQuantity)||d.expectedQuantity<0)fail("invalid-argument","SKU, reorder level, cost price or expected stock is invalid.");
+  const db=getFirestore(),productRef=db.collection("products").doc(d.productId),auditRef=db.collection("auditLogs").doc();
+  try{return await db.runTransaction(async tx=>{
+    const snap=await tx.get(productRef);if(!snap.exists)fail("not-found","Product no longer exists.");
+    const product=snap.data(),variants=Array.isArray(product.variants)?[...product.variants]:[],i=variants.findIndex(v=>v?.id===d.variantId);
+    if(i<0)fail("failed-precondition","Variant no longer exists.");
+    const current=Number(variants[i].stockQty||0);if(current!==d.expectedQuantity)fail("aborted","Stock changed while editing. Refresh and try again.");
+    variants[i]={...variants[i],sku:d.sku.trim(),reorderLevel:d.reorderLevel,costPrice:d.costPrice,stockQty:current,inStock:current>0};
+    tx.update(productRef,{variants,inStock:variants.some(v=>Number(v.stockQty||0)>0)});
+    tx.create(auditRef,{action:"legacy_variant_metadata_updated",entityType:"product_variant",entityId:d.productId+":"+d.variantId,sku:d.sku.trim(),reorderLevel:d.reorderLevel,costPrice:d.costPrice,actorUid:request.auth.uid,actorRole:request.auth.token.role,createdAt:FieldValue.serverTimestamp()});
+    return {success:true};
+  });}catch(e){if(e instanceof HttpsError)throw e;console.error("updateLegacyVariantMetadata failed",e);throw new HttpsError("internal","Inventory settings were not saved.");}
+});
