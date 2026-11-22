@@ -30,7 +30,7 @@ function validateDraft(draft) {
   return draft;
 }
 
-export const saveCatalogueDraft = onCall({ region: "europe-west1" }, async request => {
+export const saveCatalogueDraft = onCall({ region: "europe-west1", enforceAppCheck: true }, async request => {
   authorize(request);
   const data = request.data || {};
   if (Object.keys(data).some(key => !["draft", "expectedVersion"].includes(key))) {
@@ -56,7 +56,7 @@ export const saveCatalogueDraft = onCall({ region: "europe-west1" }, async reque
   });
 });
 
-export const listCatalogueDrafts = onCall({ region: "europe-west1" }, async request => {
+export const listCatalogueDrafts = onCall({ region: "europe-west1", enforceAppCheck: true }, async request => {
   authorize(request);
   if (request.data && Object.keys(request.data).length) {
     throw new HttpsError("invalid-argument", "This endpoint accepts no input.");
@@ -71,7 +71,7 @@ import { buildPublishedCatalogueProduct } from "./domain/catalogue-publication.m
  * Explicit publication step. This never initializes or changes inventory.
  * The separate collection keeps legacy storefront documents untouched.
  */
-export const publishCatalogueDraft = onCall({ region: "europe-west1" }, async request => {
+export const publishCatalogueDraft = onCall({ region: "europe-west1", enforceAppCheck: true }, async request => {
   authorize(request);
   const data = request.data || {};
   if (Object.keys(data).some(key => !["draftId", "expectedVersion"].includes(key))) {
