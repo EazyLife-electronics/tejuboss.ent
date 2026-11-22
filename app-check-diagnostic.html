@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>TejuBoss App Check diagnostic</title>
+<style>
+body{font:16px system-ui,sans-serif;max-width:680px;margin:40px auto;padding:0 18px;line-height:1.5}
+main{border:1px solid #ddd;border-radius:14px;padding:22px}
+#status{padding:12px;border-radius:8px;background:#f2f2f2;white-space:pre-wrap;overflow-wrap:anywhere}
+.muted{color:#555;font-size:14px}
+</style>
+</head>
+<body>
+<main>
+<h1>TejuBoss App Check test</h1>
+<p>This page checks whether this browser can obtain a Firebase App Check token. It never displays or stores the token.</p>
+<p id="status" role="status" aria-live="polite">Starting Firebase…</p>
+<p class="muted">A successful result confirms token acquisition in this browser. It does not enable enforcement or prove every protected workflow.</p>
+</main>
+<script type="module">
+import { getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAppCheck, getToken } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
+import { initFirebase } from "./js/firebase.mjs";
+const status = document.getElementById("status");
+const show = (message) => { status.textContent = message; };
+try {
+  initFirebase();
+  const appCheck = getAppCheck(getApp());
+  const result = await getToken(appCheck, false);
+  if (!result || !result.token) throw new Error("Firebase returned an empty App Check token.");
+  show("SUCCESS: This browser obtained a Firebase App Check token.\nToken value: hidden.\nPlease send a screenshot of this result.");
+} catch (error) {
+  console.error("TejuBoss App Check diagnostic failed:", error);
+  show("NOT VERIFIED: " + (error?.code || error?.message || "Unknown App Check error") +
+    "\nPlease send a screenshot of this message. Do not copy or share any token.");
+}
+</script>
+</body>
+</html>
