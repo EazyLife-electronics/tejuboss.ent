@@ -40,7 +40,7 @@ The callable endpoints are exported but not deployed. Existing legacy storefront
 - Existing product administration stores variant price, promotion, stock and bulk-savings fields in the legacy product structure.
 - Existing `js/pricing.mjs` contains delivery-fee calculations and legacy variant/bulk helpers; it is not the new authoritative quantity-tier pricing engine.
 - The product editor currently has a simple per-variant bulk-savings toggle with inherited or own flat percentage/minimum quantity. It cannot express the agreed tiered, cross-unit, blended package-equivalent rules.
-- The repository tree currently has no `functions/` backend, root `firebase.json`, or visible automated test harness.
+- The development branch now has a `functions/` workspace, root Firebase/emulator configuration, automated domain tests and GitHub Actions CI. Production Firebase configuration and deployment remain separate.
 - `js/firebase.mjs` contains the dedicated Tejuboss Firebase project configuration and an unconfigured App Check placeholder. Do not enforce App Check until a valid site key and rollout plan exist.
 - The admin order messaging code currently contains a hard-coded `https://tejuboss.ent` tracking URL. The intended public domain is `tejuboss.ng`; the tracking base URL must become configuration-driven and must not be treated as live until DNS/hosting is connected.
 
