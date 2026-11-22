@@ -55,6 +55,9 @@ beforeEach(async () => {
       marginTarget: 20
     });
     await setDoc(doc(db, "inventoryBalances", "sample-balance"), { quantityOnHand: 50 });
+    await setDoc(doc(db, "deliveryPersonnel", "rider-1"), { name: "Test Rider", phone: "08000000000", active: true });
+    await setDoc(doc(db, "deliveryTypes", "home"), { name: "Home Delivery", active: true });
+    await setDoc(doc(db, "deliveryCheckpoints", "hub"), { name: "Main Hub", active: true });
     await setDoc(doc(db, "orders", "order-1"), {
       customerName: "Private customer",
       phone: "08000000000",
@@ -134,6 +137,17 @@ test("inventory staff can inspect balances but cannot bypass movement transactio
   await assertSucceeds(getDoc(doc(staffDb, "inventoryBalances", "sample-balance")));
   await assertFails(updateDoc(doc(staffDb, "inventoryBalances", "sample-balance"), { quantityOnHand: 0 }));
   await assertFails(setDoc(doc(staffDb, "inventoryMovements", "forged"), { movementType: "sale" }));
+});
+
+test("delivery managers can read delivery reference data but cannot write it", async () => {
+  const deliveryDb = env.authenticatedContext("delivery-uid", { role: "delivery_manager" }).firestore();
+  const orderDb = env.authenticatedContext("order-uid", { role: "order_manager" }).firestore();
+  await assertSucceeds(getDoc(doc(deliveryDb, "deliveryPersonnel", "rider-1")));
+  await assertSucceeds(getDoc(doc(deliveryDb, "deliveryTypes", "home")));
+  await assertSucceeds(getDoc(doc(deliveryDb, "deliveryCheckpoints", "hub")));
+  await assertFails(setDoc(doc(deliveryDb, "deliveryPersonnel", "forged"), { name: "Forged" }));
+  await assertFails(updateDoc(doc(deliveryDb, "deliveryTypes", "home"), { active: false }));
+  await assertFails(getDoc(doc(orderDb, "deliveryPersonnel", "rider-1")));
 });
 
 test("only owner and payment staff can read payment receipt records", async () => {
