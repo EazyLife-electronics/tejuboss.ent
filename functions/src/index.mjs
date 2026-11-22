@@ -257,3 +257,5 @@ export { getPublicDeliveryOptions } from "./delivery-public.mjs";
 export { updateOrderFulfilment } from "./order-fulfilment.mjs";
 
 export { recordOrderPayment, listOrderPaymentHistory } from "./order-payment.mjs";
+
+export { listCommerceOrderArchive } from "./order-archive.mjs";
