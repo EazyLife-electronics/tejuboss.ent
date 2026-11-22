@@ -189,7 +189,7 @@ test("production commerce callables: open stock, map option, guest order, confir
         orderId, amountMinor: 30001, method: "Cash",
         idempotencyKey: "payment-overpay-" + suffix
       }, paymentStaff),
-      error => error.code === "failed-precondition"
+      error => error.message.includes("Payment exceeds the outstanding order balance")
     );
     const finalPayment = await call(recordOrderPayment, {
       orderId, amountMinor: 30000, method: "Cash",
