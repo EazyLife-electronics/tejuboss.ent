@@ -253,3 +253,5 @@ export { listPendingCommerceOrders } from "./order-queue.mjs";
 export { getGuestOrderTracking, recoverGuestOrderTracking } from "./order-tracking.mjs";
 
 export { getPublicDeliveryOptions } from "./delivery-public.mjs";
+
+export { updateOrderFulfilment } from "./order-fulfilment.mjs";
