@@ -29,4 +29,4 @@ async function start(){
  try{const r=await getPolicy({}),p=r.data;version=p.versionNumber||0;areas=(p.areas||[]).map(a=>({...a,fee:naira(a.feeMinor)}));render();host.querySelector("#deliveryEnabled").checked=p.enabled===true;host.querySelector("#deliveryMethod").value=p.method||"flat_per_order";host.querySelector("#deliveryBaseFee").value=naira(p.baseFeeMinor);}
  catch(e){host.innerHTML='<p class="bg-amber-50 text-amber-800 rounded-xl p-4 text-xs">Delivery settings require an authorized delivery manager account and App Check. '+esc(e.message)+'</p>';}
 }
-start();
+let started=false;\nconst deliveryTab=document.querySelector('[data-tab="delivery"]');\ndeliveryTab?.addEventListener("click",()=>{if(!started){started=true;start();}});
