@@ -260,3 +260,5 @@ export { updateOrderFulfilment } from "./order-fulfilment.mjs";
 export { recordOrderPayment, listOrderPaymentHistory } from "./order-payment.mjs";
 
 export { listCommerceOrderArchive } from "./order-archive.mjs";
+
+export { receiveLegacyPurchase, voidLegacyPurchase, listLegacyPurchases } from "./purchase-operations.mjs";
