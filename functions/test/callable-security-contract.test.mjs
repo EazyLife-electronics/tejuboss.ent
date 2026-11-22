@@ -140,3 +140,11 @@ test("supplier master and legacy inventory metadata use trusted callable operati
   assert.ok(inventory.includes("updateLegacyVariantMetadata"));
   assert.equal(inventory.includes("tx.update(productRef"), false);
 });
+
+test("purchase receiving retains the same idempotency key across uncertain retries", () => {
+  const receiving = read("../../admin/js/purchases.mjs");
+  assert.ok(receiving.includes("tejuboss.pendingPurchaseSubmission"));
+  assert.ok(receiving.includes("pendingPurchaseSubmission.key"));
+  assert.ok(receiving.includes("JSON.stringify(pendingPurchaseSubmission.payload) !== JSON.stringify(payload)"));
+  assert.ok(receiving.includes("localStorage.removeItem('tejuboss.pendingPurchaseSubmission')"));
+});
