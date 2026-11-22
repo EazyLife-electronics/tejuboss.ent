@@ -251,6 +251,7 @@ export { getDeliveryPolicy, saveDeliveryPolicy } from "./delivery-policy-admin.m
 export { listPendingCommerceOrders } from "./order-queue.mjs";
 
 export { getGuestOrderTracking, recoverGuestOrderTracking } from "./order-tracking.mjs";
+export { getLegacyOrderTracking } from "./legacy-order-tracking.mjs";
 
 export { getPublicDeliveryOptions } from "./delivery-public.mjs";
 
