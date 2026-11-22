@@ -82,5 +82,6 @@ test("legacy tracking callable verifies phone suffix and returns a minimized pro
 test("legacy tracking page does not read private Firestore order or delivery documents", () => {
   const trackingPage = read("../../track.html");
   assert.match(trackingPage, /getLegacyOrderTracking/);
-  assert.doesNotMatch(trackingPage, /getOrderByTrackingCode|getDelivery/);
+  assert.equal(trackingPage.includes("getOrderByTrackingCode"), false);
+  assert.equal(trackingPage.includes("getDelivery("), false);
 });
