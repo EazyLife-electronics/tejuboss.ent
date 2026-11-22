@@ -83,6 +83,7 @@
         </button>
     </div>
 
+    <div class="mb-8 -mt-5"><label for="phoneLast4" class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">Last 4 digits of the phone number used for the order</label><input id="phoneLast4" inputmode="numeric" autocomplete="tel" maxlength="4" placeholder="e.g. 1234" class="w-full p-3 rounded-xl border border-gray-200 dark:border-[#2e2e2e] shadow-sm dark:bg-[#1c1c1c] dark:text-gray-100 text-center font-bold tracking-widest"></div>
     <div id="trackResult"></div>
 
     <div id="myOrdersSection" class="hidden mt-10">
@@ -121,7 +122,12 @@
 </script>
 
 <script type="module">
-    import { getOrderByTrackingCode, getDelivery } from './js/store.mjs';
+    import { initFirebase } from './js/firebase.mjs';
+    import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js';
+
+    const { app } = initFirebase();
+    const functions = getFunctions(app, 'europe-west1');
+    const getLegacyOrderTracking = httpsCallable(functions, 'getLegacyOrderTracking');
 
     // Escapes text before it's inserted via innerHTML. This page is public —
     // anyone with a tracking code can view an order, so customer-entered
@@ -224,7 +230,8 @@
 
     function renderOrderCard(order, compact) {
         const itemsHtml = (order.items || []).map(i => `${escapeHtml(i.name)}${i.variant ? ' (' + escapeHtml(i.variant) + ')' : ''} × ${Number(i.quantity) || 0}`).join(', ');
-        const created = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleString() : '';
+        const createdDate = order.createdAt?.toDate ? order.createdAt.toDate() : (Number.isFinite(order.createdAtMillis) ? new Date(order.createdAtMillis) : null);
+        const created = createdDate ? createdDate.toLocaleString() : '';
         const trackingCode = escapeHtml(order.trackingCode);
         if (compact) {
             return `
@@ -260,7 +267,7 @@
                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-1"><b class="text-gray-700 dark:text-gray-200">Delivery to:</b> ${escapeHtml(order.address || '')}</p>
                     <p class="text-sm font-black text-gray-900 dark:text-gray-100 mt-2">Total: ₦${(order.total || 0).toLocaleString()}</p>
                 </div>
-                <div id="deliverySection-${trackingCode}"></div>
+                ${renderDeliverySection(order.delivery)}
             </div>`;
     }
 
@@ -276,20 +283,17 @@
         resultEl.innerHTML = '';
 
         try {
-            const order = await getOrderByTrackingCode(code);
+            const phoneLast4 = document.getElementById('phoneLast4').value.trim();
+            if (!/^\d{4}$/.test(phoneLast4)) {
+                resultEl.innerHTML = `<div class="text-center py-6 text-amber-600 text-sm">Enter the last four digits of the phone number used for this order.</div>`;
+                return;
+            }
+            const response = await getLegacyOrderTracking({ trackingCode: code, phoneLast4 });
+            const order = response.data?.tracking || null;
             if (!order) {
                 resultEl.innerHTML = `<div class="text-center py-8 text-gray-400 text-sm">No order found for "${code}". Double-check the code and try again.</div>`;
             } else {
                 resultEl.innerHTML = renderOrderCard(order, false);
-                // Delivery progress loads separately (and only once a delivery
-                // record actually exists) so the main order details show up
-                // immediately without waiting on a second network round-trip.
-                if (order.status !== 'cancelled' && order.deliveryId) {
-                    getDelivery(order.deliveryId).then(delivery => {
-                        const section = document.getElementById(`deliverySection-${order.trackingCode}`);
-                        if (section && delivery) section.innerHTML = renderDeliverySection(delivery);
-                    }).catch(err => console.error('Could not load delivery progress:', err));
-                }
                 // Remember it locally too, in case they typed a code that wasn't already saved on this device
                 try {
                     const myOrders = JSON.parse(localStorage.getItem('tejuboss_my_orders')) || [];
@@ -336,7 +340,7 @@
         if (e.key === 'Enter') window.trackOrder();
     });
 
-    loadMyOrders();
+    // Saved legacy codes are not auto-fetched: each lookup now requires the order phone suffix.
 </script>
 </body>
 </html>
