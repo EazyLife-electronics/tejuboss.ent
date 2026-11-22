@@ -217,6 +217,20 @@ test("legacy product writes and admin listing use role-scoped App Check callable
   assert.ok(productBlock.includes("adminProductOperation('delete', undefined, id)"));
 });
 
+test("TejuBoss product manager supports safe bulk catalogue operations", () => {
+  const ui = read("../../admin/js/admin-products.mjs");
+  const page = read("../../admin/index.html");
+  for (const control of ["selectedProductIds", "selectAllVisibleProducts", "bulkDeleteProducts", "bulkShowProducts", "bulkHideProducts", "productCategoryFilter", "productVisibilityFilter", "productAvailabilityFilter", "productMinPrice", "productMaxPrice", "productSort"]) {
+    assert.ok(page.includes('id="' + control + '"'), control + " control should exist in the admin page");
+  }
+  for (const contract of ["bulkDeleteSelectedProducts", "type DELETE", "Existing order records will remain", "bulkSetProductVisibility", "productUpdatePayload", "adminProductOperation"]) {
+    assert.ok(ui.includes(contract), contract + " should be present in the product manager");
+  }
+  assert.ok(ui.includes("selectedProductIds.add(input.dataset.selectProduct)"));
+  assert.ok(ui.includes("selectAll.indeterminate"));
+  assert.ok(ui.includes("updateProduct(id, productUpdatePayload(product, visible))"));
+});
+
 test("legacy order lifecycle mutations are role-scoped and atomic through a callable", () => {
   const lifecycle = read("../src/legacy-order-lifecycle-admin.mjs");
   for (const contract of ["manageLegacyOrderLifecycle", "enforceAppCheck:true", "order_manager", "runTransaction", "inventoryMovements", "auditLogs"]) assert.ok(lifecycle.includes(contract), contract);
