@@ -142,7 +142,7 @@ export async function placeOrder(order) {
 
 const legacyTrackingCallable = httpsCallable(contentFunctions, 'getLegacyOrderTracking');
 export async function getOrderByTrackingCode(code, phoneLast4) {
-  if (typeof phoneLast4 !== 'string' || !/^\\d{4}$/.test(phoneLast4)) {
+  if (typeof phoneLast4 !== 'string' || !/^\d{4}$/.test(phoneLast4)) {
     throw new Error('The last four digits of the order phone number are required for tracking.');
   }
   const response = await legacyTrackingCallable({ trackingCode: code, phoneLast4 });
