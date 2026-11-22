@@ -24,7 +24,7 @@ export const listPendingCommerceOrders = onCall(
       const d = doc.data();
       return {
         id: doc.id, status: d.status, fulfilmentStatus: d.fulfilmentStatus || "unfulfilled",
-        customer: d.customer || {}, fulfilment: d.fulfilment || {},
+        customer: role === "payment_manager" ? { name: d.customer?.name || "Customer" } : (d.customer || {}), fulfilment: role === "payment_manager" ? { method: d.fulfilment?.method || "" } : (d.fulfilment || {}),
         lines: Array.isArray(d.lines) ? d.lines : [],
         subtotalMinor: d.subtotalMinor ?? 0, discountMinor: d.discountMinor ?? 0,
         deliveryFeeMinor: d.deliveryFeeMinor ?? 0, grandTotalMinor: d.grandTotalMinor ?? 0,
