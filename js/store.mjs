@@ -149,8 +149,10 @@ export async function getOrderByTrackingCode(code) {
 // tracking page can fetch that one delivery directly by ID (a plain `get`,
 // same trust model as order lookup) instead of needing broader read access
 // to the deliveries collection.
+const linkDeliveryCallable = httpsCallable(contentFunctions, 'linkLegacyOrderDelivery');
 export async function linkOrderToDelivery(orderId, deliveryId) {
-  await updateDoc(doc(db, 'orders', orderId), { deliveryId });
+  const response = await linkDeliveryCallable({ orderId, deliveryId });
+  return response.data;
 }
 
 // Public read: anyone with an order's tracking code can already see that
@@ -162,21 +164,31 @@ export async function getDelivery(deliveryId) {
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
+const listLegacyOrdersCallable = httpsCallable(contentFunctions, 'listLegacyOrders');
+const orderWatchers = new Set();
+async function refreshOrders() {
+  const response = await listLegacyOrdersCallable({ limit: 100 });
+  for (const callback of orderWatchers) callback(response.data.orders || []);
+  return response.data.orders || [];
+}
 export function watchOrders(callback) {
-  const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  orderWatchers.add(callback);
+  refreshOrders().catch(error => console.error('Could not load orders:', error));
+  return () => orderWatchers.delete(callback);
 }
 
 const legacyOrderCallable = httpsCallable(contentFunctions, 'manageLegacyOrderLifecycle');
 export async function updateOrderStatus(id, status) {
   const response = await legacyOrderCallable({ action: 'status', orderId: id, status });
-  return response.data;
+  const result = response.data;
+  await refreshOrders();
+  return result;
 }
 export async function cancelOrder(id, { reason = null, customerNote = null, internalNote = null } = {}) {
   const response = await legacyOrderCallable({ action: 'cancel', orderId: id, reason, customerNote, internalNote });
-  return response.data;
+  const result = response.data;
+  await refreshOrders();
+  return result;
 }
 
 /* ---------------- LEGACY CONTENT VIA TRUSTED FUNCTIONS ---------------- */
