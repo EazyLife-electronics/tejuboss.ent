@@ -6,7 +6,7 @@ const read = path => readFileSync(new URL(path, import.meta.url), "utf8");
 const source = read("../src/index.mjs");
 
 function callableConfig(sourceText, name) {
-  const pattern = new RegExp(`export const ${name} = onCall\\(\\s*\\{[^}]*\\}`);
+  const pattern = new RegExp(`export\\s+const\\s+${name}\\s*=\\s*onCall\\(\\s*\\{[^}]*\\}`);
   const match = sourceText.match(pattern);
   assert.ok(match, `${name} callable configuration should exist`);
   return match[0];
