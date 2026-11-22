@@ -6,7 +6,7 @@ import { initFirebase } from './firebase.mjs';
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 import {
   collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
-  onSnapshot, query, orderBy, limit, serverTimestamp, runTransaction
+  onSnapshot, query, where, orderBy, limit, serverTimestamp, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const { db, app } = initFirebase();
@@ -92,7 +92,7 @@ export async function getProducts() {
   } catch (error) {
     if (!isCallableUnavailable(error)) throw error;
     console.warn('Catalogue callable is unavailable; using the safe public Firestore projection.', error);
-    const snapshot = await getDocs(query(collection(db, 'products')));
+    const snapshot = await getDocs(query(collection(db, 'products'), where('inStock', '==', true)));
     return snapshot.docs.map(docSnap => publicProductProjection(docSnap.id, docSnap.data()))
       .filter(product => product.inStock && product.variants.some(variant => variant.inStock !== false));
   }
@@ -139,8 +139,14 @@ function variantLabelForOrder(v, index) {
 }
 
 async function resolveOrderItems(items) {
-  const productsSnap = await getDocs(collection(db, 'products'));
-  const products = new Map(productsSnap.docs.map(d => [d.id, { id: d.id, ...d.data() }]));
+  const productIds = [...new Set((items || [])
+    .filter(item => item?.productId && !item.variantId)
+    .map(item => String(item.productId)))];
+  const productSnapshots = await Promise.all(productIds.map(id => getDoc(doc(db, 'products', id))));
+  const products = new Map(productSnapshots.map(snapshot => [
+    snapshot.id,
+    snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null
+  ]));
 
   return (items || []).map(item => {
     if (!item?.productId || item.variantId) return item;
