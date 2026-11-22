@@ -36,3 +36,17 @@ Do not make a broad rule that grants public access to every document in `orders`
 ## Current release decision
 
 `firestore.next.rules` is a strict security candidate, not yet a drop-in replacement for `firestore.rules`. Do not publish it to production or staging until the tracking migration and compatibility test suite are complete. No Firestore rules have been published as part of this review.
+
+
+## Legacy tracking migration implementation update
+
+The branch now contains an initial compatibility migration:
+
+- `getLegacyOrderTracking` is an App Check-protected callable.
+- It requires the legacy tracking code plus the last four digits of the phone number recorded on the order.
+- It rejects the new UUID-based guest-order schema.
+- It returns a bounded customer-facing projection and reads delivery data only on the server.
+- `track.html` now calls this endpoint; it no longer performs direct Firestore reads of order or delivery documents.
+- The public tracking page no longer loads saved legacy codes automatically because each lookup needs the phone suffix.
+
+This is source-level implementation, not a deployment. The real App Check site key is still a prerequisite. The legacy code plus phone suffix is a compatibility factor, not equivalent to the 256-bit token used by new guest orders. Privacy-safe per-IP/application throttling and emulator/staging tests of the callable response remain required before any public rollout. The separate structured checkout preview continues to use its high-entropy tracking token flow.
