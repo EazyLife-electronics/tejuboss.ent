@@ -298,7 +298,17 @@
                 } catch (e) { /* non-critical */ }
             }
         } catch (err) {
-            resultEl.innerHTML = `<div class="text-center py-8 text-red-400 text-sm">Something went wrong looking that up. Please try again.</div>`;
+            const unavailableCodes = ['functions/internal', 'functions/unavailable', 'functions/not-found', 'functions/failed-precondition'];
+            if (unavailableCodes.includes(err?.code)) {
+                resultEl.innerHTML = `
+                    <div class="text-center py-6 px-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-2xl">
+                        <p class="font-bold text-amber-800 dark:text-amber-300 mb-2">Online tracking is temporarily unavailable.</p>
+                        <p class="text-sm text-amber-700 dark:text-amber-400">Your tracking code is still valid. Please contact Teju Boss on WhatsApp and share your tracking code so the team can check your order manually.</p>
+                        <a href="https://wa.me/2347079557886?text=${encodeURIComponent('Hello, please help me check my Teju Boss order. Tracking code: ' + code)}" target="_blank" rel="noopener noreferrer" class="inline-flex mt-4 px-5 py-3 rounded-xl bg-[#25D366] text-white font-bold text-sm">Contact us on WhatsApp</a>
+                    </div>`;
+            } else {
+                resultEl.innerHTML = `<div class="text-center py-8 text-red-400 text-sm">We couldn't look up that order. Please check the tracking code and phone digits, then try again.</div>`;
+            }
             console.error(err);
         } finally {
             btn.disabled = false;

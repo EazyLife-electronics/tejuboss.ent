@@ -5,8 +5,8 @@
 import { initFirebase } from './firebase.mjs';
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 import {
-  collection, doc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
-  onSnapshot, query, orderBy, serverTimestamp, runTransaction
+  collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
+  onSnapshot, query, where, orderBy, limit, serverTimestamp, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const { db, app } = initFirebase();
@@ -55,8 +55,47 @@ async function productCall(action, product = undefined, id = undefined) {
   const response = await manageProductsCallable({ action, ...(product === undefined ? {} : { product }), ...(id === undefined ? {} : { id }) });
   return response.data;
 }
+// The free-tier storefront must remain usable when the optional callable
+// catalogue endpoint is not deployed. Firestore already permits public product
+// reads; project the same explicitly public fields as publicProduct() in the
+// callable and never pass the raw document to the storefront.
+function publicProductProjection(id, data = {}) {
+  return {
+    id,
+    name: data.name || '',
+    brand: data.brand || '',
+    category: data.category || '',
+    desc: data.desc || '',
+    inStock: data.inStock !== false,
+    variants: (Array.isArray(data.variants) ? data.variants : []).map(v => ({
+      id: v.id, color: v.color || '', processor: v.processor || '',
+      ram: v.ram || '', rom: v.rom || '', price: v.price || 0,
+      promoPrice: v.promoPrice || 0, image: v.image || '',
+      deliveryFee: v.deliveryFee ?? null, deliveryRoute: v.deliveryRoute || 'general',
+      bulkSavingsEnabled: !!v.bulkSavingsEnabled,
+      bulkSavingsMode: v.bulkSavingsMode || 'general',
+      bulkSavingsPercent: v.bulkSavingsPercent || 0,
+      bulkSavingsMinQty: v.bulkSavingsMinQty || 0, inStock: v.inStock !== false
+    })),
+    upgrades: Array.isArray(data.upgrades)
+      ? data.upgrades.map(u => ({ id: u.id || '', name: u.name || '', price: u.price || 0 }))
+      : []
+  };
+}
+function isCallableUnavailable(error) {
+  return ['functions/internal', 'functions/unavailable', 'functions/not-found',
+    'functions/failed-precondition'].includes(error?.code);
+}
 export async function getProducts() {
-  return productCall('publicList');
+  try {
+    return await productCall('publicList');
+  } catch (error) {
+    if (!isCallableUnavailable(error)) throw error;
+    console.warn('Catalogue callable is unavailable; using the safe public Firestore projection.', error);
+    const snapshot = await getDocs(query(collection(db, 'products'), where('inStock', '==', true)));
+    return snapshot.docs.map(docSnap => publicProductProjection(docSnap.id, docSnap.data()))
+      .filter(product => product.inStock && product.variants.some(variant => variant.inStock !== false));
+  }
 }
 const productWatchers = new Set();
 async function refreshProducts() {
@@ -100,8 +139,14 @@ function variantLabelForOrder(v, index) {
 }
 
 async function resolveOrderItems(items) {
-  const productsSnap = await getDocs(collection(db, 'products'));
-  const products = new Map(productsSnap.docs.map(d => [d.id, { id: d.id, ...d.data() }]));
+  const productIds = [...new Set((items || [])
+    .filter(item => item?.productId && !item.variantId)
+    .map(item => String(item.productId)))];
+  const productSnapshots = await Promise.all(productIds.map(id => getDoc(doc(db, 'products', id))));
+  const products = new Map(productSnapshots.map(snapshot => [
+    snapshot.id,
+    snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null
+  ]));
 
   return (items || []).map(item => {
     if (!item?.productId || item.variantId) return item;
@@ -129,8 +174,13 @@ export async function placeOrder(order) {
   const trackingCode = generateTrackingCode();
   const items = await resolveOrderItems(order.items || []);
   await setDoc(doc(db, 'orders', trackingCode), {
-    ...order,
+    customerName: String(order.customerName || '').trim(),
+    phone: String(order.phone || '').trim(),
+    address: String(order.address || '').trim(),
     items,
+    subtotal: Number(order.subtotal),
+    deliveryFee: Number(order.deliveryFee),
+    total: Number(order.total),
     trackingCode,
     status: 'new',
     inventoryApplied: false,
@@ -161,9 +211,22 @@ export async function linkOrderToDelivery(orderId, deliveryId) {
 const listLegacyOrdersCallable = httpsCallable(contentFunctions, 'listLegacyOrders');
 const orderWatchers = new Set();
 async function refreshOrders() {
-  const response = await listLegacyOrdersCallable({ limit: 100 });
-  for (const callback of orderWatchers) callback(response.data.orders || []);
-  return response.data.orders || [];
+  try {
+    const response = await listLegacyOrdersCallable({ limit: 100 });
+    const rows = response.data.orders || [];
+    for (const callback of orderWatchers) callback(rows, { readOnlyFallback: false });
+    return rows;
+  } catch (error) {
+    if (!isCallableUnavailable(error)) throw error;
+    // Firestore rules restrict order listing to the configured administrator.
+    // This fallback is deliberately read-only: lifecycle and stock changes
+    // must continue through the trusted callable, never browser-side writes.
+    console.warn('Order-list callable unavailable; loading the admin-only read-only queue.', error);
+    const snapshot = await getDocs(query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(100)));
+    const rows = snapshot.docs.map(orderDoc => ({ id: orderDoc.id, ...orderDoc.data() }));
+    for (const callback of orderWatchers) callback(rows, { readOnlyFallback: true });
+    return rows;
+  }
 }
 export function watchOrders(callback) {
   orderWatchers.add(callback);
@@ -209,11 +272,32 @@ export async function placeRequest(request) {
 export function watchRequests(callback) { return watchContent('requests', callback); }
 export async function updateRequestStatus(id, status) { const result = await contentCall('requests', 'update', { status }, id); await refreshContent('requests'); return result; }
 
+// Only these fields are intended for storefront use. Keep the projection in
+// sync with PUBLIC_SETTINGS in functions/src/legacy-public-content-admin.mjs.
+const PUBLIC_SETTING_FIELDS = [
+  'whatsapp', 'tagline', 'aboutText', 'deliveryFeePerItem',
+  'deliveryDiscountPercent', 'minOrderValue', 'bulkSavingsPercent',
+  'bulkSavingsMinQty'
+];
+async function readPublicSettingsFromFirestore() {
+  const snapshot = await getDoc(doc(db, 'settings', 'site'));
+  if (!snapshot.exists()) return {};
+  const source = snapshot.data();
+  return Object.fromEntries(PUBLIC_SETTING_FIELDS
+    .filter(field => Object.prototype.hasOwnProperty.call(source, field))
+    .map(field => [field, source[field]]));
+}
 export async function getSettings() {
-  return contentCall('settings', 'getPublic');
+  try {
+    return await contentCall('settings', 'getPublic');
+  } catch (error) {
+    if (!isCallableUnavailable(error)) throw error;
+    console.warn('Public settings callable is unavailable; using the safe public settings projection.', error);
+    return readPublicSettingsFromFirestore();
+  }
 }
 export async function getPublicSettings() {
-  return contentCall('settings', 'getPublic');
+  return getSettings();
 }
 export async function saveSettings(settings) {
   return contentCall('settings', 'save', settings);

@@ -11,12 +11,16 @@ import {
   doc,
   getDoc,
   getDocs,
+  query,
   setDoc,
-  updateDoc
+  updateDoc,
+  serverTimestamp,
+  where
 } from "firebase/firestore";
 
 const projectId = "tejuboss-rules-test";
 let env;
+let legacyEnv;
 
 before(async () => {
   env = await initializeTestEnvironment({
@@ -25,10 +29,17 @@ before(async () => {
       rules: await readFile(new URL("../../firestore.next.rules", import.meta.url), "utf8")
     }
   });
+  legacyEnv = await initializeTestEnvironment({
+    projectId: `${projectId}-legacy`,
+    firestore: {
+      rules: await readFile(new URL("../../firestore.rules", import.meta.url), "utf8")
+    }
+  });
 });
 
 after(async () => {
   await env?.cleanup();
+  await legacyEnv?.cleanup();
 });
 
 beforeEach(async () => {
@@ -178,4 +189,77 @@ test("unmigrated legacy admin collections remain closed in the hardened candidat
     // field model and least-privilege role are explicitly added to the rules.
     await assertFails(getDoc(doc(owner, collectionName, "sample")));
   }
+});
+
+
+test("active legacy rules keep direct order submission but block public private-record reads", async () => {
+  await legacyEnv.clearFirestore();
+  await legacyEnv.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, "orders", "private-order"), {
+      customerName: "Private customer", phone: "08012345678",
+      deliveryAddress: "Private address", total: 5000, items: []
+    });
+    await setDoc(doc(db, "deliveries", "private-delivery"), {
+      assignedToName: "Rider", customerAddress: "Private address", status: "in_transit"
+    });
+    await setDoc(doc(db, "heroes", "unpublished-hero"), { title: "Draft campaign", published: false });
+    await setDoc(doc(db, "reviews", "pending-review"), { name: "Customer", text: "Pending approval", approved: false });
+  });
+  const visitor = legacyEnv.unauthenticatedContext().firestore();
+  const admin = legacyEnv.authenticatedContext("admin-uid", { email: "damzyeazy@gmail.com" }).firestore();
+
+  await legacyEnv.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, "products", "public-product"), { name: "Rice", inStock: true, variants: [] });
+    await setDoc(doc(db, "products", "hidden-product"), { name: "Unpublished item", inStock: false, variants: [] });
+  });
+  await assertSucceeds(getDoc(doc(visitor, "products", "public-product")));
+  await assertFails(getDoc(doc(visitor, "products", "hidden-product")));
+  await assertFails(getDocs(collection(visitor, "products")));
+  await assertSucceeds(getDocs(query(collection(visitor, "products"), where("inStock", "==", true))));
+  await assertSucceeds(getDoc(doc(admin, "products", "hidden-product")));
+
+  await assertFails(getDoc(doc(visitor, "orders", "private-order")));
+  await assertFails(getDoc(doc(visitor, "deliveries", "private-delivery")));
+  await assertFails(getDoc(doc(visitor, "heroes", "unpublished-hero")));
+  await assertFails(getDoc(doc(visitor, "reviews", "pending-review")));
+  await assertSucceeds(getDoc(doc(admin, "heroes", "unpublished-hero")));
+  await assertSucceeds(getDoc(doc(admin, "reviews", "pending-review")));
+  await assertSucceeds(getDoc(doc(admin, "orders", "private-order")));
+  await assertSucceeds(getDoc(doc(admin, "deliveries", "private-delivery")));
+  await assertFails(getDocs(collection(visitor, "orders")));
+
+  // The existing affordable checkout writes an order directly. Keep this
+  // permission, while denying direct public reads of the private document.
+  const validOrder = {
+    customerName: "Guest",
+    phone: "08000000000",
+    address: "Ibadan",
+    items: [{ productId: "sample-product", variantId: "variant-1", quantity: 1, price: 1200 }],
+    subtotal: 1200,
+    deliveryFee: 0,
+    total: 1200,
+    trackingCode: "guest-order",
+    status: "new",
+    inventoryApplied: false,
+    inventoryReturned: false,
+    createdAt: serverTimestamp()
+  };
+  await assertSucceeds(setDoc(doc(visitor, "orders", "guest-order"), validOrder));
+
+  await assertFails(setDoc(doc(visitor, "orders", "forged-order"), {
+    ...validOrder,
+    trackingCode: "forged-order",
+    internalNote: "Injected field"
+  }));
+  await assertFails(setDoc(doc(visitor, "orders", "negative-order"), {
+    ...validOrder,
+    trackingCode: "negative-order",
+    total: -1
+  }));
+  await assertFails(setDoc(doc(visitor, "orders", "wrong-code"), {
+    ...validOrder,
+    trackingCode: "different-document-id"
+  }));
 });

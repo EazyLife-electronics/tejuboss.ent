@@ -51,11 +51,12 @@ function orderMessageTemplate(order) {
   return templates[order.status] || templates.new;
 }
 
-export function renderOrderList(orders) {
+export function renderOrderList(orders, options = {}) {
+  const readOnlyFallback = options.readOnlyFallback === true;
   document.getElementById('orderList').innerHTML = orders.map(o => {
     const itemsHtml = (o.items || []).map(i => `${escapeHtml(i.name)} × ${Number(i.quantity) || 0}`).join(', ');
     const isCancelled = o.status === 'cancelled';
-    const canCancel = !isCancelled && o.status !== 'delivered';
+    const canCancel = !readOnlyFallback && !isCancelled && o.status !== 'delivered';
     const nextStatus = isCancelled ? null : STATUS_FLOW[STATUS_FLOW.indexOf(o.status) + 1];
     const created = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleString() : '';
     const reasonLabel = escapeHtml(cancelReasonLabel(o));
@@ -81,7 +82,7 @@ export function renderOrderList(orders) {
           <span class="font-black text-sm text-[#E11D48]">₦${(o.total || 0).toLocaleString()}</span>
           <div class="flex gap-2 flex-wrap justify-end">
             <button data-msg-toggle="${o.id}" class="text-[10px] bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md font-bold"><i class="fas fa-comment-dots"></i> Message</button>
-            ${nextStatus ? `<button data-order="${o.id}" data-next="${nextStatus}" class="advance-order-btn text-[10px] bg-gray-900 text-white px-3 py-1.5 rounded-md font-bold">Mark ${nextStatus}</button>` : ''}
+            ${!readOnlyFallback && nextStatus ? `<button data-order="${o.id}" data-next="${nextStatus}" class="advance-order-btn text-[10px] bg-gray-900 text-white px-3 py-1.5 rounded-md font-bold">Mark ${nextStatus}</button>` : ''}
             ${canCancel ? `<button data-reject-toggle="${o.id}" class="text-[10px] bg-red-50 text-red-600 px-3 py-1.5 rounded-md font-bold"><i class="fas fa-ban"></i> Reject</button>` : ''}
           </div>
         </div>
@@ -109,6 +110,10 @@ export function renderOrderList(orders) {
       </div>
     `;
   }).join('') || `<p class="text-center text-gray-400 text-sm py-10">No orders yet.</p>`;
+  const fallbackNotice = readOnlyFallback
+    ? '<div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 mb-3"><b>Read-only order queue.</b> Orders are being loaded securely from Firestore because the optional order-list service is unavailable. Status changes and stock adjustments are disabled until the trusted backend is available.</div>'
+    : '';
+  document.getElementById('orderList').innerHTML = fallbackNotice + document.getElementById('orderList').innerHTML;
 
   document.querySelectorAll('.advance-order-btn').forEach(btn => {
     btn.addEventListener('click', () => updateOrderStatus(btn.dataset.order, btn.dataset.next));

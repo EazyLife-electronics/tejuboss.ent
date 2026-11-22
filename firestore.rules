@@ -9,16 +9,51 @@ service cloud.firestore {
     }
 
     match /products/{productId} {
-      allow read: if true;
+      // Public reads are limited to products explicitly marked in stock.
+      // The storefront query must include the same predicate; admins retain full access.
+      allow read: if isAdmin() || resource.data.inStock == true;
       allow write: if isAdmin();
     }
 
+    function validGuestOrder(orderId) {
+      let data = request.resource.data;
+      return data.keys().hasAll([
+          'items', 'customerName', 'phone', 'address', 'subtotal',
+          'deliveryFee', 'total', 'trackingCode', 'status',
+          'inventoryApplied', 'inventoryReturned', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'items', 'customerName', 'phone', 'address', 'subtotal',
+          'deliveryFee', 'total', 'trackingCode', 'status',
+          'inventoryApplied', 'inventoryReturned', 'createdAt'
+        ])
+        && data.customerName is string
+        && data.customerName.size() > 0
+        && data.customerName.size() <= 100
+        && data.phone is string
+        && data.phone.size() >= 7
+        && data.phone.size() <= 20
+        && data.address is string
+        && data.address.size() <= 500
+        && data.items is list
+        && data.items.size() > 0
+        && data.items.size() <= 30
+        && data.subtotal is number
+        && data.subtotal >= 0
+        && data.deliveryFee is number
+        && data.deliveryFee >= 0
+        && data.total is number
+        && data.total >= 0
+        && data.trackingCode == orderId
+        && data.status == 'new'
+        && data.inventoryApplied == false
+        && data.inventoryReturned == false
+        && data.createdAt == request.time;
+    }
+
     match /orders/{orderId} {
-      allow create: if request.resource.data.keys().hasAll(['items', 'customerName', 'phone', 'total'])
-                    && request.resource.data.total is number
-                    && request.resource.data.items is list;
-      allow get: if true;
-      allow list: if isAdmin();
+      allow create: if validGuestOrder(orderId);
+      allow get, list: if isAdmin();
       allow update, delete: if isAdmin();
 
       match /payments/{paymentId} {
@@ -32,12 +67,14 @@ service cloud.firestore {
     }
 
     match /heroes/{heroId} {
-      allow read: if true;
+      // Public visitors receive only the callable's published-content projection.
+      allow read: if isAdmin();
       allow write: if isAdmin();
     }
 
     match /reviews/{reviewId} {
-      allow read: if true;
+      // Pending reviews are private; public pages use the approved-only callable.
+      allow read: if isAdmin();
       allow create: if request.resource.data.keys().hasAll(['name', 'text'])
                     && request.resource.data.name is string
                     && request.resource.data.text is string;
@@ -76,13 +113,10 @@ service cloud.firestore {
     }
 
     match /deliveries/{deliveryId} {
-      // Public `get` only (never `list`): the tracking page fetches one
-      // specific delivery by ID, which it can only learn from the order's
-      // own `deliveryId` field after looking that order up by tracking code —
-      // same one-way trust model already used for `orders` below. `list`
-      // stays admin-only so the whole collection can't be enumerated.
-      allow get: if true;
-      allow list, create, update, delete: if isAdmin();
+      // Delivery records contain private customer and operational details.
+      // Public tracking must use a trusted, minimized response; raw documents
+      // are never readable by unauthenticated clients.
+      allow get, list, create, update, delete: if isAdmin();
     }
   }
 }
