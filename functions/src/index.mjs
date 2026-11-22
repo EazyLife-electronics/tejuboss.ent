@@ -261,4 +261,4 @@ export { recordOrderPayment, listOrderPaymentHistory } from "./order-payment.mjs
 
 export { listCommerceOrderArchive } from "./order-archive.mjs";
 
-export { receiveLegacyPurchase, voidLegacyPurchase, listLegacyPurchases } from "./purchase-operations.mjs";
+export { receiveLegacyPurchase, voidLegacyPurchase, listLegacyPurchases, adjustLegacyVariantStock } from "./purchase-operations.mjs";
