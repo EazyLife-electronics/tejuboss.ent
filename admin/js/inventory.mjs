@@ -10,6 +10,7 @@ import {
 const { app, db } = initFirebase();
 const functions = getFunctions(app, "europe-west1");
 const adjustLegacyStockCall = httpsCallable(functions, "adjustLegacyVariantStock");
+const updateLegacyVariantMetadataCall = httpsCallable(functions, "updateLegacyVariantMetadata");
 let unsubscribe = null;
 let products = [];
 let productBridgeInstalled = false;
@@ -61,26 +62,15 @@ async function changeStock(productId, variantId, delta, type, reason, reference 
 }
 
 async function saveVariantSettings(row, sku, reorderLevel, costPrice) {
-  const productRef = doc(db, 'products', row.productId);
-  await runTransaction(db, async tx => {
-    const snap = await tx.get(productRef);
-    if (!snap.exists()) throw new Error('Product no longer exists.');
-    const product = snap.data();
-    const variants = Array.isArray(product.variants) ? [...product.variants] : [];
-    const index = variants.findIndex(v => v.id === row.variantId);
-    if (index < 0) throw new Error('Variant no longer exists.');
-
-    const currentStock = Math.max(0, Number(variants[index].stockQty || 0));
-    variants[index] = {
-      ...variants[index],
-      sku: sku.trim() || makeSku(product, variants[index], index),
-      reorderLevel: Math.max(0, parseInt(reorderLevel, 10) || 0),
-      costPrice: Math.max(0, Number(costPrice) || 0),
-      stockQty: currentStock,
-      inStock: currentStock > 0
-    };
-    tx.update(productRef, { variants, inStock: variants.some(v => Number(v.stockQty || 0) > 0) });
+  const result = await updateLegacyVariantMetadataCall({
+    productId: row.productId,
+    variantId: row.variantId,
+    sku: sku.trim() || makeSku({ brand: row.brand, name: row.productName }, row.variant, row.variantIndex),
+    reorderLevel: Math.max(0, parseInt(reorderLevel, 10) || 0),
+    costPrice: Math.max(0, Math.round(Number(costPrice) || 0)),
+    expectedQuantity: row.stockQty
   });
+  return result.data;
 }
 
 function render() {
