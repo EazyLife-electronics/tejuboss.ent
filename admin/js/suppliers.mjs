@@ -250,7 +250,7 @@ function render() {
   const filtered = suppliers.filter(s => !query || [s.name, s.business, s.contactPerson, s.phone, s.whatsapp, s.email, s.address, s.notes].some(v => normalizeName(v).includes(query)));
   const contactCount = suppliers.filter(s => [s.contactPerson, s.phone, s.whatsapp, s.email].some(v => String(v || '').trim())).length;
   const linkedIds = new Set(purchases.filter(p => p.status !== 'voided' && p.supplierId).map(p => p.supplierId));
-  const latest = suppliers.reduce((n, s) => Math.max(n, s.updatedAt?.toMillis?.() || s.createdAt?.toMillis?.() || 0), 0);
+  const latest = suppliers.reduce((n, s) => Math.max(n, s.updatedAt instanceof Date ? s.updatedAt.getTime() : (s.updatedAt?.toMillis?.() || (s.createdAt instanceof Date ? s.createdAt.getTime() : (s.createdAt?.toMillis?.() || 0)))), 0);
   document.getElementById('supplierCount').textContent = suppliers.length.toLocaleString();
   document.getElementById('supplierContactCount').textContent = contactCount.toLocaleString();
   document.getElementById('supplierLinkedCount').textContent = linkedIds.size.toLocaleString();
