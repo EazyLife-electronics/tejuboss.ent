@@ -17,7 +17,10 @@ service cloud.firestore {
       allow create: if request.resource.data.keys().hasAll(['items', 'customerName', 'phone', 'total'])
                     && request.resource.data.total is number
                     && request.resource.data.items is list;
-      allow get: if true;
+      // Order documents contain customer contact and address data. Public
+      // tracking must go through the callable's phone-verification flow and
+      // return a restricted projection, never a direct document read.
+      allow get: if isAdmin();
       allow list: if isAdmin();
       allow update, delete: if isAdmin();
 
@@ -76,13 +79,9 @@ service cloud.firestore {
     }
 
     match /deliveries/{deliveryId} {
-      // Public `get` only (never `list`): the tracking page fetches one
-      // specific delivery by ID, which it can only learn from the order's
-      // own `deliveryId` field after looking that order up by tracking code —
-      // same one-way trust model already used for `orders` below. `list`
-      // stays admin-only so the whole collection can't be enumerated.
-      allow get: if true;
-      allow list, create, update, delete: if isAdmin();
+      // Delivery records can contain rider and customer-operational details.
+      // Customer tracking is served through a verified callable projection.
+      allow get, list, create, update, delete: if isAdmin();
     }
   }
 }

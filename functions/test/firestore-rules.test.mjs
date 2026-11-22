@@ -17,6 +17,7 @@ import {
 
 const projectId = "tejuboss-rules-test";
 let env;
+let legacyEnv;
 
 before(async () => {
   env = await initializeTestEnvironment({
@@ -25,10 +26,17 @@ before(async () => {
       rules: await readFile(new URL("../../firestore.next.rules", import.meta.url), "utf8")
     }
   });
+  legacyEnv = await initializeTestEnvironment({
+    projectId: `${projectId}-legacy`,
+    firestore: {
+      rules: await readFile(new URL("../../firestore.rules", import.meta.url), "utf8")
+    }
+  });
 });
 
 after(async () => {
   await env?.cleanup();
+  await legacyEnv?.cleanup();
 });
 
 beforeEach(async () => {
@@ -178,4 +186,33 @@ test("unmigrated legacy admin collections remain closed in the hardened candidat
     // field model and least-privilege role are explicitly added to the rules.
     await assertFails(getDoc(doc(owner, collectionName, "sample")));
   }
+});
+
+
+test("active legacy rules keep direct order submission but block public private-record reads", async () => {
+  await legacyEnv.clearFirestore();
+  await legacyEnv.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, "orders", "private-order"), {
+      customerName: "Private customer", phone: "08012345678",
+      deliveryAddress: "Private address", total: 5000, items: []
+    });
+    await setDoc(doc(db, "deliveries", "private-delivery"), {
+      assignedToName: "Rider", customerAddress: "Private address", status: "in_transit"
+    });
+  });
+  const visitor = legacyEnv.unauthenticatedContext().firestore();
+  const admin = legacyEnv.authenticatedContext("admin-uid", { email: "damzyeazy@gmail.com" }).firestore();
+
+  await assertFails(getDoc(doc(visitor, "orders", "private-order")));
+  await assertFails(getDoc(doc(visitor, "deliveries", "private-delivery")));
+  await assertSucceeds(getDoc(doc(admin, "orders", "private-order")));
+  await assertSucceeds(getDoc(doc(admin, "deliveries", "private-delivery")));
+  await assertFails(getDocs(collection(visitor, "orders")));
+
+  // The existing affordable checkout writes an order directly. Keep this
+  // permission, while denying direct public reads of the private document.
+  await assertSucceeds(setDoc(doc(visitor, "orders", "guest-order"), {
+    customerName: "Guest", phone: "08000000000", total: 1200, items: []
+  }));
 });
