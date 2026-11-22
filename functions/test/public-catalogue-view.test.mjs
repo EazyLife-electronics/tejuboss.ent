@@ -34,6 +34,7 @@ test("public catalogue view keeps customer-facing fields and stable option IDs",
   assert.equal(card.id, "firestore_product_1");
   assert.equal(card.name, "Laundry Soap");
   assert.equal(card.variants[0].id, "variant_1");
+  assert.equal(card.variants[0].quantityPrecision, 0);
   assert.equal(card.variants[0].sellingOptions[0].id, "option_1");
   assert.equal(card.variants[0].sellingOptions[0].priceMinor, 125000);
   assert.equal("stockQty" in card.variants[0], false);
