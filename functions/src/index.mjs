@@ -249,3 +249,5 @@ export { adjustInventoryPhysicalCount } from "./inventory-adjustment.mjs";
 
 export { getDeliveryPolicy, saveDeliveryPolicy } from "./delivery-policy-admin.mjs";
 export { listPendingCommerceOrders } from "./order-queue.mjs";
+
+export { getGuestOrderTracking, recoverGuestOrderTracking } from "./order-tracking.mjs";
