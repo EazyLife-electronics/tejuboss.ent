@@ -17,8 +17,7 @@ service cloud.firestore {
       allow create: if request.resource.data.keys().hasAll(['items', 'customerName', 'phone', 'total'])
                     && request.resource.data.total is number
                     && request.resource.data.items is list;
-      allow get: if true;
-      allow list: if isAdmin();
+      allow get, list: if isAdmin();
       allow update, delete: if isAdmin();
 
       match /payments/{paymentId} {
@@ -76,13 +75,10 @@ service cloud.firestore {
     }
 
     match /deliveries/{deliveryId} {
-      // Public `get` only (never `list`): the tracking page fetches one
-      // specific delivery by ID, which it can only learn from the order's
-      // own `deliveryId` field after looking that order up by tracking code —
-      // same one-way trust model already used for `orders` below. `list`
-      // stays admin-only so the whole collection can't be enumerated.
-      allow get: if true;
-      allow list, create, update, delete: if isAdmin();
+      // Delivery records contain private customer and operational details.
+      // Public tracking must use a trusted, minimized response; raw documents
+      // are never readable by unauthenticated clients.
+      allow get, list, create, update, delete: if isAdmin();
     }
   }
 }
