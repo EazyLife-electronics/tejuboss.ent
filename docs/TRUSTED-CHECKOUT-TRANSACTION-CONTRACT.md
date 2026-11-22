@@ -110,7 +110,7 @@ The raw tracking token is returned to the customer only after a successful commi
 
 ## 9. Payment, reservation, and fulfilment state
 
-Payment status and fulfilment status are separate state machines. The business must explicitly choose whether stock is deducted at order placement or reserved until order confirmation/payment. The initial transaction must not mix payment settlement with stock changes.
+Payment status and fulfilment status are separate state machines. Tejuboss has selected this policy: order placement creates an awaiting_confirmation order and does not reserve or deduct stock. An authorized staff confirmation rechecks current stock and atomically deducts it. If stock is insufficient at confirmation, the order remains awaiting_confirmation and staff can reject it. Payment status and fulfilment status remain separate state machines. The confirmation transaction must not mix payment settlement with stock changes.
 
 External payment confirmation, messaging, and delivery-provider calls happen after commit through retry-safe tasks/outbox records. Their retries must not repeat stock deductions.
 
@@ -147,7 +147,7 @@ Before writing the Firestore adapter:
 - Confirm the break-pack configuration for each sellable option.
 - Confirm delivery fees, zones, and policy version.
 - Confirm quantity-tier threshold versus marginal/slab behaviour and cross-unit qualification.
-- Confirm stock deduction versus reservation timing.
+- Implement and emulator-test the approved confirmation-time deduction lifecycle.
 - Add emulator tests for successful checkout, replay, key conflict, insufficient stock, concurrent oversell, changed price, expired guest session, pickup, delivery, break-pack, and tracking projection privacy.
 
 No live rules deployment, production data migration, or production checkout cutover is included in this phase.
