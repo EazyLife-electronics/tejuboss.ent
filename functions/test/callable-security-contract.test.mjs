@@ -193,6 +193,6 @@ test("legacy public content operations use an App Check-protected, role-scoped c
   assert.match(content, /Requests are retained for business records/);
   const store = read("../../js/store.mjs");
   const legacyBlock = store.slice(store.indexOf("LEGACY CONTENT VIA TRUSTED FUNCTIONS"), store.indexOf("INVENTORY ADMIN TAB"));
-  assert.match(legacyBlock, /manageContentCallable/);
+  assert.match(legacyBlock, /contentCall\(/);
   assert.doesNotMatch(legacyBlock, /addDoc\(collection\(db,\s*['"]heroes|updateDoc\(doc\(db,\s*['"]reviews|setDoc\(doc\(db,\s*['"]settings/);
 });
