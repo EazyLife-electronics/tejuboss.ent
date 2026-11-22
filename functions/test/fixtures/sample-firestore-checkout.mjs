@@ -48,8 +48,6 @@ export async function commitSampleCheckout({
 
   const root = db.collection(ROOT).doc(fixtureId);
   const productRef = root.collection("products").doc("sample-led-bulb");
-  const looseRef = root.collection("inventory").doc("loose-pieces");
-  const sealedRef = root.collection("inventory").doc("sealed-cartons");
   const policyRef = root.collection("settings").doc("delivery-policy");
   const pricingRef = root.collection("pricing").doc("tier-rules");
   const candidate = buildIdempotencyRecord({
@@ -61,15 +59,11 @@ export async function commitSampleCheckout({
   const orderRef = root.collection("orders").doc(randomUUID());
   const trackingCredential = createTrackingCredential();
   const trackingRef = root.collection("tracking").doc(trackingCredential.tokenHash);
-  const breakMovementRef = root.collection("movements").doc(randomUUID());
-  const saleMovementRef = root.collection("movements").doc(randomUUID());
 
   return db.runTransaction(async tx => {
     // Complete the read phase before any writes.
     const idempotencySnap = await tx.get(idempotencyRef);
     const productSnap = await tx.get(productRef);
-    const looseSnap = await tx.get(looseRef);
-    const sealedSnap = await tx.get(sealedRef);
     const policySnap = validated.fulfilment.method === "delivery"
       ? await tx.get(policyRef)
       : null;
@@ -85,9 +79,7 @@ export async function commitSampleCheckout({
       fail("FAILED_PRECONDITION", "Existing idempotency state requires explicit recovery handling");
     }
 
-    if (!productSnap.exists || !looseSnap.exists || !sealedSnap.exists) {
-      fail("FAILED_PRECONDITION", "Sample catalogue or inventory fixture is incomplete");
-    }
+    if (!productSnap.exists) fail("FAILED_PRECONDITION", "Sample catalogue fixture is incomplete");
     if (validated.fulfilment.method === "delivery" && !policySnap?.exists) {
       fail("FAILED_PRECONDITION", "Sample delivery policy is missing");
     }
@@ -100,16 +92,6 @@ export async function commitSampleCheckout({
       deliveryPolicy,
       quantityTierRules: pricingSnap.exists ? pricingSnap.data().rules : []
     });
-
-    const loose = looseSnap.data();
-    const sealed = sealedSnap.data();
-    const stockPlan = planLooseStockSale({
-      requestedUnits: quote.lines[0].stockUnitsConsumed,
-      looseUnits: loose.quantityOnHand,
-      sealedPackages: sealed.quantityOnHand,
-      unitsPerSealedPackage: sealed.unitsPerPackage
-    });
-    if (!stockPlan.feasible) fail("FAILED_PRECONDITION", "Insufficient sample inventory");
 
     const createdAtMillis = now;
     const order = {
@@ -130,6 +112,7 @@ export async function commitSampleCheckout({
       deliveryPolicyVersion: quote.delivery?.policyVersion ?? null,
       appliedTierRules: quote.appliedTierRules ?? [],
       pricingConfigVersion: pricingSnap.exists ? pricingSnap.data().version : null,
+      trackingTokenHash: trackingCredential.tokenHash,
       createdAtMillis
     };
     const trackingProjection = {
@@ -150,38 +133,14 @@ export async function commitSampleCheckout({
       createdAtMillis,
       completedAtMillis: createdAtMillis
     });
-    tx.update(looseRef, { quantityOnHand: stockPlan.looseUnitsAfter, updatedAtMillis: createdAtMillis });
-    tx.update(sealedRef, { quantityOnHand: stockPlan.sealedPackagesAfter, updatedAtMillis: createdAtMillis });
-
-    let movementIndex = 0;
-    if (stockPlan.packagesToOpen > 0) {
-      tx.create(breakMovementRef, {
-        type: "break_pack",
-        orderId: orderRef.id,
-        packagesOpened: stockPlan.packagesToOpen,
-        unitsTransferred: stockPlan.transferredUnits,
-        createdAtMillis
-      });
-      movementIndex++;
-    }
-    tx.create(saleMovementRef, {
-      type: "sale",
-      orderId: orderRef.id,
-      unitsDeducted: stockPlan.requestedUnits,
-      createdAtMillis
-    });
-
     return {
       outcome: "created",
       orderId: orderRef.id,
       trackingToken: trackingCredential.rawToken,
       trackingTokenHash: trackingCredential.tokenHash,
       grandTotalMinor: quote.grandTotalMinor,
-      stock: {
-        looseUnitsAfter: stockPlan.looseUnitsAfter,
-        sealedPackagesAfter: stockPlan.sealedPackagesAfter
-      },
-      movementCount: movementIndex + 1
+      inventoryChanged: false,
+      movementCount: 0
     };
   });
 }
