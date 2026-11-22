@@ -6,10 +6,10 @@ const read = path => readFileSync(new URL(path, import.meta.url), "utf8");
 const source = read("../src/index.mjs");
 
 function callableConfig(sourceText, name) {
-  const pattern = new RegExp(String.raw`export\\s+const\\s+${name}\\s*=\\s*onCall\\(\\s*\\{[^}]*\\}`);
-  const match = sourceText.match(pattern);
-  assert.ok(match, `${name} callable configuration should exist`);
-  return match[0];
+  const marker = `export const ${name} = onCall(`;
+  const start = sourceText.indexOf(marker);
+  assert.notEqual(start, -1, `${name} callable configuration should exist`);
+  return sourceText.slice(start, start + 240);
 }
 
 test("all guest-facing callable endpoints require Firebase App Check", () => {
