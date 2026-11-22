@@ -84,7 +84,7 @@ function renderCatalogue(){
 function renderCart(){
  const count=cart.reduce((s,l)=>s+l.quantity,0);$("cartCount").textContent=count;
  if(!cart.length){$("cartLines").innerHTML='<div class="empty">Your basket is empty.</div>';$("cartTotal").textContent=money(0);$("placeOrder").disabled=true;return}
- $("cartLines").innerHTML=cart.map((l,i)=>'<div class="cart-line"><div class="line-top"><div><div class="line-title">'+esc(l.productName)+'</div><div class="line-sub">'+esc(l.variantLabel)+' · '+esc(l.optionLabel)+'</div></div><strong>'+money(l.displayPriceMinor*l.quantity)+'</strong></div><div class="line-actions"><label style="margin:0">Qty</label><input type="number" min="1" step="1" value="'+l.quantity+'" data-qty="'+i+'"><button class="remove" data-remove="'+i+'">Remove</button></div></div>').join("");
+ $("cartLines").innerHTML=cart.map((l,i)=>'<div class="cart-line"><div class="line-top"><div><div class="line-title">'+esc(l.productName)+'</div><div class="line-sub">'+esc(l.variantLabel)+' · '+esc(l.optionLabel)+'</div></div><strong>'+money(l.displayPriceMinor*l.quantity)+'</strong></div><div class="line-actions"><label style="margin:0">Qty</label><input type="number" min="1" step="1" value="'+l.quantity+'" min="'+l.minimumOrderQuantity+'" step="'+l.orderQuantityStep+'" data-qty="'+i+'"><button class="remove" data-remove="'+i+'">Remove</button></div></div>').join("");
  $("cartTotal").textContent=money(cart.reduce((s,l)=>s+l.displayPriceMinor*l.quantity,0));
  $("placeOrder").disabled=false;
 }
@@ -101,15 +101,16 @@ $("catalogue").addEventListener("click",e=>{
  const card=e.target.closest("[data-id]"),p=products.find(x=>x.id===card.dataset.id);if(!p)return;
  const v=selectedVariant(p),o=selectedOption(p,v);
  const found=cart.find(x=>x.productId===p.id&&x.variantId===v.id&&x.sellingOptionId===o.id);
- if(found)found.quantity+=1;
- else cart.push({productId:p.id,variantId:v.id,sellingOptionId:o.id,productName:p.name,variantLabel:v.stockUnitLabel,optionLabel:o.label,displayPriceMinor:publicOptionUnitPrice(o),quantity:1});
+ if(found)found.quantity+=found.orderQuantityStep;
+ else cart.push({productId:p.id,variantId:v.id,sellingOptionId:o.id,productName:p.name,variantLabel:v.stockUnitLabel,optionLabel:o.label,displayPriceMinor:publicOptionUnitPrice(o),quantity:o.minimumOrderQuantity,minimumOrderQuantity:o.minimumOrderQuantity,orderQuantityStep:o.orderQuantityStep,quantityPrecision:v.quantityPrecision});
  renderCart();
 });
 $("cartLines").addEventListener("change",e=>{
  if(!e.target.matches("[data-qty]"))return;
  const i=Number(e.target.dataset.qty),qty=Number(e.target.value);
- if(!Number.isSafeInteger(qty)||qty<1){renderCart();return}
- cart[i].quantity=qty;renderCart();
+ const line=cart[i];const units=(qty-line.minimumOrderQuantity)/line.orderQuantityStep;const scale=10**line.quantityPrecision;
+ if(!Number.isFinite(qty)||qty<line.minimumOrderQuantity||Math.abs(qty*scale-Math.round(qty*scale))>1e-7||Math.abs(units-Math.round(units))>1e-7){renderCart();return}
+ line.quantity=qty;renderCart();
 });
 $("cartLines").addEventListener("click",e=>{if(e.target.matches("[data-remove]")){cart.splice(Number(e.target.dataset.remove),1);renderCart()}});
 $("search").addEventListener("input",renderCatalogue);
@@ -163,8 +164,9 @@ $("placeOrder").addEventListener("click",async()=>{
 });
 async function start(){
  try{
-  const [catalogue,deliveryOptions]=await Promise.all([getPublishedStructuredCatalogue(),getStructuredDeliveryOptions()]);
-  products=catalogue.products;publicPricing=catalogue.publicPricing;delivery=deliveryOptions;
+  const catalogue=await getPublishedStructuredCatalogue();
+  products=catalogue.products;publicPricing=catalogue.publicPricing;
+  try{delivery=await getStructuredDeliveryOptions()}catch(error){console.warn("Delivery options unavailable until App Check and backend are configured.",error);delivery={enabled:false,areas:[]}}
   const area=$("deliveryArea");
   if(delivery.enabled&&delivery.areas.length){area.innerHTML=delivery.areas.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.label)+'</option>').join("");$("deliveryMessage").textContent="Delivery fees are calculated by the secure checkout."}
   else{area.innerHTML='<option value="">Delivery not configured</option>';$("deliveryMessage").textContent="Delivery is not enabled yet. Store pickup is available if the shop accepts the order."}
