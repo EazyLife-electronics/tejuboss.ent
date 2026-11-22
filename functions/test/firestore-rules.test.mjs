@@ -138,3 +138,22 @@ test("only owner and payment staff can read payment receipt records", async () =
   await assertSucceeds(getDoc(doc(paymentDb, ...paymentRef)));
   await assertFails(getDoc(doc(orderDb, ...paymentRef)));
 });
+
+
+test("unmigrated legacy admin collections remain closed in the hardened candidate", async () => {
+  const visitor = env.unauthenticatedContext().firestore();
+  const owner = env.authenticatedContext("owner-uid", { role: "owner" }).firestore();
+
+  // These legacy UI workflows still use direct Firestore operations. They
+  // must not become public merely to preserve compatibility during migration.
+  for (const collectionName of [
+    "heroes", "reviews", "requests", "settings", "purchases", "suppliers",
+    "deliveryPersonnel", "deliveryTypes", "deliveryCheckpoints"
+  ]) {
+    await assertFails(getDoc(doc(visitor, collectionName, "sample")));
+    await assertFails(setDoc(doc(visitor, collectionName, "forged"), { value: true }));
+    // Owner access is also intentionally not granted until the collection's
+    // field model and least-privilege role are explicitly added to the rules.
+    await assertFails(getDoc(doc(owner, collectionName, "sample")));
+  }
+});
