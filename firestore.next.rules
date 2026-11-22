@@ -19,7 +19,8 @@ service cloud.firestore {
 
     // These documents must contain public-safe fields only.
     match /products/{productId} {
-      allow read: if resource.data.published == true;
+      allow read: if resource.data.published == true
+        || hasRole('owner') || hasRole('catalogue_manager') || hasRole('inventory_manager');
       allow write: if hasRole('catalogue_manager');
     }
 
