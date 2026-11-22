@@ -64,7 +64,7 @@ export function isGuestSessionRecordValid({
       record.expiresAtMillis - record.createdAtMillis > MAX_SESSION_LIFETIME_MS ||
       now < record.createdAtMillis ||
       now >= record.expiresAtMillis ||
-      record.revokedAtMillis !== undefined) {
+      record.revokedAtMillis != null) {
     return false;
   }
 
