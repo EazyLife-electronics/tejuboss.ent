@@ -32,7 +32,7 @@ export const getLegacyOrderTracking = onCall(
 
     const trackingCode = typeof data.trackingCode === "string" ? data.trackingCode.trim().toUpperCase() : "";
     const phoneLast4 = typeof data.phoneLast4 === "string" ? data.phoneLast4.replace(/\D/g, "") : "";
-    if (!/^TB-[A-HJ-NP-Z2-9]{6}$/.test(trackingCode) || !/^\d{4}$/.test(phoneLast4)) {
+    if (!/^TB-[A-HJKMNP-Z2-9]{6}$/.test(trackingCode) || !/^\d{4}$/.test(phoneLast4)) {
       fail("invalid-argument", "Enter a valid tracking code and the last four digits of the order phone number.");
     }
 
