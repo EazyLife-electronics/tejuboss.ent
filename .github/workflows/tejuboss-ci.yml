@@ -23,7 +23,7 @@ jobs:
           node-version: 22
       - name: Validate Functions module syntax
         working-directory: functions
-        run: find src -name '*.mjs' -print0 | xargs -0 -n1 node --check && find ../admin/js -name '*.mjs' -print0 | xargs -0 -n1 node --check && node --check ../js/structured-catalogue.mjs
+        run: find src -name '*.mjs' -print0 | xargs -0 -n1 node --check && find ../admin/js -name '*.mjs' -print0 | xargs -0 -n1 node --check && find ../js -name '*.mjs' -print0 | xargs -0 -n1 node --check
       - name: Run pure domain tests
         working-directory: functions
         run: npm test
