@@ -202,6 +202,8 @@ test("active legacy rules keep direct order submission but block public private-
     await setDoc(doc(db, "deliveries", "private-delivery"), {
       assignedToName: "Rider", customerAddress: "Private address", status: "in_transit"
     });
+    await setDoc(doc(db, "heroes", "unpublished-hero"), { title: "Draft campaign", published: false });
+    await setDoc(doc(db, "reviews", "pending-review"), { name: "Customer", text: "Pending approval", approved: false });
   });
   const visitor = legacyEnv.unauthenticatedContext().firestore();
   const admin = legacyEnv.authenticatedContext("admin-uid", { email: "damzyeazy@gmail.com" }).firestore();
@@ -219,6 +221,10 @@ test("active legacy rules keep direct order submission but block public private-
 
   await assertFails(getDoc(doc(visitor, "orders", "private-order")));
   await assertFails(getDoc(doc(visitor, "deliveries", "private-delivery")));
+  await assertFails(getDoc(doc(visitor, "heroes", "unpublished-hero")));
+  await assertFails(getDoc(doc(visitor, "reviews", "pending-review")));
+  await assertSucceeds(getDoc(doc(admin, "heroes", "unpublished-hero")));
+  await assertSucceeds(getDoc(doc(admin, "reviews", "pending-review")));
   await assertSucceeds(getDoc(doc(admin, "orders", "private-order")));
   await assertSucceeds(getDoc(doc(admin, "deliveries", "private-delivery")));
   await assertFails(getDocs(collection(visitor, "orders")));
