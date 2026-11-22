@@ -1,0 +1,93 @@
+// ARCHIVAL SNAPSHOT ONLY
+// Captured from the user's Firebase Console on 2026-11-22.
+// These are the rules reported as currently published in Firebase.
+// Do NOT deploy this file as the production rules: it permits public reads
+// of product, order, hero, review, and individual delivery documents.
+// The reviewed, stricter candidate rules are maintained separately in
+// firestore.rules. Compare and test before any future deployment.
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'damzyeazy@gmail.com';
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow create: if request.resource.data.keys().hasAll(['items', 'customerName', 'phone', 'total'])
+                    && request.resource.data.total is number
+                    && request.resource.data.items is list;
+      allow get: if true;
+      allow list: if isAdmin();
+      allow update, delete: if isAdmin();
+
+      match /payments/{paymentId} {
+        allow read, create, update, delete: if isAdmin();
+      }
+    }
+
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /heroes/{heroId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['name', 'text'])
+                    && request.resource.data.name is string
+                    && request.resource.data.text is string;
+      allow update, delete: if isAdmin();
+    }
+
+    match /requests/{requestId} {
+      allow create: if request.resource.data.keys().hasAll(['name', 'phone', 'need'])
+                    && request.resource.data.name is string
+                    && request.resource.data.phone is string;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /inventoryMovements/{movementId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /purchases/{purchaseId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /suppliers/{supplierId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /deliveryPersonnel/{personId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /deliveryTypes/{typeId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /deliveryCheckpoints/{checkpointId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /deliveries/{deliveryId} {
+      // Public get only (never list): this is the rule currently reported
+      // from the Firebase Console. It is retained here for audit/history.
+      allow get: if true;
+      allow list, create, update, delete: if isAdmin();
+    }
+  }
+}
