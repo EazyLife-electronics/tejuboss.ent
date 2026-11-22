@@ -20,7 +20,7 @@ The development branch now contains tested checkout foundations, with no live de
 - Private inventory mappings, delivery policy and idempotency collections in staged rules.
 - Emulator fixture tests for stock-neutral order placement, confirmation, rejection, replay, insufficient stock and concurrency.
 
-The pure-domain test job passed on the latest completed run. Firestore emulator security tests for the latest commit are still running.
+The latest commit (`03d22d9f8e467af4688e5a9c471533d4646c7d53`) passed both GitHub Actions jobs: catalogue/pricing/inventory tests and Firestore security-rules emulator tests. [Verified CI run](https://github.com/EazyLife-electronics/tejuboss.ent/actions/runs/45008173067).
 
 ## Remaining production prerequisites
 
