@@ -6,7 +6,7 @@ import { initFirebase } from './firebase.mjs';
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 import {
   collection, doc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
-  onSnapshot, query, orderBy, serverTimestamp, runTransaction
+  onSnapshot, query, orderBy, limit, serverTimestamp, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const { db, app } = initFirebase();
@@ -200,9 +200,22 @@ export async function linkOrderToDelivery(orderId, deliveryId) {
 const listLegacyOrdersCallable = httpsCallable(contentFunctions, 'listLegacyOrders');
 const orderWatchers = new Set();
 async function refreshOrders() {
-  const response = await listLegacyOrdersCallable({ limit: 100 });
-  for (const callback of orderWatchers) callback(response.data.orders || []);
-  return response.data.orders || [];
+  try {
+    const response = await listLegacyOrdersCallable({ limit: 100 });
+    const rows = response.data.orders || [];
+    for (const callback of orderWatchers) callback(rows, { readOnlyFallback: false });
+    return rows;
+  } catch (error) {
+    if (!isCallableUnavailable(error)) throw error;
+    // Firestore rules restrict order listing to the configured administrator.
+    // This fallback is deliberately read-only: lifecycle and stock changes
+    // must continue through the trusted callable, never browser-side writes.
+    console.warn('Order-list callable unavailable; loading the admin-only read-only queue.', error);
+    const snapshot = await getDocs(query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(100)));
+    const rows = snapshot.docs.map(orderDoc => ({ id: orderDoc.id, ...orderDoc.data() }));
+    for (const callback of orderWatchers) callback(rows, { readOnlyFallback: true });
+    return rows;
+  }
 }
 export function watchOrders(callback) {
   orderWatchers.add(callback);
