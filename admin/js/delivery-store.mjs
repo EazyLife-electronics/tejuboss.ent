@@ -10,6 +10,7 @@ const functions = getFunctions(app, 'europe-west1');
 const manageConfigCall = httpsCallable(functions, 'manageLegacyDeliveryConfig');
 const createDeliveryCall = httpsCallable(functions, 'createLegacyDelivery');
 const updateDeliveryCall = httpsCallable(functions, 'updateLegacyDelivery');
+const listDeliveryOrdersCall = httpsCallable(functions, 'listLegacyDeliveryOrders');
 const watch = (name, cb) => onSnapshot(collection(db,name), s => cb(s.docs.map(d=>({id:d.id,...d.data()}))));
 const CONFIG_FIELDS = {
   deliveryPersonnel: ['name','phone','email','active'],
@@ -49,3 +50,18 @@ export async function findActiveDeliveryForOrder(orderId) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
     .find(d => !['cancelled', 'returned'].includes(d.status)) || null;
 }
+
+export const watchDeliveryOrders = callback => {
+  let active = true;
+  const refresh = async () => {
+    try {
+      const result = await listDeliveryOrdersCall({});
+      if (active) callback(result.data?.orders || []);
+    } catch (error) {
+      console.error('Could not refresh delivery queue orders:', error);
+    }
+  };
+  refresh();
+  const timer = setInterval(refresh, 60000);
+  return () => { active = false; clearInterval(timer); };
+};
