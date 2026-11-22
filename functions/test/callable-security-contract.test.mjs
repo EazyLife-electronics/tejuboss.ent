@@ -6,7 +6,7 @@ const read = path => readFileSync(new URL(path, import.meta.url), "utf8");
 const source = read("../src/index.mjs");
 
 function callableConfig(sourceText, name) {
-  const pattern = new RegExp(`export\s+const\s+${name}\s*=\s*onCall\\(\s*\\{[^}]*\\}`);
+  const pattern = new RegExp(String.raw`export\\s+const\\s+${name}\\s*=\\s*onCall\\(\\s*\\{[^}]*\\}`);
   const match = sourceText.match(pattern);
   assert.ok(match, `${name} callable configuration should exist`);
   return match[0];
@@ -114,5 +114,7 @@ test("manual legacy stock adjustments are server-authoritative and reasoned", ()
   assert.ok(purchases.includes("expectedQuantity"));
   assert.ok(purchases.includes("A reason is required for every manual stock adjustment."));
   assert.ok(inventory.includes("adjustLegacyVariantStock"));
-  assert.equal(inventory.includes("async function changeStock") && inventory.includes("runTransaction(db, async tx => {\n    const snap = await tx.get(productRef)"), false);
+  const changeStock = inventory.slice(inventory.indexOf("async function changeStock("), inventory.indexOf("async function saveVariantSettings"));
+  assert.equal(changeStock.includes("runTransaction"), false);
+  assert.ok(inventory.includes("runTransaction"), "metadata-only settings retain their current-value-preserving transaction");
 });
