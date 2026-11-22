@@ -211,5 +211,7 @@ test("legacy product writes and admin listing use role-scoped App Check callable
   assert.match(productBlock, /manageLegacyProducts/);
   assert.match(productBlock, /productCall\\('publicList'\\)/);
   assert.match(productBlock, /productCall\\('list'\\)/);
-  assert.doesNotMatch(productBlock, /addDoc\\(collection\\(db,\\s*['\"]products|updateDoc\\(doc\\(db,\\s*['\"]products|deleteDoc\\(doc\\(db,\\s*['\"]products/);
+  for (const directWrite of ["addDoc(collection(db, 'products')", 'addDoc(collection(db, "products")', "updateDoc(doc(db, 'products'", 'updateDoc(doc(db, "products"', "deleteDoc(doc(db, 'products'", 'deleteDoc(doc(db, "products"']) {
+    assert.equal(productBlock.includes(directWrite), false, "store must not directly write product docs: " + directWrite);
+  }
 });
