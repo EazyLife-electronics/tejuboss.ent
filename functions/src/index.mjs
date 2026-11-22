@@ -255,3 +255,5 @@ export { getGuestOrderTracking, recoverGuestOrderTracking } from "./order-tracki
 export { getPublicDeliveryOptions } from "./delivery-public.mjs";
 
 export { updateOrderFulfilment } from "./order-fulfilment.mjs";
+
+export { recordOrderPayment } from "./order-payment.mjs";
