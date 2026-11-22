@@ -246,3 +246,6 @@ export { saveInventoryMapping } from "./inventory-mapping.mjs";
 export { listInventorySetup } from "./inventory-overview.mjs";
 
 export { adjustInventoryPhysicalCount } from "./inventory-adjustment.mjs";
+
+export { getDeliveryPolicy, saveDeliveryPolicy } from "./delivery-policy-admin.mjs";
+export { listPendingCommerceOrders } from "./order-queue.mjs";
