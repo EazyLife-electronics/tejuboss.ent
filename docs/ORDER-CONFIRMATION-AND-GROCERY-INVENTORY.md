@@ -1,6 +1,6 @@
 # Order Confirmation and Grocery Inventory
 
-Status: Business policy accepted; emulator adapter and tests implemented. Production callable integration and inventory initialization remain pending.
+Status: Business policy accepted; emulator adapter and tests implemented; staff confirmation callable added. Production order submission integration, inventory opening balances and role provisioning remain pending.
 
 ## Approved order lifecycle
 
@@ -35,7 +35,7 @@ Example: 10 sealed cartons × 48 pieces, 0 loose pieces. Confirm a 6-piece order
 
 - Test products and balances must be seeded only in emulator fixtures or an isolated development database.
 - No inventory initialization or stock count should be guessed from product labels.
-- Staff confirmation requires a verified server-side role. Firebase login alone is not authorization.
+- Staff confirmation callable requires a verified `owner` or `order_manager` custom claim and App Check. Firebase login alone is not authorization. It accepts only an order ID and decision, never browser-supplied stock IDs or quantities. The order must contain a trusted `inventoryDeductions` snapshot written by the future server-side order creator; otherwise confirmation fails closed.
 - Confirmations must be serialized by Firestore transaction contention; two orders cannot both consume the same last stock.
 - A pending order is not a stock guarantee. The customer-facing message must state that confirmation is pending.
 - No live inventory or order cutover until an authorized admin role, stock opening-balance workflow, and approved delivery policy are ready.
