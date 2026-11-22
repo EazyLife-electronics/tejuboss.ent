@@ -248,11 +248,32 @@ export async function placeRequest(request) {
 export function watchRequests(callback) { return watchContent('requests', callback); }
 export async function updateRequestStatus(id, status) { const result = await contentCall('requests', 'update', { status }, id); await refreshContent('requests'); return result; }
 
+// Only these fields are intended for storefront use. Keep the projection in
+// sync with PUBLIC_SETTINGS in functions/src/legacy-public-content-admin.mjs.
+const PUBLIC_SETTING_FIELDS = [
+  'whatsapp', 'tagline', 'aboutText', 'deliveryFeePerItem',
+  'deliveryDiscountPercent', 'minOrderValue', 'bulkSavingsPercent',
+  'bulkSavingsMinQty'
+];
+async function readPublicSettingsFromFirestore() {
+  const snapshot = await getDoc(doc(db, 'settings', 'site'));
+  if (!snapshot.exists()) return {};
+  const source = snapshot.data();
+  return Object.fromEntries(PUBLIC_SETTING_FIELDS
+    .filter(field => Object.prototype.hasOwnProperty.call(source, field))
+    .map(field => [field, source[field]]));
+}
 export async function getSettings() {
-  return contentCall('settings', 'getPublic');
+  try {
+    return await contentCall('settings', 'getPublic');
+  } catch (error) {
+    if (!isCallableUnavailable(error)) throw error;
+    console.warn('Public settings callable is unavailable; using the safe public settings projection.', error);
+    return readPublicSettingsFromFirestore();
+  }
 }
 export async function getPublicSettings() {
-  return contentCall('settings', 'getPublic');
+  return getSettings();
 }
 export async function saveSettings(settings) {
   return contentCall('settings', 'save', settings);
