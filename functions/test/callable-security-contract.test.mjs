@@ -200,16 +200,24 @@ test("legacy public content operations use an App Check-protected, role-scoped c
 
 test("legacy product writes and admin listing use role-scoped App Check callables", () => {
   const products = read("../src/legacy-product-admin.mjs");
-  assert.match(products, /manageLegacyProducts/);
-  assert.match(products, /enforceAppCheck:\\s*true/);
-  assert.match(products, /catalogue_manager/);
-  assert.match(products, /PRODUCT_FIELDS/);
-  assert.match(products, /VARIANT_FIELDS/);
-  assert.match(products, /auditLogs/);
+  for (const contract of ["manageLegacyProducts", "enforceAppCheck:true", "catalogue_manager", "PRODUCT_FIELDS", "VARIANT_FIELDS", "auditLogs"]) assert.ok(products.includes(contract), contract);
   const store = read("../../js/store.mjs");
   const productBlock = store.slice(store.indexOf("PRODUCTS ----------------"), store.indexOf("ORDERS ----------------"));
-  assert.match(productBlock, /manageLegacyProducts/);
-  assert.match(productBlock, /productCall\\('publicList'\\)/);
-  assert.match(productBlock, /productCall\\('list'\\)/);
-  assert.doesNotMatch(productBlock, /addDoc\\(collection\\(db,\\s*['\"]products|updateDoc\\(doc\\(db,\\s*['\"]products|deleteDoc\\(doc\\(db,\\s*['\"]products/);
+  assert.ok(productBlock.includes("manageLegacyProducts"));
+  assert.ok(productBlock.includes("productCall('publicList')"));
+  assert.ok(productBlock.includes("productCall('list')"));
+  for (const directWrite of ["addDoc(collection(db, 'products')", 'addDoc(collection(db, "products")', "updateDoc(doc(db, 'products'", 'updateDoc(doc(db, "products"', "deleteDoc(doc(db, 'products'", 'deleteDoc(doc(db, "products"']) assert.equal(productBlock.includes(directWrite), false);
+});
+
+test("legacy order lifecycle mutations are role-scoped and atomic through a callable", () => {
+  const lifecycle = read("../src/legacy-order-lifecycle-admin.mjs");
+  for (const contract of ["manageLegacyOrderLifecycle", "enforceAppCheck:true", "order_manager", "runTransaction", "inventoryMovements", "auditLogs"]) assert.ok(lifecycle.includes(contract), contract);
+  const store = read("../../js/store.mjs");
+  const orderLifecycle = store.slice(store.indexOf("legacyOrderCallable"), store.indexOf("LEGACY CONTENT VIA TRUSTED FUNCTIONS"));
+  assert.ok(orderLifecycle.includes("manageLegacyOrderLifecycle"));
+  assert.ok(orderLifecycle.includes("action: 'status'"));
+  assert.ok(orderLifecycle.includes("action: 'cancel'"));
+  assert.equal(orderLifecycle.includes("runTransaction"), false);
+  assert.equal(orderLifecycle.includes("tx.update"), false);
+  assert.equal(orderLifecycle.includes("tx.set"), false);
 });
