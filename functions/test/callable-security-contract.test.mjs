@@ -6,7 +6,7 @@ const read = path => readFileSync(new URL(path, import.meta.url), "utf8");
 const source = read("../src/index.mjs");
 
 function callableConfig(sourceText, name) {
-  const pattern = new RegExp(`export\\s+const\\s+${name}\\s*=\\s*onCall\\(\\s*\\{[^}]*\\}`);
+  const pattern = new RegExp(`export\s+const\s+${name}\s*=\s*onCall\\(\s*\\{[^}]*\\}`);
   const match = sourceText.match(pattern);
   assert.ok(match, `${name} callable configuration should exist`);
   return match[0];
@@ -89,12 +89,12 @@ test("legacy tracking page does not read private Firestore order or delivery doc
 test("purchase receiving, voiding and history are protected trusted callables", () => {
   const purchases = read("../src/purchase-operations.mjs");
   for (const name of ["receiveLegacyPurchase", "voidLegacyPurchase", "listLegacyPurchases"]) {
-    assert.match(callableConfig(purchases, name), /enforceAppCheck:\\s*true/, name + " must require App Check");
+    assert.match(callableConfig(purchases, name), /enforceAppCheck:\s*true/, name + " must require App Check");
   }
   assert.match(purchases, /inventory_manager/);
-  assert.match(purchases, /tx\\.create\\(movementRef/);
-  assert.match(purchases, /tx\\.create\\(auditRef/);
-  assert.match(purchases, /tx\\.update\\(productRef/);
+  assert.match(purchases, /tx\.create\\(movementRef/);
+  assert.match(purchases, /tx\.create\\(auditRef/);
+  assert.match(purchases, /tx\.update\\(productRef/);
   assert.match(purchases, /status: "voided"/);
 });
 
@@ -104,6 +104,6 @@ test("legacy purchase browser modules no longer mutate stock through client tran
   assert.match(receiving, /receiveLegacyPurchase/);
   assert.match(receiving, /listLegacyPurchases/);
   assert.match(voiding, /voidLegacyPurchase/);
-  assert.doesNotMatch(receiving, /runTransaction|tx\\.update\\(productRef/);
-  assert.doesNotMatch(voiding, /runTransaction|tx\\.update\\(productRef/);
+  assert.doesNotMatch(receiving, /runTransaction|tx\.update\\(productRef/);
+  assert.doesNotMatch(voiding, /runTransaction|tx\.update\\(productRef/);
 });
