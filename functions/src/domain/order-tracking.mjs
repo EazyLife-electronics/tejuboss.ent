@@ -37,6 +37,7 @@ export function buildCustomerTrackingView({ order, tracking }) {
     orderId: order.orderId,
     status: order.status,
     paymentStatus: order.paymentStatus,
+    paymentTotalMinor: Number.isSafeInteger(order.paymentTotalMinor) ? order.paymentTotalMinor : 0,
     fulfilmentStatus: order.fulfilmentStatus,
     currency: "NGN",
     grandTotalMinor: Number.isSafeInteger(order.grandTotalMinor) ? order.grandTotalMinor : null,
