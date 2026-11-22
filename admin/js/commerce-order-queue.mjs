@@ -17,10 +17,12 @@ function render(orders,limited){
   const question=decision==="confirm"?"Confirm this order? This will deduct the recorded stock quantities atomically.":"Reject this order? Rejected orders do not deduct stock.";
   if(!window.confirm(question))return;
   busy=true;button.disabled=true;button.textContent=decision==="confirm"?"Confirming...":"Rejecting...";
-  try{await decideOrder({orderId:id,decision});await let started=false;\nconst ordersTab=document.querySelector('[data-tab="orders"]');\nordersTab?.addEventListener("click",()=>{if(!started){started=true;load();}});}
+  try{await decideOrder({orderId:id,decision});await load();}
   catch(e){window.alert(e.message||"Order decision failed. Refresh and review the order.");button.disabled=false;button.textContent=decision==="confirm"?"Confirm and deduct stock":"Reject order";}
   finally{busy=false;}
  });
 }
 async function load(){host.innerHTML='<p class="bg-white rounded-xl p-4 text-xs text-gray-500">Loading pending orders...</p>';try{const r=await listOrders({});render(r.data.orders||[],r.data.limited===true);}catch(e){host.innerHTML='<p class="bg-amber-50 text-amber-800 rounded-xl p-4 text-xs">The secure order queue requires an authorized order manager account and App Check. '+esc(e.message)+'</p>';}}
-load();
+let started=false;
+const ordersTab=document.querySelector('[data-tab="orders"]');
+ordersTab?.addEventListener("click",()=>{if(!started){started=true;load();}});
