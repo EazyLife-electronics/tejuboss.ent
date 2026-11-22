@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHash } from "node:crypto";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { validateCreateOrderRequest } from "./domain/checkout.mjs";
@@ -7,6 +7,7 @@ import { hashGuestSessionCredential, isGuestSessionRecordValid } from "./domain/
 import { buildIdempotencyRecord, inspectIdempotencyReplay, createTrackingCredential } from "./domain/order-security.mjs";
 
 const ID = /^[A-Za-z0-9_.-]{1,128}$/;
+const inventoryMappingId = item => createHash("sha256").update(JSON.stringify([item.productId, item.variantId, item.sellingOptionId])).digest("hex");
 function fail(code, message, details) { throw new HttpsError(code, message, details); }
 function sessionToken(data) {
   if (!data || typeof data !== "object" || Array.isArray(data) ||
@@ -20,7 +21,11 @@ function toTierRules(configSnap, productId, variantId) {
   if (!configSnap?.exists) return [];
   const config = configSnap.data();
   const rules = config.rules && typeof config.rules === "object" ? config.rules : {};
-  return Object.values(rules).filter(rule => rule && rule.enabled === true).map(rule => ({
+  const now = Date.now();
+  return Object.values(rules).filter(rule => rule && rule.enabled === true &&
+    (rule.effectiveFromMillis == null || (Number.isSafeInteger(rule.effectiveFromMillis) && rule.effectiveFromMillis <= now)) &&
+    (rule.effectiveUntilMillis == null || (Number.isSafeInteger(rule.effectiveUntilMillis) && now < rule.effectiveUntilMillis))
+  ).map(rule => ({
     productId, variantId, rule
   }));
 }
@@ -143,7 +148,7 @@ export const createGuestOrder = onCall(
 
         const productIds = [...new Set(validated.items.map(item => item.productId))];
         const variantPairs = [...new Map(validated.items.map(item => [JSON.stringify([item.productId, item.variantId]), { productId: item.productId, variantId: item.variantId }])).values()];
-        const mappingIds = validated.items.map(item => item.productId + "__" + item.variantId + "__" + item.sellingOptionId);
+        const mappingIds = validated.items.map(inventoryMappingId);
         const productRefs = productIds.map(id => firestore.collection("catalogueProducts").doc(id));
         const pricingRefs = variantPairs.map(pair => firestore.collection("pricingConfigs").doc(pair.productId + "__" + pair.variantId));
         const mappingRefs = mappingIds.map(id => firestore.collection("inventoryMappings").doc(id));
