@@ -1,38 +1,40 @@
 # Structured Shop and Guest Checkout Preview
 
-Status: Development-only page committed. It is not linked from the production homepage, not deployed as a live checkout, and not connected to a production rollout.
+Status: Additive development preview committed and CI-tested. It is linked from the existing `shop.html` as a clearly labelled preview entry. It is not a production checkout rollout.
 
-## Page
+## Page and behaviour
 
-`structured-shop.html` is an additive storefront experience. The existing `shop.html` and its cart/order implementation remain unchanged.
+`structured-shop.html` is a separate storefront experience. The legacy `shop.html` and its existing cart/order implementation remain unchanged.
 
-The page provides:
+The preview provides:
 - Published structured catalogue browsing and search.
 - Stable variant and selling-option selection.
-- Quantity handling using each variant's configured decimal precision, minimum quantity and order step.
-- Public quantity-offer display where a published offer exists.
-- A guest basket and contact/fulfilment form.
-- Pickup as the safe default. Delivery appears only when an active delivery policy is available.
-- Secure callable submission that sends IDs and quantities only, never browser prices or totals.
-- Customer order reference, private tracking token handoff and same-device order tracking.
-- Session-based token recovery while the original guest checkout session remains valid.
+- Quantity precision, minimum and order-step handling.
+- Public quantity-offer display where published.
+- Guest basket and contact/fulfilment form.
+- Pickup as the safe default; delivery only when an active policy is available.
+- Secure callable order submission using IDs and quantities, not browser prices or totals.
+- Order reference, tracking credential handoff and same-device tracking.
+- Tracking-token recovery while the original guest session remains valid.
 
-## Important commercial boundaries
+## Trusted pricing and stock
 
-- The displayed basket amount is an estimate based on current public catalogue unit prices. The backend recalculates final prices, promotions, quantity tiers and delivery.
-- No stock quantity is exposed to the public catalogue. Inventory is checked through the trusted backend at order creation and stock is deducted only when staff confirms the order.
-- Orders are created as awaiting confirmation and unpaid. This page does not collect online payment or mark orders paid.
-- Delivery is hidden unless an active policy is configured. No delivery zones or fees have been assumed.
-- The page does not add a new homepage navigation item or replace the legacy shop.
+The basket amount is an estimate. The backend recalculates current catalogue prices, eligible tier rules and configured delivery charges.
 
-## Before real-world testing
+No stock balance is exposed publicly. The backend snapshots inventory deductions when an order is created, but stock is not deducted until authorized staff confirm the order.
 
-The legacy catalogue now contains an explicit link to this separate preview. It is labelled development-only and does not replace the existing shop. The page cannot create real orders until all of the following are reviewed and explicitly approved:
-1. The staged Firestore rules and Functions are deployed to the separate Tejuboss Firebase project.
-2. A reCAPTCHA v3 site key is configured for Firebase App Check, with the correct production domains.
-3. The admin account has the required custom role claims and staff access has been verified.
-4. At least one structured product is published, has opening inventory, and every selling option has a valid inventory mapping.
-5. If delivery is offered, delivery areas and charges are explicitly configured and saved by staff.
-6. A controlled test order is placed and verified through the admin order queue, inventory movements and customer tracking.
+Orders begin awaiting confirmation and unpaid. The preview does not collect online payment or mark an order paid.
 
-Do not deploy or enable App Check enforcement merely to make this preview work. The existing rules and Functions remain staged until the user authorizes rollout.
+Delivery remains unavailable unless a valid active policy is configured. No zones or fees have been assumed.
+
+## Before real-world ordering
+
+The preview cannot safely create real orders until the following are reviewed and explicitly approved:
+1. Staged Firestore rules and Functions are deployed to the separate Tejuboss Firebase project.
+2. Firebase App Check is configured with the correct reCAPTCHA v3 site key and domains.
+3. Admin custom role claims and staff permissions are provisioned and verified.
+4. Structured products are published, opening inventory is initialized, and every selling option has a valid inventory mapping.
+5. Delivery areas and charges are explicitly configured if delivery is offered.
+6. A controlled test order is verified in the staff queue, inventory movements and customer tracking.
+
+Do not deploy rules or Functions, enable production App Check, or merge to `main` without explicit authorization. The existing production shop remains the live ordering path.
