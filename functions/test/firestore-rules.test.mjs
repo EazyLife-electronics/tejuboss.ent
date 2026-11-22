@@ -212,7 +212,34 @@ test("active legacy rules keep direct order submission but block public private-
 
   // The existing affordable checkout writes an order directly. Keep this
   // permission, while denying direct public reads of the private document.
-  await assertSucceeds(setDoc(doc(visitor, "orders", "guest-order"), {
-    customerName: "Guest", phone: "08000000000", total: 1200, items: []
+  const validOrder = {
+    customerName: "Guest",
+    phone: "08000000000",
+    address: "Ibadan",
+    items: [{ productId: "sample-product", variantId: "variant-1", quantity: 1, price: 1200 }],
+    subtotal: 1200,
+    deliveryFee: 0,
+    total: 1200,
+    trackingCode: "guest-order",
+    status: "new",
+    inventoryApplied: false,
+    inventoryReturned: false,
+    createdAt: serverTimestamp()
+  };
+  await assertSucceeds(setDoc(doc(visitor, "orders", "guest-order"), validOrder));
+
+  await assertFails(setDoc(doc(visitor, "orders", "forged-order"), {
+    ...validOrder,
+    trackingCode: "forged-order",
+    internalNote: "Injected field"
+  }));
+  await assertFails(setDoc(doc(visitor, "orders", "negative-order"), {
+    ...validOrder,
+    trackingCode: "negative-order",
+    total: -1
+  }));
+  await assertFails(setDoc(doc(visitor, "orders", "wrong-code"), {
+    ...validOrder,
+    trackingCode: "different-document-id"
   }));
 });
