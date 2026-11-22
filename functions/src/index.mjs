@@ -240,3 +240,5 @@ export { decideOrder } from "./order-confirmation.mjs";
 export { createGuestOrder } from "./guest-order.mjs";
 
 export { initializeInventoryBalance } from "./inventory-setup.mjs";
+
+export { saveInventoryMapping } from "./inventory-mapping.mjs";
