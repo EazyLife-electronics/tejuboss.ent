@@ -60,6 +60,7 @@ beforeEach(async () => {
       phone: "08000000000",
       total: 100000
     });
+    await setDoc(doc(db, "orders", "order-1", "payments", "receipt-1"), { amountMinor: 1000 });
     await setDoc(doc(db, "orderTracking", "unguessable-token"), {
       status: "processing",
       customerSafeMessage: "Your order is being prepared"
@@ -126,4 +127,14 @@ test("inventory staff can inspect balances but cannot bypass movement transactio
   await assertSucceeds(getDoc(doc(staffDb, "inventoryBalances", "sample-balance")));
   await assertFails(updateDoc(doc(staffDb, "inventoryBalances", "sample-balance"), { quantityOnHand: 0 }));
   await assertFails(setDoc(doc(staffDb, "inventoryMovements", "forged"), { movementType: "sale" }));
+});
+
+test("only owner and payment staff can read payment receipt records", async () => {
+  const paymentRef = ["orders", "order-1", "payments", "receipt-1"];
+  const ownerDb = env.authenticatedContext("owner-uid", { role: "owner" }).firestore();
+  const paymentDb = env.authenticatedContext("payment-uid", { role: "payment_manager" }).firestore();
+  const orderDb = env.authenticatedContext("order-uid", { role: "order_manager" }).firestore();
+  await assertSucceeds(getDoc(doc(ownerDb, ...paymentRef)));
+  await assertSucceeds(getDoc(doc(paymentDb, ...paymentRef)));
+  await assertFails(getDoc(doc(orderDb, ...paymentRef)));
 });
