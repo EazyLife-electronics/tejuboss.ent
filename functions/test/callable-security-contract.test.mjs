@@ -70,7 +70,6 @@ test("guest session and idempotency records carry Firestore TTL timestamps", () 
 
 test("legacy tracking callable verifies phone suffix and returns a minimized projection", () => {
   const legacy = read("../src/legacy-order-tracking.mjs");
-  const trackingPage = read("../../track.html");
   assert.match(callableConfig(legacy, "getLegacyOrderTracking"), /enforceAppCheck:\s*true/);
   assert.match(legacy, /phoneLast4/);
   assert.match(legacy, /storedPhone\.slice\(-4\) !== phoneLast4/);
@@ -83,5 +82,5 @@ test("legacy tracking callable verifies phone suffix and returns a minimized pro
 test("legacy tracking page does not read private Firestore order or delivery documents", () => {
   const trackingPage = read("../../track.html");
   assert.match(trackingPage, /getLegacyOrderTracking/);
-  assert.doesNotMatch(trackingPage, /getOrderByTrackingCode|getDelivery\\(/);
+  assert.doesNotMatch(trackingPage, /getOrderByTrackingCode|getDelivery/);
 });
