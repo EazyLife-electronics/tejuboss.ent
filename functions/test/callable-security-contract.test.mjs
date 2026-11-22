@@ -166,3 +166,16 @@ test("legacy delivery configuration and lifecycle mutations use trusted callable
     assert.equal(store.includes(directWrite), false, "delivery store must not use " + directWrite);
   }
 });
+
+test("delivery queue uses a minimized App Check protected order projection", () => {
+  const delivery = read("../src/delivery-operations-admin.mjs");
+  assert.ok(callableConfig(delivery, "listLegacyDeliveryOrders").includes("enforceAppCheck:true"));
+  assert.ok(delivery.includes('where("status","in",["confirmed","shipped"])'));
+  assert.ok(delivery.includes("customerName:d.customerName"));
+  const store = read("../../admin/js/delivery-store.mjs");
+  const ui = read("../../admin/js/delivery.mjs");
+  assert.ok(store.includes("listLegacyDeliveryOrders"));
+  assert.ok(store.includes("setInterval(refresh, 60000)"));
+  assert.ok(ui.includes("watchDeliveryOrders"));
+  assert.equal(ui.includes("watchOrders"), false);
+});
