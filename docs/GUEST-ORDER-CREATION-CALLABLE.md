@@ -27,7 +27,7 @@ Order status is `awaiting_confirmation`, payment status is `unpaid`, and fulfilm
 
 ## Required backend configuration before a real order can be accepted
 - Published structured catalogue item and active selling options.
-- Private `inventoryMappings` record for every checkout option, matching product, variant, option and explicit conversion.
+- Private `inventoryMappings` record for every checkout option, keyed by SHA-256 of the ordered stable-ID tuple [productId, variantId, sellingOptionId], matching product, variant, option and explicit conversion. Required mapping fields: balanceId, stockUnitsPerSaleUnit (must match catalogue), stockUnitsPerBalanceUnit (canonical stock units per unit in that balance), productId, variantId, sellingOptionId, locationId, inventoryFormId, stockUnitCode. Optional sealed fallback: sealedBalanceId, sealedInventoryFormId, unitsPerPackage. The current confirmation transaction safely supports a single loose primary balance with a sealed-package fallback, or a directly selected inventory form. Mixed overlapping balances fail closed until the basket allocation planner is expanded.
 - Active delivery policy at `deliveryPolicies/active` for delivery orders, with enabled method, version, base fee and area fees.
 - Private quantity-tier configuration, if bulk pricing is enabled.
 - Guest session issuer deployed and App Check configured.
