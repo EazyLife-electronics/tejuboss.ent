@@ -101,3 +101,46 @@ export const recordOrderPayment = onCall(
     }
   }
 );
+
+
+/** Read-only receipt history for owner/payment staff; never exposes staff UIDs. */
+export const listOrderPaymentHistory = onCall(
+  { region: "europe-west1", enforceAppCheck: true },
+  async request => {
+    if (!request.auth) fail("unauthenticated", "Staff sign-in is required.");
+    const role = request.auth.token.role;
+    if (role !== "owner" && role !== "payment_manager") fail("permission-denied", "Payment manager access is required.");
+    const data = request.data;
+    if (!data || typeof data !== "object" || Array.isArray(data) ||
+        Object.keys(data).some(key => key !== "orderId") ||
+        typeof data.orderId !== "string" || !ID.test(data.orderId)) {
+      fail("invalid-argument", "A valid orderId is required.");
+    }
+    const db = getFirestore();
+    const orderRef = db.collection("orders").doc(data.orderId);
+    const orderSnap = await orderRef.get();
+    if (!orderSnap.exists) fail("not-found", "Order was not found.");
+    const order = orderSnap.data();
+    const snapshot = await orderRef.collection("payments").limit(201).get();
+    const all = snapshot.docs.map(doc => {
+      const p = doc.data();
+      return {
+        paymentId: doc.id,
+        amountMinor: Number.isSafeInteger(p.amountMinor) ? p.amountMinor : 0,
+        method: typeof p.method === "string" ? p.method : "Unspecified",
+        reference: typeof p.reference === "string" ? p.reference : "",
+        receivedAtMillis: Number.isSafeInteger(p.receivedAtMillis) ? p.receivedAtMillis : 0,
+        paymentStatusAfter: typeof p.paymentStatusAfter === "string" ? p.paymentStatusAfter : "",
+        paidTotalAfterMinor: Number.isSafeInteger(p.paidTotalAfterMinor) ? p.paidTotalAfterMinor : 0
+      };
+    }).sort((a, b) => a.receivedAtMillis - b.receivedAtMillis || a.paymentId.localeCompare(b.paymentId));
+    return {
+      orderId: data.orderId,
+      grandTotalMinor: Number.isSafeInteger(order.grandTotalMinor) ? order.grandTotalMinor : 0,
+      paymentTotalMinor: Number.isSafeInteger(order.paymentTotalMinor) ? order.paymentTotalMinor : 0,
+      paymentStatus: typeof order.paymentStatus === "string" ? order.paymentStatus : "unpaid",
+      payments: all.slice(0, 200),
+      limited: all.length > 200
+    };
+  }
+);
