@@ -1,29 +1,39 @@
-# Guest Checkout Request and Merchandise Quote Contract
+# Guest Checkout Request and Trusted Quote Contract
 
-Status: Implemented as a pure, tested domain boundary. Not connected to Firestore and does not create orders.
+Status: Implemented, tested and connected to the additive structured storefront preview. Not deployed to Firebase.
 
-## Request
+## Request contract
 
-The public request accepts only:
+The callable accepts only:
 - idempotency key;
-- product document ID, stable variant ID, stable selling-option ID and quantity per line;
+- product, variant and selling-option IDs plus quantity per line;
 - customer name and phone, optional email;
-- fulfilment method and delivery address/area when delivery is selected;
+- pickup or delivery selection, with address and configured area for delivery;
 - optional customer note.
 
-It rejects client-supplied prices, discounts, stock quantities, delivery fees, subtotals and totals. It also rejects unknown fields rather than silently trusting them.
+The backend rejects browser prices, discounts, stock quantities, delivery fees, subtotals, totals and unknown fields. The guest does not need a customer account.
 
-Guest checkout does not require an account.
+## Trusted calculation
 
-## Quote
+At order creation, the backend reads the current published product, authoritative pricing configuration, inventory mapping and (for delivery) active delivery policy. It calculates line pricing, eligible quantity-tier rules, delivery charge and final total in integer minor units. Browser totals are estimates only and are not accepted as authority.
 
-`calculateMerchandiseQuote` receives validated request data and trusted catalogue documents loaded by a backend caller. It calculates line prices and merchandise subtotal/discount/total from the catalogue. It returns a deliberately non-final quote:
-- `deliveryFeeMinor: null`
-- `grandTotalMinor: null`
-- `checkoutReady: false`
+If the selected product, price configuration, inventory mapping or required delivery configuration is unavailable or invalid, checkout fails closed.
 
-This is intentional. Existing delivery settings and fee logic must be audited and migrated before a complete amount can be accepted. Quantity tiers are also not applied until the commercial tier calculation mode and configuration are finalized.
+## Order and inventory boundary
 
-## Not yet implemented
+The transaction creates an order in `awaiting_confirmation`, with payment `unpaid` and fulfilment `unfulfilled`. It snapshots the server-derived quote and inventory deductions for the staff confirmation workflow.
 
-This module does not create an order, reserve or deduct stock, issue tracking credentials, or commit a Firestore transaction. Those actions require the final inventory-balance key and inventory-form mapping, idempotency storage, delivery configuration, and actual product record samples. No live Firebase reads or writes are performed.
+Order submission does not reserve or deduct stock. Inventory is deducted only when an authorized staff member confirms the order through the trusted confirmation transaction.
+
+## Security and reliability
+
+- App Check is required by the guest session and order callables.
+- A short-lived guest session credential is stored as a hash server-side.
+- Idempotency protects retries against duplicate order creation.
+- A separate high-entropy tracking credential is returned once; only its hash is stored.
+- Tracking recovery requires the still-valid originating guest session.
+- Customer tracking exposes a minimized status and payment/fulfilment projection.
+
+## Rollout boundary
+
+The implementation is committed to `tejuboss-foundation` and CI-tested. It remains a development preview. Firebase Functions, Firestore rules and App Check configuration have not been deployed or approved for production. The production shop and its legacy order flow remain unchanged.
