@@ -221,3 +221,15 @@ test("legacy order lifecycle mutations are role-scoped and atomic through a call
   assert.equal(orderLifecycle.includes("tx.update"), false);
   assert.equal(orderLifecycle.includes("tx.set"), false);
 });
+
+
+test("legacy browser order lookup delegates to verified phone-suffix tracking", () => {
+  const store = read("../../js/store.mjs");
+  const start = store.indexOf("export async function getOrderByTrackingCode");
+  assert.notEqual(start, -1);
+  const end = store.indexOf("\n}", start) + 2;
+  const lookup = store.slice(start, end);
+  assert.match(lookup, /legacyTrackingCallable\(\{ trackingCode: code, phoneLast4 \}\)/);
+  assert.match(lookup, /phoneLast4/);
+  assert.doesNotMatch(lookup, /getDoc|collection\(db,\s*['"]orders['"]\)/);
+});
