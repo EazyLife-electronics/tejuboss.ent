@@ -75,7 +75,8 @@ export const decideOrder = onCall(
         for (const item of deductions) {
           if (!item || typeof item.balanceId !== "string" || !ID.test(item.balanceId) ||
               typeof item.stockUnits !== "number" || !Number.isSafeInteger(item.stockUnits) ||
-              item.stockUnits <= 0 || seen.has(item.balanceId)) {
+              item.stockUnits <= 0 || seen.has(item.balanceId) ||
+              !["productId", "variantId", "locationId", "inventoryFormId", "stockUnitCode"].every(key => typeof item[key] === "string" && ID.test(item[key]))) {
             throw new HttpsError("failed-precondition", "Order inventory snapshot is invalid or duplicated.");
           }
           seen.add(item.balanceId);
@@ -114,7 +115,7 @@ export const decideOrder = onCall(
               throw new HttpsError("failed-precondition", "One or more inventory balances have not been initialized.");
             }
             const balance = snap.data();
-            if (!Number.isSafeInteger(balance.quantityOnHand) || balance.quantityOnHand < item.stockUnits) {
+            if (!Number.isSafeInteger(balance.quantityOnHand) || balance.quantityOnHand < 0 || balance.quantityOnHand < item.stockUnits) {
               throw new HttpsError("failed-precondition", "Insufficient stock to confirm this order.", {
                 balanceId: item.balanceId
               });
