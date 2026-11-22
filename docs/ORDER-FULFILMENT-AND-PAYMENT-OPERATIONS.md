@@ -60,3 +60,8 @@ The emulator integration test covers pickup fulfilment progression, customer tra
 ## Rollout boundary
 
 The implementation is committed only to `tejuboss-foundation`. Do not deploy it until the storefront, admin UI, Functions, App Check, custom claims and staged Firestore rules have been reviewed together. Existing production rules and role claims have not been verified by this code change.
+
+
+## Read-only order archive
+
+The Orders workspace includes a separate date-range archive for fulfilled and rejected structured orders. Staff search by local calendar date; the backend validates a maximum 90-day range, pages newest-first, and returns a bounded scan. It is read-only and does not change fulfilment, payment records, or inventory. Owner and order/delivery staff can view operational customer details; payment-only staff receive a privacy-limited projection without customer contact or delivery area. Orders lacking the structured `createdAtMillis` field are not included in this archive and remain part of legacy/manual record review.
