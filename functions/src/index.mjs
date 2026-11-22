@@ -266,3 +266,5 @@ export { receiveLegacyPurchase, voidLegacyPurchase, listLegacyPurchases, adjustL
 export { manageLegacyDeliveryConfig, createLegacyDelivery, updateLegacyDelivery, listLegacyDeliveryOrders } from "./delivery-operations-admin.mjs";
 
 export { manageLegacyPublicContent } from "./legacy-public-content-admin.mjs";
+
+export { manageLegacyProducts } from "./legacy-product-admin.mjs";
