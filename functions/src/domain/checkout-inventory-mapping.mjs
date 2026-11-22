@@ -41,7 +41,7 @@ export function buildCheckoutInventoryDeductions({ items, productsById, mappingR
 
     if (mapping.sealedBalanceId != null &&
         (mapping.stockUnitsPerBalanceUnit !== 1 ||
-         !ID.test(mapping.sealedBalanceId) ||
+         typeof mapping.sealedBalanceId !== "string" || !ID.test(mapping.sealedBalanceId) ||
          mapping.sealedBalanceId === mapping.balanceId ||
          !Number.isSafeInteger(mapping.unitsPerPackage) || mapping.unitsPerPackage <= 0 ||
          typeof mapping.sealedInventoryFormId !== "string" || !ID.test(mapping.sealedInventoryFormId))) {
