@@ -48,10 +48,12 @@ form.addEventListener("submit", async event => {
     status.textContent = result.data.unchanged
       ? "Count matches the recorded quantity. No adjustment was needed."
       : "Count updated. Previous: " + balance.quantityOnHand + ", new: " + result.data.quantityOnHand + ", change: " + result.data.quantityDelta + ".";
-    await let started=false;\nconst stockTab=document.getElementById("stockSetupTabBtn");\nstockTab?.addEventListener("click",()=>{if(!started){started=true;load();}});
+    await load();
     form.reset();
   } catch (error) {
     status.textContent = error.message || "Count adjustment failed. Refresh the balance and recount if stock changed.";
   }
 });
-load();
+let started=false;
+const stockTab=document.getElementById("stockSetupTabBtn");
+stockTab?.addEventListener("click",()=>{if(!started){started=true;load();}});
