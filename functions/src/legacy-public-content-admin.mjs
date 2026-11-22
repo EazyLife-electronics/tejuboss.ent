@@ -125,14 +125,28 @@ export const manageLegacyPublicContent = onCall(
       return { id: created.id, success: true };
     }
 
-    requireRole(request, name);
     if (action === "list") {
+      const publicOnly = data.publicOnly === true && ["heroes", "reviews"].includes(name);
+      if (!publicOnly) requireRole(request, name);
       let query = ref;
-      if (name === "reviews" && data.publicOnly === true) query = query.where("approved", "==", true);
-      if (name === "heroes" && data.publicOnly === true) query = query.orderBy("order", "asc");
+      if (name === "reviews" && publicOnly) query = query.where("approved", "==", true);
+      if (name === "heroes" && publicOnly) query = query.orderBy("order", "asc");
       const snap = await query.limit(100).get();
+      if (publicOnly && name === "heroes") {
+        return snap.docs.map(doc => {
+          const d = doc.data();
+          return { id: doc.id, title: d.title || "", subtitle: d.subtitle || "", image: d.image || "", ctaText: d.ctaText || "", linkType: d.linkType || "", linkValue: d.linkValue || "", order: d.order ?? 0 };
+        });
+      }
+      if (publicOnly && name === "reviews") {
+        return snap.docs.map(doc => {
+          const d = doc.data();
+          return { id: doc.id, name: d.name || "", title: d.title || "", stars: d.stars || 0, text: d.text || "", approved: true };
+        });
+      }
       return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
+    requireRole(request, name);
     if (action === "create") {
       const clean = validateContent(name, data.values, action);
       const created = await ref.add({ ...clean, createdAt: FieldValue.serverTimestamp(), createdBy: request.auth.uid });
