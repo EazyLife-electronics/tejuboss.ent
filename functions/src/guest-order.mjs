@@ -37,6 +37,8 @@ function mapDeductions(validated, productsById, mappingSnaps) {
     if (!option || !Number.isSafeInteger(option.stockUnitsPerSaleUnit) ||
         !Number.isSafeInteger(mapping.stockUnitsPerSaleUnit) ||
         mapping.stockUnitsPerSaleUnit !== option.stockUnitsPerSaleUnit ||
+        !Number.isSafeInteger(mapping.stockUnitsPerBalanceUnit) || mapping.stockUnitsPerBalanceUnit <= 0 ||
+        (mapping.sealedBalanceId != null && (!ID.test(mapping.sealedBalanceId) || mapping.sealedBalanceId === mapping.balanceId || !Number.isSafeInteger(mapping.unitsPerPackage) || mapping.unitsPerPackage <= 0 || typeof mapping.sealedInventoryFormId !== "string" || !ID.test(mapping.sealedInventoryFormId))) ||
         typeof mapping.balanceId !== "string" || !ID.test(mapping.balanceId) ||
         !["productId", "variantId", "locationId", "inventoryFormId", "stockUnitCode"].every(k => typeof mapping[k] === "string" && ID.test(mapping[k])) ||
         mapping.productId !== item.productId || mapping.variantId !== item.variantId ||
