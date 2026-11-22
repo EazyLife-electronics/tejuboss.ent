@@ -1,23 +1,38 @@
 # Phase 1 Implementation Checklist
 
-Status: Ready for implementation planning; no backend or production changes made
+Status: Backend foundation implemented on development branch; production rollout is still blocked
 Working branch: `tejuboss-foundation`
 
 This checklist translates the approved business rules and target architecture into a safe implementation order. It is not evidence that any item has already been implemented.
 
-## Implementation progress (21 November 2026)
+## Implementation progress (22 November 2026)
 
-The following foundation work has now been implemented on `tejuboss-foundation` and covered by automated tests:
+The development branch now contains tested checkout foundations, with no live deployment:
 
-- Firestore Emulator-only checkout transaction harness using synthetic product, delivery, pricing and inventory records.
-- Atomic sample order, customer-safe tracking projection, idempotency record, stock balance changes and movement writes.
-- Emulator tests for replay, changed-payload conflict, insufficient-stock rollback, current catalogue price reads, concurrent oversell prevention, and quantity-tier pricing snapshots.
-- Pure threshold and marginal tier calculation modes.
-- Explicit selected-option and base-stock-equivalent qualification, including opt-in cross-option aggregation.
-- Trusted basket quote integration, deterministic line-level discount allocation, and non-stacking behaviour with catalogue promotions.
-- CI pure-domain tests passed, and Firestore security/emulator tests passed on the transaction-tier integration commit. A subsequent documentation and baseline-edge-case test run is still completing.
+- Firebase Functions workspace, emulator configuration, CI and pure-domain test suite.
+- Structured catalogue validation/publication and a separate preview, preserving the legacy shop.
+- Public-safe quantity offers and private server-side tier pricing, including effective-date checks.
+- Guest checkout session issuer with hash-only credentials and session expiry validation.
+- Trusted `createGuestOrder` callable: server-side catalogue, tier and delivery calculation; idempotent order creation; customer-safe tracking projection; no browser totals or prices.
+- Orders start `awaiting_confirmation`; submission neither reserves nor deducts stock.
+- Trusted `decideOrder` callable: authorized staff decision, atomic inventory update and ledger, idempotent confirmation/rejection.
+- Pure grocery confirmation planner with explicit balance conversions, loose-first stock allocation, sealed-carton break-pack and tests.
+- Private inventory mappings, delivery policy and idempotency collections in staged rules.
+- Emulator fixture tests for stock-neutral order placement, confirmation, rejection, replay, insufficient stock and concurrency.
 
-These are foundation/test implementations, not a production checkout endpoint or a completed admin editor. The remaining checklist below continues to describe the full Phase 1 scope. The production schema, public pricing projection, admin publication workflow, guest-session endpoint, App Check rollout, inventory reservation timing, and live storefront integration remain outstanding.
+The pure-domain test job passed on the latest completed run. Firestore emulator security tests for the latest commit are still running.
+
+## Remaining production prerequisites
+
+- Admin workflow to initialize physically counted stock balances and create/verify inventory mappings.
+- Admin delivery-policy configuration and approved real delivery charges/areas.
+- Custom claims for owner/order/inventory roles, verified and assigned securely.
+- App Check production configuration.
+- Guest storefront integration and safe customer wording for pending confirmation.
+- Recovery/return/payment workflows and migration of legacy open orders.
+- Staging acceptance, deployed-rule audit, explicit approval and rollout plan.
+
+The callable endpoints are exported but not deployed. Existing legacy storefront and live Firestore data remain unchanged.
 
 ## 0. Current repository constraints observed
 
