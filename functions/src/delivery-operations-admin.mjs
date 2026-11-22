@@ -57,7 +57,7 @@ export const manageLegacyDeliveryConfig=onCall({region:"europe-west1",enforceApp
 const NEXT={
   ready:["assigned","cancelled"],assigned:["picked_up","ready","cancelled"],
   picked_up:["in_transit","failed","returned"],in_transit:["checkpoint","delivered","failed","returned"],
-  checkpoint:["checkpoint","delivered","failed","returned"],failed:["returned"],delivered:[],returned:[],cancelled:[]
+  checkpoint:["checkpoint","in_transit","delivered","failed","returned"],failed:["assigned","returned"],delivered:[],returned:["assigned","cancelled"],cancelled:[]
 };
 export const createLegacyDelivery=onCall({region:"europe-west1",enforceAppCheck:true},async request=>{
   authorize(request);
