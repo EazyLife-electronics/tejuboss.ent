@@ -84,7 +84,7 @@ export const createLegacyDelivery=onCall({region:"europe-west1",enforceAppCheck:
     const now=Date.now(),assigned=Boolean(person);
     tx.create(deliveryRef,{
       orderId:d.orderId,customerId:order.customerId||null,
-      customerName:order.customerName||order.customer||order.customer?.name||"",
+      customerName:order.customerName||(typeof order.customer==="string"?order.customer:(order.customer?.name||"")),
       customerPhone:order.customerPhone||order.phone||order.customer?.phone||"",
       address:order.deliveryAddress||order.address||order.fulfilment?.address||"",
       deliveryTypeId:d.deliveryTypeId||null,deliveryType:type?.name||"",
