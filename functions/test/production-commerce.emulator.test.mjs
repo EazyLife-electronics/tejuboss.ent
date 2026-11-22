@@ -191,6 +191,7 @@ test("production commerce callables: open stock, map option, guest order, confir
       }, paymentStaff),
       error => error.message.includes("Payment exceeds the outstanding order balance")
     );
+    await new Promise(resolve => setTimeout(resolve, 3));
     const finalPayment = await call(recordOrderPayment, {
       orderId, amountMinor: 30000, method: "Cash",
       idempotencyKey: "payment-final-" + suffix
