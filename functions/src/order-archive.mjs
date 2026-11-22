@@ -42,8 +42,9 @@ export const listCommerceOrderArchive = onCall(
     const archived = snapshot.docs.filter(doc => {
       const d = doc.data();
       return d.status === "rejected" || d.fulfilmentStatus === "fulfilled";
-    }).slice(0, PAGE_SIZE);
-    const orders = archived.map(doc => {
+    });
+    const page = archived.slice(0, PAGE_SIZE);
+    const orders = page.map(doc => {
       const d = doc.data();
       const privacyLimited = role === "payment_manager";
       return {
@@ -64,10 +65,10 @@ export const listCommerceOrderArchive = onCall(
         paymentStatus: d.paymentStatus || "unpaid"
       };
     });
-    const last = snapshot.docs.at(-1);
+    const last = archived.length > PAGE_SIZE ? page.at(-1) : snapshot.docs.at(-1);
     return {
       orders,
-      hasMore: snapshot.size === PAGE_SCAN,
+      hasMore: archived.length > PAGE_SIZE || snapshot.size === PAGE_SCAN,
       cursor: last ? { createdAtMillis: last.data().createdAtMillis, id: last.id } : null,
       scanned: snapshot.size,
       privacyLimited: role === "payment_manager"
