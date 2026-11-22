@@ -1,6 +1,6 @@
 import { randomUUID, createHash } from "node:crypto";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { FieldValue, getFirestore } from "firebase-admin/firestore";
+import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { validateCreateOrderRequest } from "./domain/checkout.mjs";
 import { calculateCheckoutQuote } from "./domain/checkout-quote.mjs";
 import { buildCheckoutInventoryDeductions } from "./domain/checkout-inventory-mapping.mjs";
@@ -158,7 +158,8 @@ export const createGuestOrder = onCall(
           status: "completed",
           orderId: orderRef.id,
           createdAtMillis: now,
-          completedAtMillis: now
+          completedAtMillis: now,
+          expiresAt: Timestamp.fromMillis(now + 30 * 24 * 60 * 60 * 1000)
         });
         tx.create(auditRef, {
           action: "guest_order_created",
