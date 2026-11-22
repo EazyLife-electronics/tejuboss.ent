@@ -51,7 +51,10 @@ function mapDeductions(validated, productsById, mappingSnaps) {
     if (prior) {
       if (prior.productId !== mapping.productId || prior.variantId !== mapping.variantId ||
           prior.locationId !== mapping.locationId || prior.inventoryFormId !== mapping.inventoryFormId ||
-          prior.stockUnitCode !== mapping.stockUnitCode) {
+          prior.stockUnitCode !== mapping.stockUnitCode ||
+          prior.stockUnitsPerBalanceUnit !== mapping.stockUnitsPerBalanceUnit ||
+          prior.sealedBalanceId !== (mapping.sealedBalanceId ?? null) ||
+          prior.unitsPerPackage !== (mapping.unitsPerPackage ?? null)) {
         fail("failed-precondition", "Conflicting inventory mappings share a balance.");
       }
       prior.stockUnits += stockUnits;
@@ -64,6 +67,9 @@ function mapDeductions(validated, productsById, mappingSnaps) {
         locationId: mapping.locationId,
         inventoryFormId: mapping.inventoryFormId,
         stockUnitCode: mapping.stockUnitCode,
+        stockUnitsPerBalanceUnit: mapping.stockUnitsPerBalanceUnit,
+        sealedBalanceId: mapping.sealedBalanceId ?? null,
+        unitsPerPackage: mapping.unitsPerPackage ?? null,
         stockUnits
       });
     }
