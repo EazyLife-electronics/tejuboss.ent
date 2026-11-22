@@ -8,6 +8,7 @@ import { initializeInventoryBalance } from "../src/inventory-setup.mjs";
 import { saveInventoryMapping } from "../src/inventory-mapping.mjs";
 import { createGuestOrder } from "../src/guest-order.mjs";
 import { decideOrder } from "../src/order-confirmation.mjs";
+import { updateOrderFulfilment } from "../src/order-fulfilment.mjs";
 import { getGuestOrderTracking, recoverGuestOrderTracking } from "../src/order-tracking.mjs";
 import { inventoryBalanceId } from "../src/domain/inventory-setup.mjs";
 import { inventoryMappingDocumentId } from "../src/domain/inventory-mapping.mjs";
@@ -140,6 +141,33 @@ test("production commerce callables: open stock, map option, guest order, confir
     );
     const recoveredTracking = await call(getGuestOrderTracking, { trackingToken: newTrackingToken });
     assert.equal(recoveredTracking.tracking.status, "confirmed");
+
+    const preparing = await call(updateOrderFulfilment, {
+      orderId, expectedStatus: "unfulfilled", nextStatus: "preparing"
+    }, staff);
+    assert.equal(preparing.fulfilmentStatus, "preparing");
+    const ready = await call(updateOrderFulfilment, {
+      orderId, expectedStatus: "preparing", nextStatus: "ready_for_pickup"
+    }, staff);
+    assert.equal(ready.fulfilmentStatus, "ready_for_pickup");
+    const collected = await call(updateOrderFulfilment, {
+      orderId, expectedStatus: "ready_for_pickup", nextStatus: "fulfilled"
+    }, staff);
+    assert.equal(collected.fulfilmentStatus, "fulfilled");
+    const fulfilledOrder = (await db.collection("orders").doc(orderId).get()).data();
+    assert.equal(fulfilledOrder.paymentStatus, "unpaid", "fulfilment must never mark payment as paid");
+    const fulfilmentTracking = await call(getGuestOrderTracking, { trackingToken: newTrackingToken });
+    assert.equal(fulfilmentTracking.tracking.fulfilmentStatus, "fulfilled");
+    assert.deepEqual(
+      fulfilmentTracking.tracking.timeline.map(event => event.event),
+      ["order_placed", "confirmed", "preparing", "ready_for_pickup", "fulfilled"]
+    );
+    await assert.rejects(
+      call(updateOrderFulfilment, {
+        orderId, expectedStatus: "unfulfilled", nextStatus: "preparing"
+      }, staff),
+      error => error.code === "aborted"
+    );
 
     const replay = await call(createGuestOrder, {
       sessionToken,
