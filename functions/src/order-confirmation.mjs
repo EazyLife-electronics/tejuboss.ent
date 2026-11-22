@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
-import { planLooseStockSale } from "./domain/inventory-planning.mjs";
+import { planConfirmedOrderInventory } from "./domain/confirmation-inventory.mjs";
 
 const ID = /^[A-Za-z0-9_.-]{1,128}$/;
 const db = () => getFirestore();
@@ -97,10 +97,28 @@ export const decideOrder = onCall(
           : new Map();
         const trackingSnap = trackingRef ? await tx.get(trackingRef) : null;
 
-        const movementRefs = normalized.map(() =>
-          firestore.collection("inventoryMovements").doc()
-        );
-        const breakMovementRefs = normalized.map(() =>
+        let stockPlan = null;
+        if (decision === "confirm") {
+          const balancesById = new Map();
+          for (const balanceId of allBalanceIds) {
+            const snap = balanceSnaps.get(balanceId);
+            if (!snap?.exists) {
+              throw new HttpsError("failed-precondition", "One or more inventory balances have not been initialized.");
+            }
+            balancesById.set(balanceId, snap.data());
+          }
+          try {
+            stockPlan = planConfirmedOrderInventory({
+              deductions: normalized,
+              balancesById
+            });
+          } catch (error) {
+            if (error?.code) throw new HttpsError("failed-precondition", error.message);
+            throw error;
+          }
+        }
+
+        const movementRefs = (stockPlan?.movements ?? []).map(() =>
           firestore.collection("inventoryMovements").doc()
         );
         const nextStatus = decision === "confirm" ? "confirmed" : "rejected";
@@ -116,107 +134,29 @@ export const decideOrder = onCall(
           tx.update(trackingRef, { status: nextStatus, updatedAtMillis: now });
         }
 
-        if (decision === "confirm") {
-          for (let i = 0; i < normalized.length; i++) {
-            const item = normalized[i];
-            const primarySnap = balanceSnaps.get(item.balanceId);
-            if (!primarySnap?.exists) {
-              throw new HttpsError("failed-precondition", "One or more inventory balances have not been initialized.");
-            }
-            const primary = primarySnap.data();
-            if (!Number.isSafeInteger(primary.quantityOnHand) || primary.quantityOnHand < 0) {
-              throw new HttpsError("failed-precondition", "Inventory balance is malformed.");
-            }
-
-            let primaryAfter;
-            let sealedAfter = null;
-            let packagesOpened = 0;
-            let transferredUnits = 0;
-            let deductedBalanceUnits;
-
-            if (item.sealedBalanceId) {
-              if (item.stockUnitsPerBalanceUnit !== 1) {
-                throw new HttpsError("failed-precondition", "Loose-stock fallback requires base stock units in the primary balance.");
-              }
-              const sealedSnap = balanceSnaps.get(item.sealedBalanceId);
-              if (!sealedSnap?.exists) {
-                throw new HttpsError("failed-precondition", "Sealed-package inventory has not been initialized.");
-              }
-              const sealed = sealedSnap.data();
-              if (!Number.isSafeInteger(sealed.quantityOnHand) || sealed.quantityOnHand < 0) {
-                throw new HttpsError("failed-precondition", "Sealed-package balance is malformed.");
-              }
-              const plan = planLooseStockSale({
-                requestedUnits: item.stockUnits,
-                looseUnits: primary.quantityOnHand,
-                sealedPackages: sealed.quantityOnHand,
-                unitsPerSealedPackage: item.unitsPerPackage
-              });
-              if (!plan.feasible) {
-                throw new HttpsError("failed-precondition", "Insufficient loose and sealed stock to confirm this order.");
-              }
-              primaryAfter = plan.looseUnitsAfter;
-              sealedAfter = plan.sealedPackagesAfter;
-              packagesOpened = plan.packagesToOpen;
-              transferredUnits = plan.transferredUnits;
-              deductedBalanceUnits = item.stockUnits;
-              tx.update(balanceRefs.get(item.balanceId), {
-                quantityOnHand: primaryAfter,
-                updatedAt: FieldValue.serverTimestamp(),
-                updatedBy: request.auth.uid
-              });
-              tx.update(balanceRefs.get(item.sealedBalanceId), {
-                quantityOnHand: sealedAfter,
-                updatedAt: FieldValue.serverTimestamp(),
-                updatedBy: request.auth.uid
-              });
-            } else {
-              if (item.stockUnits % item.stockUnitsPerBalanceUnit !== 0) {
-                throw new HttpsError("failed-precondition", "Order quantity cannot be represented in the selected inventory form.");
-              }
-              deductedBalanceUnits = item.stockUnits / item.stockUnitsPerBalanceUnit;
-              if (primary.quantityOnHand < deductedBalanceUnits) {
-                throw new HttpsError("failed-precondition", "Insufficient stock in the configured inventory form.");
-              }
-              primaryAfter = primary.quantityOnHand - deductedBalanceUnits;
-              tx.update(balanceRefs.get(item.balanceId), {
-                quantityOnHand: primaryAfter,
-                updatedAt: FieldValue.serverTimestamp(),
-                updatedBy: request.auth.uid
-              });
-            }
-
-            if (packagesOpened > 0) {
-              tx.create(breakMovementRefs[i], {
-                movementType: "break_pack",
-                orderId,
-                productId: item.productId,
-                variantId: item.variantId,
-                locationId: item.locationId,
-                sourceInventoryFormId: item.sealedInventoryFormId,
-                destinationInventoryFormId: item.inventoryFormId,
-                packagesOpened,
-                unitsTransferred: transferredUnits,
-                createdAt: FieldValue.serverTimestamp(),
-                createdBy: request.auth.uid
-              });
-            }
-            tx.create(movementRefs[i], {
-              movementType: "sale",
+        if (stockPlan) {
+          for (const [balanceId, quantityOnHand] of stockPlan.updates.entries()) {
+            tx.update(balanceRefs.get(balanceId), {
+              quantityOnHand,
+              updatedAt: FieldValue.serverTimestamp(),
+              updatedBy: request.auth.uid
+            });
+          }
+          stockPlan.movements.forEach((movement, index) => {
+            const snapshot = normalized.find(item =>
+              item.balanceId === movement.balanceId || item.sealedBalanceId === movement.balanceId
+            );
+            tx.create(movementRefs[index], {
+              ...movement,
               orderId,
-              productId: item.productId,
-              variantId: item.variantId,
-              locationId: item.locationId,
-              inventoryFormId: item.inventoryFormId,
-              stockUnitCode: item.stockUnitCode,
-              quantity: deductedBalanceUnits,
-              canonicalStockUnits: item.stockUnits,
-              balanceBefore: primary.quantityOnHand,
-              balanceAfter: primaryAfter,
+              productId: snapshot.productId,
+              variantId: snapshot.variantId,
+              locationId: snapshot.locationId,
+              stockUnitCode: snapshot.stockUnitCode,
               createdAt: FieldValue.serverTimestamp(),
               createdBy: request.auth.uid
             });
-          }
+          });
         }
 
         tx.create(auditRef, {
