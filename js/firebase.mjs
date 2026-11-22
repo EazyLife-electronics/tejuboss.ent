@@ -32,11 +32,12 @@ export function initFirebase() {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuth(app);
+  let appCheck = null;
 
   // Initialize App Check with the matching reCAPTCHA Enterprise provider.
   if (RECAPTCHA_ENTERPRISE_SITE_KEY) {
     try {
-      initializeAppCheck(app, {
+      appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaEnterpriseProvider(RECAPTCHA_ENTERPRISE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
@@ -45,7 +46,7 @@ export function initFirebase() {
     }
   }
 
-  cached = { app, db, auth };
+  cached = { app, db, auth, appCheck };
 
   // Admin-only modules
   if (
