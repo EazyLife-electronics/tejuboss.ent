@@ -44,43 +44,6 @@ async function requestFiles(folder) {
   }
   return found;
 }
-function ensureDiagnostics() {
-  const panel=$('tbMediaDiagnostics'); if(panel) return;
-  const wrap=document.createElement('section'); wrap.id='tbMediaDiagnostics';
-  wrap.className='bg-white p-5 rounded-[24px] shadow-sm mb-5';
-  wrap.innerHTML='<div class="flex items-center justify-between gap-2 mb-3"><div><h3 class="font-black text-base">Media service verification</h3><p class="text-xs text-gray-500">Check each connection without uploading or changing files.</p></div><button id="tbMediaVerifyBtn" type="button" class="border px-3 py-2 rounded-lg text-xs font-bold">Run checks</button></div><div id="tbMediaChecks" class="grid gap-2"><p class="text-xs text-gray-500">Checks have not run yet.</p></div>';
-  $('panel-media').prepend(wrap);
-  $('tbMediaVerifyBtn').addEventListener('click',runDiagnostics);
-}
-function diagnosticRow(label,state,detail) {
-  const row=document.createElement('div'); row.className='flex flex-wrap justify-between gap-2 border-b border-gray-100 py-2 text-xs';
-  const left=document.createElement('span'); left.className='font-bold text-gray-700'; left.textContent=label;
-  const right=document.createElement('span'); right.className=state==='Verified'?'text-green-700':state==='Failed'?'text-red-600':'text-gray-500'; right.textContent=state+(detail?' · '+detail:'');
-  row.append(left,right); $('tbMediaChecks').append(row);
-}
-async function runDiagnostics() {
-  ensureDiagnostics(); const btn=$('tbMediaVerifyBtn'); btn.disabled=true; btn.textContent='Checking…';
-  const box=$('tbMediaChecks'); box.replaceChildren();
-  diagnosticRow('Admin authentication',user&&user.email==='damzyeazy@gmail.com'?'Verified':'Failed',user?.email||'No authenticated admin');
-  try {
-    const health=await fetch(WORKER_URL+'/health');
-    if(!health.ok) throw new Error('HTTP '+health.status);
-    diagnosticRow('Cloudflare Worker','Verified','Health endpoint reachable');
-  } catch(e) { diagnosticRow('Cloudflare Worker','Failed',e.message); }
-  try {
-    const token=await idToken();
-    const response=await fetch(WORKER_URL+'/auth',{headers:{Authorization:'Bearer '+token}});
-    const data=await response.json().catch(()=>({}));
-    if(!response.ok||!data.token||!data.signature||!data.expire||!data.publicKey) throw new Error(data.error||'Upload credentials unavailable');
-    diagnosticRow('ImageKit upload authorization','Verified','Temporary credentials issued');
-  } catch(e) { diagnosticRow('ImageKit upload authorization','Failed',e.message); }
-  try {
-    await requestFiles('/tejuboss/products');
-    diagnosticRow('TejuBoss folder access','Verified','Products folder readable');
-  } catch(e) { diagnosticRow('TejuBoss folder access','Failed',e.message); }
-  diagnosticRow('Actual file upload','Not tested','Run a real upload to verify ImageKit accepts the file');
-  btn.disabled=false; btn.textContent='Run checks';
-}
 async function requestMediaAction(action,payload) {
   const token=await idToken();
   const response=await fetch(WORKER_URL+'/manage',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({action,...payload})});
@@ -98,7 +61,7 @@ async function manageAsset(asset,action) {
   }
   try {
     status('tbMediaLibraryStatus',(action==='delete'?'Deleting ':'Renaming ')+(asset.name||'image')+'…');
-    await requestMediaAction(action,{fileId:asset.fileId,...(action==='rename'?{newFileName:newName.trim()}:{})});
+    await requestMediaAction(action,action==='rename'?{filePath:asset.filePath,newFileName:newName.trim()}:{fileId:asset.fileId});
     selectedMediaIds.delete(asset.fileId); await loadLibrary();
     status('tbMediaLibraryStatus','Image '+(action==='delete'?'deleted':'renamed')+'.','success');
   } catch(e) { status('tbMediaLibraryStatus',e.message,'error'); }
@@ -236,7 +199,6 @@ export function initTejuBossMedia() {
     if (!user) { loaded=false; return; }
     if (!loaded) {
       loaded=true;
-      ensureDiagnostics();
       const toolbar=document.createElement('div'); toolbar.className='flex flex-wrap items-center gap-2 mb-3';
       const bulk=document.createElement('button'); bulk.id='tbMediaBulkDelete'; bulk.type='button'; bulk.className='bg-red-50 text-red-700 px-3 py-2 rounded-lg text-xs font-bold'; bulk.textContent='Delete selected (0)'; bulk.addEventListener('click',bulkDeleteSelected);
       toolbar.append(bulk); $('tbMediaGrid').before(toolbar);
@@ -244,7 +206,7 @@ export function initTejuBossMedia() {
       $('tbMediaRefreshBtn')?.addEventListener('click',loadLibrary);
       $('tbMediaBrowseFolder')?.addEventListener('change',loadLibrary);
       $('tbMediaSearch')?.addEventListener('input',renderLibrary);
-      document.querySelector('[data-tab="media"]')?.addEventListener('click',()=>{loadLibrary();runDiagnostics();});
+      document.querySelector('[data-tab="media"]')?.addEventListener('click',loadLibrary);
     }
   });
   window.openTejuBossMediaPicker=openPicker;
