@@ -236,3 +236,5 @@ export { saveCatalogueDraft, listCatalogueDrafts, publishCatalogueDraft } from "
 export { createGuestCheckoutSession } from "./guest-checkout-session.mjs";
 
 export { decideOrder } from "./order-confirmation.mjs";
+
+export { createGuestOrder } from "./guest-order.mjs";
