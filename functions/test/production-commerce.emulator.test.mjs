@@ -41,7 +41,7 @@ test("production commerce callables: open stock, map option, guest order, confir
   const balanceId = inventoryBalanceId({ productId, variantId, locationId, inventoryFormId: formId });
   const mappingId = inventoryMappingDocumentId({ productId, variantId, sellingOptionId: optionId });
   const productRef = db.collection("catalogueProducts").doc(productId);
-  let sessionToken, orderId, trackingToken, newTrackingToken;
+  let sessionToken, orderId, trackingToken, newTrackingToken, secondOrderId, secondTrackingToken;
 
   await productRef.create({
     catalogueSchemaVersion: 2,
@@ -153,6 +153,32 @@ test("production commerce callables: open stock, map option, guest order, confir
     assert.equal(replay.outcome, "replay");
     assert.equal(replay.orderId, orderId);
     assert.equal("trackingToken" in replay, false);
+
+    const pendingOverstock = await call(createGuestOrder, {
+      sessionToken,
+      order: {
+        idempotencyKey: "overstock-" + suffix,
+        items: [{ productId, variantId, sellingOptionId: optionId, quantity: 4 }],
+        customer: { name: "Emulator Buyer", phone: "08000000000" },
+        fulfilment: { method: "pickup" }
+      }
+    });
+    secondOrderId = pendingOverstock.orderId;
+    secondTrackingToken = pendingOverstock.trackingToken;
+    await assert.rejects(
+      call(decideOrder, { orderId: secondOrderId, decision: "confirm" }, staff),
+      error => error.code === "failed-precondition"
+    );
+    assert.equal((await db.collection("orders").doc(secondOrderId).get()).data().status, "awaiting_confirmation");
+    assert.equal((await db.collection("inventoryBalances").doc(balanceId).get()).data().quantityOnHand, 750);
+    assert.equal((await db.collection("inventoryMovements").where("orderId", "==", secondOrderId).get()).size, 0);
+
+    const rejected = await call(decideOrder, { orderId: secondOrderId, decision: "reject" }, staff);
+    assert.equal(rejected.outcome, "rejected");
+    assert.equal(rejected.inventoryDeducted, false);
+    assert.equal((await db.collection("inventoryBalances").doc(balanceId).get()).data().quantityOnHand, 750);
+    const rejectedTracking = await call(getGuestOrderTracking, { trackingToken: secondTrackingToken });
+    assert.equal(rejectedTracking.tracking.status, "rejected");
   } finally {
     const batch = db.batch();
     if (orderId) {
@@ -165,7 +191,9 @@ test("production commerce callables: open stock, map option, guest order, confir
     }
     const setupAudits = await db.collection("auditLogs").where("productId", "==", productId).get();
     for (const doc of setupAudits.docs) batch.delete(doc.ref);
+    if (secondOrderId) batch.delete(db.collection("orders").doc(secondOrderId));
     if (trackingToken) batch.delete(db.collection("orderTracking").doc(hashTrackingCredential(trackingToken)));
+    if (secondTrackingToken) batch.delete(db.collection("orderTracking").doc(hashTrackingCredential(secondTrackingToken)));
     if (newTrackingToken) batch.delete(db.collection("orderTracking").doc(hashTrackingCredential(newTrackingToken)));
     if (sessionToken) {
       const sessionHash = hashGuestSessionCredential(sessionToken);
@@ -176,6 +204,17 @@ test("production commerce callables: open stock, map option, guest order, confir
         payload: {
           idempotencyKey: "grocery-" + suffix,
           items: [{ productId, variantId, sellingOptionId: optionId, quantity: 1 }],
+          customer: { name: "Emulator Buyer", phone: "08000000000" },
+          fulfilment: { method: "pickup" },
+          note: ""
+        }
+      }).keyHash));
+      batch.delete(db.collection("checkoutIdempotency").doc(buildIdempotencyRecord({
+        scopeId: sessionHash,
+        idempotencyKey: "overstock-" + suffix,
+        payload: {
+          idempotencyKey: "overstock-" + suffix,
+          items: [{ productId, variantId, sellingOptionId: optionId, quantity: 4 }],
           customer: { name: "Emulator Buyer", phone: "08000000000" },
           fulfilment: { method: "pickup" },
           note: ""
