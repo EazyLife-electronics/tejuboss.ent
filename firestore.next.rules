@@ -51,6 +51,10 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /deliveryPolicies/{policyId} {
+      allow read, write: if false;
+    }
+
     match /catalogueDrafts/{draftId} {
       allow read, write: if false;
     }
