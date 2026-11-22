@@ -213,3 +213,20 @@ test("legacy product writes and admin listing use role-scoped App Check callable
   assert.match(productBlock, /productCall\\('list'\\)/);
   assert.doesNotMatch(productBlock, /addDoc\\(collection\\(db,\\s*['\"]products|updateDoc\\(doc\\(db,\\s*['\"]products|deleteDoc\\(doc\\(db,\\s*['\"]products/);
 });
+
+
+test("legacy order lifecycle mutations are role-scoped and atomic through a callable", () => {
+  const lifecycle = read("../src/legacy-order-lifecycle-admin.mjs");
+  assert.match(lifecycle, /manageLegacyOrderLifecycle/);
+  assert.match(lifecycle, /enforceAppCheck:\\s*true/);
+  assert.match(lifecycle, /order_manager/);
+  assert.match(lifecycle, /runTransaction/);
+  assert.match(lifecycle, /inventoryMovements/);
+  assert.match(lifecycle, /auditLogs/);
+  const store = read("../../js/store.mjs");
+  const orderLifecycle = store.slice(store.indexOf("legacyOrderCallable"), store.indexOf("LEGACY CONTENT VIA TRUSTED FUNCTIONS"));
+  assert.match(orderLifecycle, /manageLegacyOrderLifecycle/);
+  assert.match(orderLifecycle, /legacyOrderCallable\\(\\{ action: 'status'/);
+  assert.match(orderLifecycle, /legacyOrderCallable\\(\\{ action: 'cancel'/);
+  assert.doesNotMatch(orderLifecycle, /runTransaction|tx\\.update|tx\\.set/);
+});
