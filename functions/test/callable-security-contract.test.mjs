@@ -205,8 +205,16 @@ test("legacy product writes and admin listing use role-scoped App Check callable
   const productBlock = store.slice(store.indexOf("PRODUCTS ----------------"), store.indexOf("ORDERS ----------------"));
   assert.ok(productBlock.includes("manageLegacyProducts"));
   assert.ok(productBlock.includes("productCall('publicList')"));
-  assert.ok(productBlock.includes("productCall('list')"));
-  for (const directWrite of ["addDoc(collection(db, 'products')", 'addDoc(collection(db, "products")', "updateDoc(doc(db, 'products'", 'updateDoc(doc(db, "products"', "deleteDoc(doc(db, 'products'", 'deleteDoc(doc(db, "products"']) assert.equal(productBlock.includes(directWrite), false);
+  assert.ok(productBlock.includes("productCall(action, product, id)"), "admin operations must try the trusted callable first");
+  assert.ok(productBlock.includes("adminProductOperation('list')"));
+  assert.ok(productBlock.includes("isCallableUnavailable(error)"), "Firestore fallback must be limited to unavailable callable deployments");
+  assert.ok(productBlock.includes("getDocs(collection(db, 'products'))"), "admin listing may use the admin-protected Firestore path");
+  assert.ok(productBlock.includes("setDoc(ref, { ...product, id: ref.id })"));
+  assert.ok(productBlock.includes("updateDoc(doc(db, 'products', id), product)"));
+  assert.ok(productBlock.includes("deleteDoc(doc(db, 'products', id))"));
+  assert.ok(productBlock.includes("adminProductOperation('create', product)"));
+  assert.ok(productBlock.includes("adminProductOperation('update', updates, id)"));
+  assert.ok(productBlock.includes("adminProductOperation('delete', undefined, id)"));
 });
 
 test("legacy order lifecycle mutations are role-scoped and atomic through a callable", () => {
