@@ -84,7 +84,7 @@ function renderCatalogue(){
 function renderCart(){
  const count=cart.reduce((s,l)=>s+l.quantity,0);$("cartCount").textContent=count;
  if(!cart.length){$("cartLines").innerHTML='<div class="empty">Your basket is empty.</div>';$("cartTotal").textContent=money(0);$("placeOrder").disabled=true;return}
- $("cartLines").innerHTML=cart.map((l,i)=>'<div class="cart-line"><div class="line-top"><div><div class="line-title">'+esc(l.productName)+'</div><div class="line-sub">'+esc(l.variantLabel)+' · '+esc(l.optionLabel)+'</div></div><strong>'+money(l.displayPriceMinor*l.quantity)+'</strong></div><div class="line-actions"><label style="margin:0">Qty</label><input type="number" min="1" step="1" value="'+l.quantity+'" min="'+l.minimumOrderQuantity+'" step="'+l.orderQuantityStep+'" data-qty="'+i+'"><button class="remove" data-remove="'+i+'">Remove</button></div></div>').join("");
+ $("cartLines").innerHTML=cart.map((l,i)=>'<div class="cart-line"><div class="line-top"><div><div class="line-title">'+esc(l.productName)+'</div><div class="line-sub">'+esc(l.variantLabel)+' · '+esc(l.optionLabel)+'</div></div><strong>'+money(l.displayPriceMinor*l.quantity)+'</strong></div><div class="line-actions"><label style="margin:0">Qty</label><input type="number" value="'+l.quantity+'" min="'+l.minimumOrderQuantity+'" step="'+l.orderQuantityStep+'" data-qty="'+i+'"><button class="remove" data-remove="'+i+'">Remove</button></div></div>').join("");
  $("cartTotal").textContent=money(cart.reduce((s,l)=>s+l.displayPriceMinor*l.quantity,0));
  $("placeOrder").disabled=false;
 }
@@ -139,6 +139,7 @@ $("savedTracking").addEventListener("click",async e=>{
  catch(err){$("trackstate"+i).textContent=err.message||"Could not update tracking."}
  finally{e.target.disabled=false}
 });
+$("checkoutResult").addEventListener("click",async e=>{if(e.target.id!=="copyTrackingToken")return;const token=$("newTrackingToken")?.textContent||"";try{await navigator.clipboard.writeText(token);e.target.textContent="Copied"}catch{e.target.textContent="Copy unavailable, select the token above"}});
 $("placeOrder").addEventListener("click",async()=>{
  const result=$("checkoutResult");result.className="";result.textContent="";
  if(!cart.length){result.textContent="Add at least one product to your basket.";return}
@@ -157,7 +158,7 @@ $("placeOrder").addEventListener("click",async()=>{
  const button=$("placeOrder");button.disabled=true;button.textContent="Submitting securely…";
  try{
   const order=await submitStructuredGuestOrder({items,customer,fulfilment,note:$("orderNote").value.trim()});
-  result.className="result";result.innerHTML='<strong>Order received!</strong><br>Order reference: <strong>'+esc(order.orderId)+'</strong><br>Current status: awaiting confirmation<br>Order total: <strong>'+money(order.grandTotalMinor)+'</strong><br>Payment status: unpaid. Tejuboss will confirm your order and payment arrangements.<br><p style="font-size:.82rem">Your private tracking credential has been saved on this device. Keep it safe and use the tracking section below.</p>';
+  result.className="result";result.innerHTML='<strong>Order received!</strong><br>Order reference: <strong>'+esc(order.orderId)+'</strong><br>Current status: awaiting confirmation<br>Order total: <strong>'+money(order.grandTotalMinor)+'</strong><br>Payment status: unpaid. Tejuboss will confirm your order and payment arrangements.<br><p style="font-size:.82rem">Your private tracking credential is saved on this device. Keep it private; copy it for safekeeping.</p><p style="font-size:.78rem;overflow-wrap:anywhere"><strong>Tracking token:</strong><br><code id="newTrackingToken">'+esc(order.trackingToken)+'</code></p><button type="button" class="secondary" id="copyTrackingToken">Copy tracking token</button>';
   cart=[];renderCart();await loadTracking();$("checkoutPanel").scrollIntoView({behavior:"smooth"});
  }catch(error){result.className="result error";result.textContent=error.message||"Could not place this order. Please retry; safe retry handling is enabled."}
  finally{button.textContent="Place order";button.disabled=!cart.length}
