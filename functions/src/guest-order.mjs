@@ -114,10 +114,10 @@ export const createGuestOrder = onCall(
         if (replay.outcome !== "new") fail("failed-precondition", "Checkout retry requires staff recovery.");
 
         const productIds = [...new Set(validated.items.map(item => item.productId))];
-        const variantKeys = [...new Set(validated.items.map(item => item.productId + "__" + item.variantId))];
+        const variantPairs = [...new Map(validated.items.map(item => [JSON.stringify([item.productId, item.variantId]), { productId: item.productId, variantId: item.variantId }])).values()];
         const mappingIds = validated.items.map(item => item.productId + "__" + item.variantId + "__" + item.sellingOptionId);
         const productRefs = productIds.map(id => firestore.collection("catalogueProducts").doc(id));
-        const pricingRefs = variantKeys.map(id => firestore.collection("pricingConfigs").doc(id));
+        const pricingRefs = variantPairs.map(pair => firestore.collection("pricingConfigs").doc(pair.productId + "__" + pair.variantId));
         const mappingRefs = mappingIds.map(id => firestore.collection("inventoryMappings").doc(id));
         const deliveryRef = firestore.collection("deliveryPolicies").doc("active");
         const [productSnaps, pricingSnaps, mappingSnaps, deliverySnap] = await Promise.all([
@@ -134,9 +134,8 @@ export const createGuestOrder = onCall(
           productsById.set(id, snap.data());
         });
         const tierRules = [];
-        variantKeys.forEach((key, index) => {
-          const [productId, variantId] = key.split("__");
-          tierRules.push(...toTierRules(pricingSnaps[index], productId, variantId));
+        variantPairs.forEach((pair, index) => {
+          tierRules.push(...toTierRules(pricingSnaps[index], pair.productId, pair.variantId));
         });
         const deliveryPolicy = deliverySnap?.exists ? deliverySnap.data() : null;
         if (validated.fulfilment.method === "delivery" && !deliveryPolicy) {
