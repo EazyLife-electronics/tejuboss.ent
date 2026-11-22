@@ -98,7 +98,7 @@ async function manageAsset(asset,action) {
   }
   try {
     status('tbMediaLibraryStatus',(action==='delete'?'Deleting ':'Renaming ')+(asset.name||'image')+'…');
-    await requestMediaAction(action,action==='delete'?{fileId:asset.fileId}:{filePath:asset.filePath,newFileName:newName.trim()});
+    await requestMediaAction(action,{fileId:asset.fileId,...(action==='rename'?{newFileName:newName.trim()}:{})});
     selectedMediaIds.delete(asset.fileId); await loadLibrary();
     status('tbMediaLibraryStatus','Image '+(action==='delete'?'deleted':'renamed')+'.','success');
   } catch(e) { status('tbMediaLibraryStatus',e.message,'error'); }
