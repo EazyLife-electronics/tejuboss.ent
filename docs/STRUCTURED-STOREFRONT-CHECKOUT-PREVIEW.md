@@ -27,7 +27,7 @@ The page provides:
 
 ## Before real-world testing
 
-The page cannot create real orders until all of the following are reviewed and explicitly approved:
+The legacy catalogue now contains an explicit link to this separate preview. It is labelled development-only and does not replace the existing shop. The page cannot create real orders until all of the following are reviewed and explicitly approved:
 1. The staged Firestore rules and Functions are deployed to the separate Tejuboss Firebase project.
 2. A reCAPTCHA v3 site key is configured for Firebase App Check, with the correct production domains.
 3. The admin account has the required custom role claims and staff access has been verified.
