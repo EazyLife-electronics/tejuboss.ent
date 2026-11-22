@@ -22,7 +22,7 @@ function validateReceive(data) {
   if (!Number.isSafeInteger(data.unitCost) || data.unitCost < 0 || data.unitCost > 100000000000) fail("invalid-argument", "Unit cost must be a non-negative whole naira amount.");
   for (const key of ["reference", "notes"]) if (data[key] !== undefined && (typeof data[key] !== "string" || data[key].length > (key === "reference" ? 120 : 500))) fail("invalid-argument", key + " is too long or invalid.");
   if (typeof data.idempotencyKey !== "string" || !KEY.test(data.idempotencyKey)) fail("invalid-argument", "A valid purchase submission key is required.");
-  return { ...data, supplierName: data.supplierName.trim().replace(/\\s+/g, " "), reference: (data.reference || "").trim(), notes: (data.notes || "").trim() };
+  return { ...data, supplierName: data.supplierName.trim().replace(/\s+/g, " "), reference: (data.reference || "").trim(), notes: (data.notes || "").trim() };
 }
 function variantLabel(variant, index) {
   const bits = [variant?.processor, variant?.ram, variant?.rom, variant?.color].filter(Boolean);
@@ -311,7 +311,7 @@ export const syncLegacyPurchaseSupplierLinks = onCall({ region: "europe-west1", 
           supplierRef=db.collection("suppliers").doc();wasCreated=true;
           tx.create(supplierRef,{name,normalizedName,business:"",contactPerson:"",phone:"",whatsapp:"",email:"",address:"",notes:"Linked from legacy purchase history.",source:"purchase",createdAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp(),createdBy:request.auth.uid});
         }
-        tx.update(purchaseDoc.ref,{supplier:supplierRef?name:name,supplierId:supplierRef.id,supplierSyncedAt:FieldValue.serverTimestamp()});
+        tx.update(purchaseDoc.ref,{supplier:name,supplierId:supplierRef.id,supplierSyncedAt:FieldValue.serverTimestamp()});
         return {linked:true,created:wasCreated};
       });
       if(result.linked){linked++;if(result.created)created++;}else skipped++;
