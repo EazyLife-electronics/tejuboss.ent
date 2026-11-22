@@ -33,6 +33,6 @@ export const listPendingCommerceOrders = onCall(
         note: d.note || "", paymentStatus: d.paymentStatus || "unpaid"
       };
     }).sort((a,b)=>(b.createdAtMillis||0)-(a.createdAtMillis||0));
-    return { orders: orders.slice(0, 100), limited: pending.size === 500 || confirmed.size === 500 };
+    return { orders: orders.slice(0, 100), limited: pending.size === 500 || confirmed.size === 500, permissions: { recordPayment: role === "owner" || role === "payment_manager", manageOrders: role === "owner" || role === "order_manager" || role === "delivery_manager" } };
   }
 );
