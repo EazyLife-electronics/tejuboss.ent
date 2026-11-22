@@ -5,7 +5,7 @@
 import { initFirebase } from './firebase.mjs';
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 import {
-  collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
+  collection, doc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
   onSnapshot, query, orderBy, serverTimestamp, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -156,15 +156,6 @@ const linkDeliveryCallable = httpsCallable(contentFunctions, 'linkLegacyOrderDel
 export async function linkOrderToDelivery(orderId, deliveryId) {
   const response = await linkDeliveryCallable({ orderId, deliveryId });
   return response.data;
-}
-
-// Public read: anyone with an order's tracking code can already see that
-// order's full details (see the `orders` Firestore rule), so exposing the
-// one delivery record it links to is the same trust boundary, not a new one.
-export async function getDelivery(deliveryId) {
-  if (!deliveryId) return null;
-  const snap = await getDoc(doc(db, 'deliveries', deliveryId));
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
 const listLegacyOrdersCallable = httpsCallable(contentFunctions, 'listLegacyOrders');

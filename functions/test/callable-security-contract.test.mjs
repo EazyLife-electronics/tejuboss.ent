@@ -233,3 +233,9 @@ test("legacy browser order lookup delegates to verified phone-suffix tracking", 
   assert.match(lookup, /phoneLast4/);
   assert.doesNotMatch(lookup, /getDoc|collection\(db,\s*['"]orders['"]\)/);
 });
+
+test("legacy public browser store does not expose full delivery document reads", () => {
+  const store = read("../../js/store.mjs");
+  assert.equal(store.includes("export async function getDelivery"), false);
+  assert.equal(store.includes("getDoc(doc(db, 'deliveries'"), false);
+});
