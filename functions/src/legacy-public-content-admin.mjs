@@ -102,7 +102,8 @@ export const manageLegacyPublicContent = onCall(
       requireRole(request, name);
       if (action === "get") {
         const snap = await db.doc("settings/site").get();
-        return snap.exists ? snap.data() : {};
+        const source = snap.exists ? snap.data() : {};
+        return Object.fromEntries(PUBLIC_SETTINGS.filter(k => k in source).map(k => [k, source[k]]));
       }
       if (action === "save") {
         const values = cleanFields(data.values, PUBLIC_SETTINGS, "settings");
