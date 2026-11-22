@@ -78,6 +78,13 @@ test("visitors can read published products and public quantity offers", async ()
   await assertFails(getDoc(doc(db, "catalogueDrafts", "private-draft")));
 });
 
+test("inventory staff can inspect unpublished legacy products without granting public draft reads", async () => {
+  const staffDb = env.authenticatedContext("stock-uid", { role: "inventory_manager" }).firestore();
+  const visitorDb = env.unauthenticatedContext().firestore();
+  await assertSucceeds(getDoc(doc(staffDb, "products", "draft")));
+  await assertFails(getDoc(doc(visitorDb, "products", "draft")));
+});
+
 test("visitors cannot read private prices or full orders", async () => {
   const db = env.unauthenticatedContext().firestore();
   await assertFails(getDoc(doc(db, "pricingConfigs", "private")));
