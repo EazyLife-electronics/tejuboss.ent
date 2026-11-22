@@ -61,7 +61,7 @@ function validatePublicationPayload(data) {
  * projection and audit record atomically. This does not deploy Firestore rules.
  */
 export const publishQuantityPricing = onCall(
-  { region: "europe-west1", enforceAppCheck: false },
+  { region: "europe-west1", enforceAppCheck: true },
   async request => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Sign in with an authorized admin account.");
@@ -181,7 +181,7 @@ export const publishQuantityPricing = onCall(
  * Private pricing is never exposed through direct client Firestore reads.
  */
 export const getQuantityPricingConfig = onCall(
-  { region: "europe-west1", enforceAppCheck: false },
+  { region: "europe-west1", enforceAppCheck: true },
   async request => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Sign in with an authorized admin account.");
