@@ -38,7 +38,7 @@ export function initTabs() {
 // picker modal will show "Folder not found" — admins can still paste image
 // URLs directly into the product/hero forms as a fallback.
 // Update BRANCH if you later switch which branch GitHub Pages deploys from.
-const GITHUB_REPO = 'REPLACE_WITH_GITHUB_OWNER/tejuboss.ent';
+const GITHUB_REPO = 'EazyLife-electronics/tejuboss.ent';
 const GITHUB_BRANCH = 'main';
 
 let pickerTargetInput = null;
