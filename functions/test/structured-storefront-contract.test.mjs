@@ -27,7 +27,7 @@ test("backend checkout contract rejects browser-supplied money and stock fields"
 test("tracking credential is stored privately and preview stays development-only", () => {
   assert.match(adapter, /TRACKING_KEY\s*=\s*"tejuboss\.structuredTracking\.v1"/);
   assert.match(adapter, /writeJson\(localStorage, TRACKING_KEY, next\)/);
-  assert.match(docs, /Development-only page committed/);
+  assert.match(docs, /Status: Additive development preview committed and CI-tested/);
   assert.match(docs, /does not collect online payment/);
-  assert.match(docs, /staged until the user authorizes rollout/);
+  assert.match(docs, /without explicit authorization/);
 });
