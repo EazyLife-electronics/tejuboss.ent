@@ -42,7 +42,8 @@ export const receiveLegacyPurchase = onCall({ region: "europe-west1", enforceApp
       const [existingPurchase, productSnap] = await Promise.all([tx.get(purchaseRef), tx.get(productRef)]);
       if (existingPurchase.exists) {
         const old = existingPurchase.data();
-        if (old.productId !== input.productId || old.variantId !== input.variantId || old.quantity !== input.quantity || old.unitCost !== input.unitCost) fail("already-exists", "This submission key was already used for different purchase details.");
+        if (old.status !== "received") fail("failed-precondition", "This purchase submission was previously voided and cannot be replayed.");
+        if (old.productId !== input.productId || old.variantId !== input.variantId || old.quantity !== input.quantity || old.unitCost !== input.unitCost || String(old.supplier || "").toLowerCase() !== input.supplierName.toLowerCase()) fail("already-exists", "This submission key was already used for different purchase details.");
         return { success: true, outcome: "already_received", purchaseId };
       }
       if (!productSnap.exists) fail("not-found", "Product no longer exists.");
@@ -117,7 +118,7 @@ export const receiveLegacyPurchase = onCall({ region: "europe-west1", enforceApp
 export const voidLegacyPurchase = onCall({ region: "europe-west1", enforceAppCheck: true }, async request => {
   authorize(request);
   const data = request.data || {};
-  if (!data || typeof data !== "object" || Array.isArray(data) || Object.keys(data).some(k => !["purchaseId", "reason"].includes(k)) || typeof data.purchaseId !== "string" || !/^[a-f0-9]{64}$/.test(data.purchaseId)) fail("invalid-argument", "A valid purchase ID is required.");
+  if (!data || typeof data !== "object" || Array.isArray(data) || Object.keys(data).some(k => !["purchaseId", "reason"].includes(k)) || typeof data.purchaseId !== "string" || !ID.test(data.purchaseId)) fail("invalid-argument", "A valid purchase ID is required.");
   if (data.reason !== undefined && (typeof data.reason !== "string" || data.reason.length > 240)) fail("invalid-argument", "Void reason must be 240 characters or fewer.");
   const reason = (data.reason || "Purchase correction").trim() || "Purchase voided";
   const db = getFirestore(), purchaseRef = db.collection("purchases").doc(data.purchaseId), auditRef = db.collection("auditLogs").doc(), movementRef = db.collection("inventoryMovements").doc();
