@@ -146,3 +146,30 @@ export const updateLegacyDelivery=onCall({region:"europe-west1",enforceAppCheck:
     return {success:true};
   });}catch(e){if(e instanceof HttpsError)throw e;console.error("updateLegacyDelivery failed",e);throw new HttpsError("internal","Delivery update was not saved.");}
 });
+
+export const listLegacyDeliveryOrders=onCall({region:"europe-west1",enforceAppCheck:true},async request=>{
+  authorize(request);
+  if(request.data&&Object.keys(request.data).length)fail("invalid-argument","This request accepts no filters.");
+  const db=getFirestore();
+  try{
+    const queries=await Promise.all([
+      db.collection("orders").where("status","in",["confirmed","shipped"]).limit(500).get(),
+      db.collection("orders").where("orderStatus","in",["confirmed","shipped"]).limit(500).get()
+    ]);
+    const byId=new Map();
+    for(const snap of queries)for(const doc of snap.docs){
+      const d=doc.data(),customer=d.customer&&typeof d.customer==="object"?d.customer:{};
+      byId.set(doc.id,{
+        id:doc.id,status:d.status||d.orderStatus||"",
+        trackingCode:d.trackingCode||"",
+        customerName:d.customerName||customer.name|| (typeof d.customer==="string"?d.customer:""),
+        customer:{name:customer.name||"",address:customer.address||""},
+        address:d.deliveryAddress||d.address||customer.address||"",
+        total:Number.isSafeInteger(d.total)?d.total:(Number.isSafeInteger(d.amount)?d.amount:0),
+        amount:Number.isSafeInteger(d.amount)?d.amount:0
+      });
+    }
+    const orders=[...byId.values()].sort((a,b)=>String(b.trackingCode).localeCompare(String(a.trackingCode)));
+    return {orders:orders.slice(0,800),limited:queries.some(q=>q.size===500)};
+  }catch(e){console.error("listLegacyDeliveryOrders failed",e);throw new HttpsError("internal","Could not load eligible delivery orders.");}
+});
