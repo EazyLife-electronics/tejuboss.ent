@@ -7,7 +7,7 @@ const source = readFileSync(new URL("../src/index.mjs", import.meta.url), "utf8"
 function callableBlock(name) {
   const start = source.indexOf(`export const ${name} = onCall(`);
   assert.notEqual(start, -1, `${name} callable should exist`);
-  const next = source.indexOf("\\nexport const ", start + 1);
+  const next = source.indexOf("\nexport const ", start + 1);
   return source.slice(start, next === -1 ? source.length : next);
 }
 
