@@ -1,5 +1,5 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { FieldValue, getFirestore } from "firebase-admin/firestore";
+import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { createGuestSessionCredential } from "./domain/guest-session.mjs";
 
 /**
@@ -25,6 +25,7 @@ export const createGuestCheckoutSession = onCall(
       tokenHash: credential.tokenHash,
       createdAtMillis: credential.createdAtMillis,
       expiresAtMillis: credential.expiresAtMillis,
+      expiresAt: Timestamp.fromMillis(credential.expiresAtMillis),
       revokedAtMillis: null,
       createdAt: FieldValue.serverTimestamp()
     });
