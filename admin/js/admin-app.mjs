@@ -13,6 +13,7 @@ import {
 } from '../../js/store.mjs';
 
 import { initTabs, initImagePicker } from './admin-shared.mjs';
+import { initTejuBossMedia } from './admin-media.mjs';
 import { initProducts, renderProducts } from './admin-products.mjs';
 import { initHeroes, renderHeroes, setProductsForHeroLinks } from './admin-heroes.mjs';
 import { initReviews, renderReviews } from './admin-reviews.mjs';
@@ -24,6 +25,7 @@ const { auth } = initFirebase();
 
 initTabs();
 initImagePicker();
+initTejuBossMedia();
 initProducts();
 initHeroes();
 initReviews();
