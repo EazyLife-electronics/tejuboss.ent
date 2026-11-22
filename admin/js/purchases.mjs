@@ -16,6 +16,11 @@ let tabInstalled = false;
 let panelInstalled = false;
 let currentUser = null;
 let purchaseHistory = [];
+let pendingPurchaseSubmission = null;
+try {
+  const saved = localStorage.getItem('tejuboss.pendingPurchaseSubmission');
+  if (saved) pendingPurchaseSubmission = JSON.parse(saved);
+} catch { pendingPurchaseSubmission = null; }
 
 function money(v) { return `₦${Number(v || 0).toLocaleString()}`; }
 function escapeHtml(v) {
@@ -194,12 +199,21 @@ async function receivePurchase() {
   button.disabled = true;
   button.textContent = 'Receiving...';
   try {
-    const result = await receivePurchaseCall({
+    const payload = {
       supplierName: supplierInput, ...(selectedSupplierId ? { supplierId: selectedSupplierId } : {}),
-      reference, productId, variantId, quantity: qty, unitCost, notes,
-      idempotencyKey: crypto.randomUUID().replaceAll('-', '')
-    });
+      reference, productId, variantId, quantity: qty, unitCost, notes
+    };
+    if (pendingPurchaseSubmission && JSON.stringify(pendingPurchaseSubmission.payload) !== JSON.stringify(payload)) {
+      throw new Error('A previous purchase submission may still be processing. Retry it with the original details first; do not change the form until its outcome is confirmed.');
+    }
+    if (!pendingPurchaseSubmission) {
+      pendingPurchaseSubmission = { key: crypto.randomUUID().replaceAll('-', ''), payload };
+      localStorage.setItem('tejuboss.pendingPurchaseSubmission', JSON.stringify(pendingPurchaseSubmission));
+    }
+    const result = await receivePurchaseCall({ ...payload, idempotencyKey: pendingPurchaseSubmission.key });
     const outcome = result.data?.outcome;
+    pendingPurchaseSubmission = null;
+    localStorage.removeItem('tejuboss.pendingPurchaseSubmission');
     showMessage(outcome === 'already_received'
       ? 'This purchase submission was already received. No duplicate stock was added.'
       : `Received ${qty} unit${qty === 1 ? '' : 's'} successfully. Stock and the audit trail were updated together.`, false);
