@@ -98,8 +98,40 @@ export async function getProducts() {
   }
 }
 const productWatchers = new Set();
+// The admin dashboard must remain manageable on Firebase Spark when the
+// optional callable Functions are not deployed. These direct operations are
+// intentionally admin-only in practice: Firestore security rules must enforce
+// isAdmin() for reading and writing product documents.
+async function adminProductOperation(action, product = undefined, id = undefined) {
+  try {
+    return await productCall(action, product, id);
+  } catch (error) {
+    if (!isCallableUnavailable(error)) throw error;
+    console.warn('Product admin callable is unavailable; using the admin-only Firestore path.', error);
+
+    if (action === 'list') {
+      const snapshot = await getDocs(collection(db, 'products'));
+      return snapshot.docs.map(docSnap => ({ ...docSnap.data(), id: docSnap.id }));
+    }
+    if (action === 'create') {
+      const ref = doc(collection(db, 'products'));
+      await setDoc(ref, { ...product, id: ref.id });
+      return { id: ref.id };
+    }
+    if (action === 'update') {
+      await updateDoc(doc(db, 'products', id), product);
+      return { id };
+    }
+    if (action === 'delete') {
+      await deleteDoc(doc(db, 'products', id));
+      return { id };
+    }
+    throw error;
+  }
+}
+
 async function refreshProducts() {
-  const rows = await productCall('list');
+  const rows = await adminProductOperation('list');
   for (const callback of productWatchers) callback(rows);
   return rows;
 }
@@ -109,17 +141,17 @@ export function watchProducts(callback) {
   return () => productWatchers.delete(callback);
 }
 export async function addProduct(product) {
-  const result = await productCall('create', product);
+  const result = await adminProductOperation('create', product);
   await refreshProducts();
   return result;
 }
 export async function updateProduct(id, updates) {
-  const result = await productCall('update', updates, id);
+  const result = await adminProductOperation('update', updates, id);
   await refreshProducts();
   return result;
 }
 export async function deleteProduct(id) {
-  const result = await productCall('delete', undefined, id);
+  const result = await adminProductOperation('delete', undefined, id);
   await refreshProducts();
   return result;
 }
