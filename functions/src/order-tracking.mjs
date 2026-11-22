@@ -1,6 +1,6 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
-import { createTrackingCredential, hashTrackingCredential } from "./domain/order-security.mjs";
+import { createTrackingCredential } from "./domain/order-security.mjs";
 import { buildCustomerTrackingView, validateTrackingToken } from "./domain/order-tracking.mjs";
 import { hashGuestSessionCredential, isGuestSessionRecordValid } from "./domain/guest-session.mjs";
 
