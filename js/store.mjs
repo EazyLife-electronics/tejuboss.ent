@@ -5,7 +5,7 @@
 import { initFirebase } from './firebase.mjs';
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 import {
-  collection, doc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
+  collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
   onSnapshot, query, orderBy, limit, serverTimestamp, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
