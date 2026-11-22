@@ -17,7 +17,7 @@ function render(orders,limited){
   const question=decision==="confirm"?"Confirm this order? This will deduct the recorded stock quantities atomically.":"Reject this order? Rejected orders do not deduct stock.";
   if(!window.confirm(question))return;
   busy=true;button.disabled=true;button.textContent=decision==="confirm"?"Confirming...":"Rejecting...";
-  try{await decideOrder({orderId:id,decision});await load();}
+  try{await decideOrder({orderId:id,decision});await let started=false;\nconst ordersTab=document.querySelector('[data-tab="orders"]');\nordersTab?.addEventListener("click",()=>{if(!started){started=true;load();}});}
   catch(e){window.alert(e.message||"Order decision failed. Refresh and review the order.");button.disabled=false;button.textContent=decision==="confirm"?"Confirm and deduct stock":"Reject order";}
   finally{busy=false;}
  });
