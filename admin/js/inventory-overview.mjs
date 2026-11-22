@@ -9,6 +9,7 @@ const panel = document.createElement("section");
 panel.className = "rounded-2xl border bg-white p-4 space-y-3 mb-4";
 panel.innerHTML = '<div class="flex items-center justify-between gap-2"><div><h2 class="font-black text-base">Current stock balances</h2><p class="text-xs text-gray-500">Private inventory view for authorized staff.</p></div><button id="inventoryOverviewRefresh" class="rounded-xl bg-gray-900 px-3 py-2 text-xs font-bold text-white">Refresh</button></div><div id="inventoryOverviewRows" class="space-y-2"><p class="text-xs text-gray-500">Loading stock records...</p></div>';
 host?.prepend(panel);
+document.addEventListener("tejuboss:structured-inventory-ready", () => host?.prepend(panel));
 const rows = panel.querySelector("#inventoryOverviewRows");
 async function refresh() {
   rows.textContent = "Loading stock records...";
