@@ -36,4 +36,6 @@ async function refresh() {
   }
 }
 panel.querySelector("#inventoryOverviewRefresh").addEventListener("click", refresh);
-let started=false;\nconst stockTab=document.getElementById("stockSetupTabBtn");\nstockTab?.addEventListener("click",()=>{if(!started){started=true;refresh();}});
+let started=false;
+const stockTab=document.getElementById("stockSetupTabBtn");
+stockTab?.addEventListener("click",()=>{if(!started){started=true;refresh();}});
