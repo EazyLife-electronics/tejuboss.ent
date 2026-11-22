@@ -88,7 +88,7 @@ test("legacy tracking page does not read private Firestore order or delivery doc
 
 test("purchase receiving, voiding and history are protected trusted callables", () => {
   const purchases = read("../src/purchase-operations.mjs");
-  for (const name of ["receiveLegacyPurchase", "voidLegacyPurchase", "listLegacyPurchases"]) {
+  for (const name of ["receiveLegacyPurchase", "voidLegacyPurchase", "listLegacyPurchases", "adjustLegacyVariantStock"]) {
     assert.ok(callableConfig(purchases, name).includes("enforceAppCheck: true"), name + " must require App Check");
   }
   assert.ok(purchases.includes("inventory_manager"));
@@ -106,4 +106,13 @@ test("legacy purchase browser modules no longer mutate stock through client tran
   assert.ok(voiding.includes("voidLegacyPurchase"));
   assert.equal(receiving.includes("runTransaction"), false);
   assert.equal(voiding.includes("runTransaction"), false);
+});
+
+test("manual legacy stock adjustments are server-authoritative and reasoned", () => {
+  const purchases = read("../src/purchase-operations.mjs");
+  const inventory = read("../../admin/js/inventory.mjs");
+  assert.ok(purchases.includes("expectedQuantity"));
+  assert.ok(purchases.includes("A reason is required for every manual stock adjustment."));
+  assert.ok(inventory.includes("adjustLegacyVariantStock"));
+  assert.equal(inventory.includes("async function changeStock") && inventory.includes("runTransaction(db, async tx => {\n    const snap = await tx.get(productRef)"), false);
 });
