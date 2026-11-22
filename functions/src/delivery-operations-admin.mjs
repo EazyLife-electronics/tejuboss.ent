@@ -102,10 +102,9 @@ export const updateLegacyDelivery=onCall({region:"europe-west1",enforceAppCheck:
   const d=request.data||{};
   const allowed=["deliveryId","patch"];
   if(!d||typeof d!=="object"||Array.isArray(d)||Object.keys(d).some(k=>!allowed.includes(k))||typeof d.deliveryId!=="string"||!ID.test(d.deliveryId)||!d.patch||typeof d.patch!=="object"||Array.isArray(d.patch))fail("invalid-argument","Invalid delivery update request.");
-  const patch=d.patch,keys=Object.keys(patch),allowedPatch=["status","assignedTo","assignedToName","assignedToPhone","deliveryTypeId","deliveryType","lastCheckpointId","lastCheckpointName","lastCheckpointAt","checkpoints","updatedAt","assignedAt","pickedUpAt","outForDeliveryAt","deliveredAt","failedAt","returnedAt"];
+  const patch=d.patch,keys=Object.keys(patch),allowedPatch=["status","assignedTo","deliveryTypeId","lastCheckpointId","lastCheckpointAt","checkpoints","updatedAt","assignedAt","pickedUpAt","outForDeliveryAt","deliveredAt","failedAt","returnedAt"];
   if(!keys.length||keys.some(k=>!allowedPatch.includes(k)))fail("invalid-argument","Delivery update contains unsupported fields.");
   for(const k of ["assignedTo","deliveryTypeId","lastCheckpointId"])if(k in patch&&patch[k]!=null&&(typeof patch[k]!=="string"||!ID.test(patch[k])))fail("invalid-argument",k+" is invalid.");
-  for(const k of ["assignedToName","assignedToPhone","deliveryType","lastCheckpointName"])if(k in patch&&(typeof patch[k]!=="string"||patch[k].length>180))fail("invalid-argument",k+" is invalid.");
   if("checkpoints" in patch&&(!Array.isArray(patch.checkpoints)||patch.checkpoints.length>200))fail("invalid-argument","Checkpoint history is invalid.");
   if("status" in patch&&typeof patch.status!=="string")fail("invalid-argument","Delivery status is invalid.");
   const db=getFirestore(),ref=db.collection("deliveries").doc(d.deliveryId),auditRef=db.collection("auditLogs").doc();
@@ -136,6 +135,7 @@ export const updateLegacyDelivery=onCall({region:"europe-west1",enforceAppCheck:
         if(!last||last.checkpointId!==next.lastCheckpointId)fail("invalid-argument","Checkpoint history must match the selected checkpoint.");
         next.lastCheckpointName=record.get("name")||"";
         next.lastCheckpointAt=Date.now();
+        next.checkpoints=[...(current.checkpoints||[]),{checkpointId:next.lastCheckpointId,checkpointName:next.lastCheckpointName,at:next.lastCheckpointAt}];
       }
     }
     if("assignedTo" in next&&!next.assignedTo){next.assignedToName="";next.assignedToPhone="";}
