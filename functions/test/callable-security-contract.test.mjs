@@ -13,10 +13,10 @@ function callableConfig(name) {
 
 test("private quantity-pricing admin callables require Firebase App Check", () => {
   for (const name of ["publishQuantityPricing", "getQuantityPricingConfig"]) {
-    assert.match(callableConfig(name), /enforceAppCheck:\\s*true/, `${name} must enforce App Check`);
+    assert.match(callableConfig(name), /enforceAppCheck:\s*true/, `${name} must enforce App Check`);
   }
 });
 
 test("public backend status endpoint intentionally remains callable without App Check", () => {
-  assert.match(callableConfig("backendStatus"), /enforceAppCheck:\\s*false/);
+  assert.match(callableConfig("backendStatus"), /enforceAppCheck:\s*false/);
 });
