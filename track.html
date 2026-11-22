@@ -129,9 +129,7 @@
     const functions = getFunctions(app, 'europe-west1');
     const getLegacyOrderTracking = httpsCallable(functions, 'getLegacyOrderTracking');
 
-    // Escapes text before it's inserted via innerHTML. This page is public —
-    // anyone with a tracking code can view an order, so customer-entered
-    // fields (address, item/variant labels) must never be trusted as-is.
+    // Escape all text returned by the public tracking endpoint before rendering.
     function escapeHtml(value) {
       return String(value ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
     }
@@ -311,22 +309,6 @@
             btn.innerHTML = `<i class="fas fa-magnifying-glass"></i>`;
         }
     };
-
-    async function loadMyOrders() {
-        let myOrders = [];
-        try { myOrders = JSON.parse(localStorage.getItem('tejuboss_my_orders')) || []; } catch (e) {}
-        if (myOrders.length === 0) return;
-
-        document.getElementById('myOrdersSection').classList.remove('hidden');
-        const listEl = document.getElementById('myOrdersList');
-        listEl.innerHTML = `<p class="text-center text-gray-400 text-xs py-4">Loading...</p>`;
-
-        const results = await Promise.all(myOrders.map(code => getOrderByTrackingCode(code).catch(() => null)));
-        const found = results.filter(Boolean);
-        listEl.innerHTML = found.length
-            ? found.map(o => renderOrderCard(o, true)).join('')
-            : `<p class="text-center text-gray-400 text-xs py-4">No saved orders found.</p>`;
-    }
 
     // If arriving with ?code=XXXX (e.g. from the checkout confirmation link), auto-fill and track
     const params = new URLSearchParams(window.location.search);
