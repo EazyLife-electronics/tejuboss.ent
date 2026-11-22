@@ -3,101 +3,11 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { validateCreateOrderRequest } from "./domain/checkout.mjs";
 import { calculateCheckoutQuote } from "./domain/checkout-quote.mjs";
+import { buildCheckoutInventoryDeductions } from "./domain/checkout-inventory-mapping.mjs";
 import { hashGuestSessionCredential, isGuestSessionRecordValid } from "./domain/guest-session.mjs";
 import { buildIdempotencyRecord, inspectIdempotencyReplay, createTrackingCredential } from "./domain/order-security.mjs";
 
-const ID = /^[A-Za-z0-9_.-]{1,128}$/;
 const inventoryMappingId = item => createHash("sha256").update(JSON.stringify([item.productId, item.variantId, item.sellingOptionId])).digest("hex");
-function fail(code, message, details) { throw new HttpsError(code, message, details); }
-function sessionToken(data) {
-  if (!data || typeof data !== "object" || Array.isArray(data) ||
-      Object.keys(data).some(key => !["sessionToken", "order"].includes(key))) {
-    fail("invalid-argument", "Request must contain sessionToken and order only.");
-  }
-  if (typeof data.sessionToken !== "string") fail("unauthenticated", "Guest checkout session is required.");
-  return data.sessionToken;
-}
-function toTierRules(configSnap, productId, variantId) {
-  if (!configSnap?.exists) return [];
-  const config = configSnap.data();
-  const rules = config.rules && typeof config.rules === "object" ? config.rules : {};
-  const now = Date.now();
-  return Object.values(rules).filter(rule => rule && rule.enabled === true &&
-    (rule.effectiveFromMillis == null || (Number.isSafeInteger(rule.effectiveFromMillis) && rule.effectiveFromMillis <= now)) &&
-    (rule.effectiveUntilMillis == null || (Number.isSafeInteger(rule.effectiveUntilMillis) && now < rule.effectiveUntilMillis))
-  ).map(rule => ({
-    productId, variantId, rule
-  }));
-}
-function mapDeductions(validated, productsById, mappingSnaps) {
-  const byBalance = new Map();
-  for (let i = 0; i < validated.items.length; i++) {
-    const item = validated.items[i];
-    const product = productsById.get(item.productId);
-    const variant = product?.variants?.find(v => v.id === item.variantId && v.active === true);
-    const option = variant?.sellingOptions?.find(o => o.id === item.sellingOptionId && o.active === true);
-    const mappingSnap = mappingSnaps[i];
-    if (!mappingSnap?.exists) fail("failed-precondition", "Inventory mapping is not configured for one or more selected items.");
-    const mapping = mappingSnap.data();
-    if (!option || !Number.isSafeInteger(option.stockUnitsPerSaleUnit) ||
-        !Number.isSafeInteger(mapping.stockUnitsPerSaleUnit) ||
-        mapping.stockUnitsPerSaleUnit !== option.stockUnitsPerSaleUnit ||
-        !Number.isSafeInteger(mapping.stockUnitsPerBalanceUnit) || mapping.stockUnitsPerBalanceUnit <= 0 ||
-        (mapping.sealedBalanceId != null && (mapping.stockUnitsPerBalanceUnit !== 1 || !ID.test(mapping.sealedBalanceId) || mapping.sealedBalanceId === mapping.balanceId || !Number.isSafeInteger(mapping.unitsPerPackage) || mapping.unitsPerPackage <= 0 || typeof mapping.sealedInventoryFormId !== "string" || !ID.test(mapping.sealedInventoryFormId))) ||
-        typeof mapping.balanceId !== "string" || !ID.test(mapping.balanceId) ||
-        !["productId", "variantId", "locationId", "inventoryFormId", "stockUnitCode"].every(k => typeof mapping[k] === "string" && ID.test(mapping[k])) ||
-        mapping.productId !== item.productId || mapping.variantId !== item.variantId ||
-        mapping.sellingOptionId !== item.sellingOptionId) {
-      fail("failed-precondition", "Inventory mapping does not match the current published selling option.");
-    }
-    const stockUnits = item.quantity * mapping.stockUnitsPerSaleUnit;
-    if (!Number.isSafeInteger(stockUnits) || stockUnits <= 0) {
-      fail("failed-precondition", "This selling quantity cannot be represented in the configured stock unit.");
-    }
-    const prior = byBalance.get(mapping.balanceId);
-    if (prior) {
-      if (prior.productId !== mapping.productId || prior.variantId !== mapping.variantId ||
-          prior.locationId !== mapping.locationId || prior.inventoryFormId !== mapping.inventoryFormId ||
-          prior.stockUnitCode !== mapping.stockUnitCode ||
-          prior.stockUnitsPerBalanceUnit !== mapping.stockUnitsPerBalanceUnit ||
-          prior.sealedBalanceId !== (mapping.sealedBalanceId ?? null) ||
-          prior.sealedInventoryFormId !== (mapping.sealedInventoryFormId ?? null) ||
-          prior.unitsPerPackage !== (mapping.unitsPerPackage ?? null)) {
-        fail("failed-precondition", "Conflicting inventory mappings share a balance.");
-      }
-      prior.stockUnits += stockUnits;
-      if (!Number.isSafeInteger(prior.stockUnits)) fail("failed-precondition", "Combined stock quantity exceeds supported range.");
-    } else {
-      byBalance.set(mapping.balanceId, {
-        balanceId: mapping.balanceId,
-        productId: mapping.productId,
-        variantId: mapping.variantId,
-        locationId: mapping.locationId,
-        inventoryFormId: mapping.inventoryFormId,
-        stockUnitCode: mapping.stockUnitCode,
-        stockUnitsPerBalanceUnit: mapping.stockUnitsPerBalanceUnit,
-        sealedBalanceId: mapping.sealedBalanceId ?? null,
-        sealedInventoryFormId: mapping.sealedInventoryFormId ?? null,
-        unitsPerPackage: mapping.unitsPerPackage ?? null,
-        stockUnits
-      });
-    }
-  }
-  const deductions = [...byBalance.values()];
-  const primaryIds = new Set(deductions.map(item => item.balanceId));
-  const fallbackIds = new Set();
-  for (const item of deductions) {
-    if (item.sealedBalanceId) {
-      if (item.sealedBalanceId === item.balanceId || primaryIds.has(item.sealedBalanceId) ||
-          fallbackIds.has(item.sealedBalanceId) ||
-          typeof item.sealedInventoryFormId !== "string" || !ID.test(item.sealedInventoryFormId)) {
-        fail("failed-precondition", "Basket requires overlapping package balances; staff must split or reconfigure these inventory mappings.");
-      }
-      fallbackIds.add(item.sealedBalanceId);
-    }
-  }
-  return deductions;
-}
 
 /**
  * Trusted guest order creation.
@@ -177,7 +87,11 @@ export const createGuestOrder = onCall(
         const quote = calculateCheckoutQuote({
           request: validated, productsById, deliveryPolicy, quantityTierRules: tierRules
         });
-        const inventoryDeductions = mapDeductions(validated, productsById, mappingSnaps);
+        const inventoryDeductions = buildCheckoutInventoryDeductions({
+          items: validated.items,
+          productsById,
+          mappingRecords: mappingSnaps.map(snap => snap.exists ? snap.data() : null)
+        });
         const orderRef = firestore.collection("orders").doc(randomUUID());
         const trackingCredential = createTrackingCredential();
         const trackingRef = firestore.collection("orderTracking").doc(trackingCredential.tokenHash);
