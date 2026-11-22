@@ -54,6 +54,7 @@ function mapDeductions(validated, productsById, mappingSnaps) {
           prior.stockUnitCode !== mapping.stockUnitCode ||
           prior.stockUnitsPerBalanceUnit !== mapping.stockUnitsPerBalanceUnit ||
           prior.sealedBalanceId !== (mapping.sealedBalanceId ?? null) ||
+          prior.sealedInventoryFormId !== (mapping.sealedInventoryFormId ?? null) ||
           prior.unitsPerPackage !== (mapping.unitsPerPackage ?? null)) {
         fail("failed-precondition", "Conflicting inventory mappings share a balance.");
       }
@@ -69,12 +70,26 @@ function mapDeductions(validated, productsById, mappingSnaps) {
         stockUnitCode: mapping.stockUnitCode,
         stockUnitsPerBalanceUnit: mapping.stockUnitsPerBalanceUnit,
         sealedBalanceId: mapping.sealedBalanceId ?? null,
+        sealedInventoryFormId: mapping.sealedInventoryFormId ?? null,
         unitsPerPackage: mapping.unitsPerPackage ?? null,
         stockUnits
       });
     }
   }
-  return [...byBalance.values()];
+  const deductions = [...byBalance.values()];
+  const primaryIds = new Set(deductions.map(item => item.balanceId));
+  const fallbackIds = new Set();
+  for (const item of deductions) {
+    if (item.sealedBalanceId) {
+      if (item.sealedBalanceId === item.balanceId || primaryIds.has(item.sealedBalanceId) ||
+          fallbackIds.has(item.sealedBalanceId) ||
+          typeof item.sealedInventoryFormId !== "string" || !ID.test(item.sealedInventoryFormId)) {
+        fail("failed-precondition", "Basket requires overlapping package balances; staff must split or reconfigure these inventory mappings.");
+      }
+      fallbackIds.add(item.sealedBalanceId);
+    }
+  }
+  return deductions;
 }
 
 /**
