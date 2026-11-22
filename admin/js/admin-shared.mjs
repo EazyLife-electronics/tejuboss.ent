@@ -55,6 +55,10 @@ export function updateImagePreview(inputId, previewId) {
 }
 
 export async function openImagePicker(folder, targetInputId) {
+  if (typeof window.openTejuBossMediaPicker === 'function') {
+    window.openTejuBossMediaPicker(targetInputId, false, folder === 'heroes' ? '/tejuboss/heroes' : '/tejuboss/products');
+    return;
+  }
   pickerTargetInput = targetInputId;
   const modal = document.getElementById('imagePickerModal');
   const grid = document.getElementById('pickerGrid');
