@@ -187,3 +187,55 @@ export const listLegacyPurchases = onCall({ region: "europe-west1", enforceAppCh
     throw new HttpsError("internal", "Could not load purchase history.");
   }
 });
+
+export const adjustLegacyVariantStock = onCall({ region: "europe-west1", enforceAppCheck: true }, async request => {
+  authorize(request);
+  const data = request.data || {};
+  const allowed = ["productId", "variantId", "delta", "expectedQuantity", "reason", "reference", "idempotencyKey"];
+  if (!data || typeof data !== "object" || Array.isArray(data) || Object.keys(data).some(k => !allowed.includes(k))) fail("invalid-argument", "Stock adjustment contains unsupported fields.");
+  for (const key of ["productId", "variantId"]) if (typeof data[key] !== "string" || !ID.test(data[key])) fail("invalid-argument", key + " is invalid.");
+  if (!Number.isSafeInteger(data.delta) || data.delta === 0 || Math.abs(data.delta) > 100000000) fail("invalid-argument", "Stock change must be a non-zero whole number.");
+  if (!Number.isSafeInteger(data.expectedQuantity) || data.expectedQuantity < 0) fail("invalid-argument", "Expected stock quantity is invalid.");
+  if (typeof data.reason !== "string" || !data.reason.trim() || data.reason.length > 240) fail("invalid-argument", "A reason is required for every manual stock adjustment.");
+  if (data.reference !== undefined && (typeof data.reference !== "string" || data.reference.length > 120)) fail("invalid-argument", "Reference is too long.");
+  if (typeof data.idempotencyKey !== "string" || !KEY.test(data.idempotencyKey)) fail("invalid-argument", "A valid adjustment submission key is required.");
+  const db = getFirestore(), movementId = hash("legacy-stock-adjustment:" + request.auth.uid + ":" + data.idempotencyKey);
+  const movementRef = db.collection("inventoryMovements").doc(movementId);
+  const productRef = db.collection("products").doc(data.productId), auditRef = db.collection("auditLogs").doc();
+  try {
+    return await db.runTransaction(async tx => {
+      const [movementSnap, productSnap] = await Promise.all([tx.get(movementRef), tx.get(productRef)]);
+      if (movementSnap.exists) return { success: true, outcome: "already_applied", movementId };
+      if (!productSnap.exists) fail("not-found", "Product no longer exists.");
+      const product = productSnap.data(), variants = Array.isArray(product.variants) ? [...product.variants] : [];
+      const index = variants.findIndex(v => v?.id === data.variantId);
+      if (index < 0) fail("failed-precondition", "Variant no longer exists.");
+      const current = Number(variants[index].stockQty || 0);
+      if (!Number.isSafeInteger(current) || current !== data.expectedQuantity) fail("aborted", "Stock changed since it was loaded. Refresh before adjusting.", { currentQuantity: current });
+      const next = current + data.delta;
+      if (!Number.isSafeInteger(next) || next < 0) fail("failed-precondition", "Stock cannot become negative or exceed the supported quantity.");
+      variants[index] = { ...variants[index], stockQty: next, inStock: next > 0 };
+      tx.update(productRef, { variants, inStock: variants.some(v => Number(v.stockQty || 0) > 0) });
+      tx.create(movementRef, {
+        productId: data.productId, variantId: data.variantId, sku: variants[index].sku || "",
+        productName: product.name || "", variantLabel: variantLabel(variants[index], index),
+        type: data.delta > 0 ? "stock_in" : "stock_out", quantity: data.delta,
+        previousQty: current, newQty: next, reason: data.reason.trim(),
+        reference: (data.reference || "").trim(), createdAt: FieldValue.serverTimestamp(),
+        createdBy: request.auth.uid
+      });
+      tx.create(auditRef, {
+        action: "legacy_variant_stock_adjusted", entityType: "product_variant",
+        entityId: data.productId + ":" + data.variantId, quantityDelta: data.delta,
+        quantityBefore: current, quantityAfter: next, reason: data.reason.trim(),
+        actorUid: request.auth.uid, actorRole: request.auth.token.role,
+        createdAt: FieldValue.serverTimestamp()
+      });
+      return { success: true, outcome: "adjusted", movementId, quantityOnHand: next };
+    });
+  } catch (error) {
+    if (error instanceof HttpsError) throw error;
+    console.error("adjustLegacyVariantStock failed", error);
+    throw new HttpsError("internal", "Stock adjustment was not saved.");
+  }
+});
