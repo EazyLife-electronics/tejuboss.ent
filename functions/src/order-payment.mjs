@@ -58,6 +58,9 @@ export const recordOrderPayment = onCall(
         if (!Number.isSafeInteger(total) || total <= 0 || !Number.isSafeInteger(previousPaid) || previousPaid < 0 || previousPaid > total) {
           fail("failed-precondition", "Order payment totals need reconciliation before another receipt can be recorded.");
         }
+        const trackingRef = typeof order.trackingTokenHash === "string" && /^[a-f0-9]{64}$/.test(order.trackingTokenHash)
+          ? db.collection("orderTracking").doc(order.trackingTokenHash) : null;
+        const trackingSnap = trackingRef ? await tx.get(trackingRef) : null;
         const remaining = total - previousPaid;
         if (input.amountMinor > remaining) fail("failed-precondition", "Payment exceeds the outstanding order balance.");
         const paidTotal = previousPaid + input.amountMinor;
