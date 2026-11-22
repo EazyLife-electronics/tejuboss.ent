@@ -121,7 +121,7 @@ export const listOrderPaymentHistory = onCall(
     const orderSnap = await orderRef.get();
     if (!orderSnap.exists) fail("not-found", "Order was not found.");
     const order = orderSnap.data();
-    const snapshot = await orderRef.collection("payments").limit(201).get();
+    const snapshot = await orderRef.collection("payments").orderBy("receivedAtMillis", "asc").limit(201).get();
     const all = snapshot.docs.map(doc => {
       const p = doc.data();
       return {
