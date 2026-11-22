@@ -325,7 +325,7 @@ export function watchRequests(callback) { return watchContent('requests', callba
 export async function updateRequestStatus(id, status) { const result = await contentCall('requests', 'update', { status }, id); await refreshContent('requests'); return result; }
 
 export async function getSettings() {
-  return contentCall('settings', 'get');
+  return contentCall('settings', 'getPublic');
 }
 export async function getPublicSettings() {
   return contentCall('settings', 'getPublic');
