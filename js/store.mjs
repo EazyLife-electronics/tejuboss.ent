@@ -55,8 +55,47 @@ async function productCall(action, product = undefined, id = undefined) {
   const response = await manageProductsCallable({ action, ...(product === undefined ? {} : { product }), ...(id === undefined ? {} : { id }) });
   return response.data;
 }
+// The free-tier storefront must remain usable when the optional callable
+// catalogue endpoint is not deployed. Firestore already permits public product
+// reads; project the same explicitly public fields as publicProduct() in the
+// callable and never pass the raw document to the storefront.
+function publicProductProjection(id, data = {}) {
+  return {
+    id,
+    name: data.name || '',
+    brand: data.brand || '',
+    category: data.category || '',
+    desc: data.desc || '',
+    inStock: data.inStock !== false,
+    variants: (Array.isArray(data.variants) ? data.variants : []).map(v => ({
+      id: v.id, color: v.color || '', processor: v.processor || '',
+      ram: v.ram || '', rom: v.rom || '', price: v.price || 0,
+      promoPrice: v.promoPrice || 0, image: v.image || '',
+      deliveryFee: v.deliveryFee ?? null, deliveryRoute: v.deliveryRoute || 'general',
+      bulkSavingsEnabled: !!v.bulkSavingsEnabled,
+      bulkSavingsMode: v.bulkSavingsMode || 'general',
+      bulkSavingsPercent: v.bulkSavingsPercent || 0,
+      bulkSavingsMinQty: v.bulkSavingsMinQty || 0, inStock: v.inStock !== false
+    })),
+    upgrades: Array.isArray(data.upgrades)
+      ? data.upgrades.map(u => ({ id: u.id || '', name: u.name || '', price: u.price || 0 }))
+      : []
+  };
+}
+function isCallableUnavailable(error) {
+  return ['functions/internal', 'functions/unavailable', 'functions/not-found',
+    'functions/failed-precondition'].includes(error?.code);
+}
 export async function getProducts() {
-  return productCall('publicList');
+  try {
+    return await productCall('publicList');
+  } catch (error) {
+    if (!isCallableUnavailable(error)) throw error;
+    console.warn('Catalogue callable is unavailable; using the safe public Firestore projection.', error);
+    const snapshot = await getDocs(query(collection(db, 'products')));
+    return snapshot.docs.map(docSnap => publicProductProjection(docSnap.id, docSnap.data()))
+      .filter(product => product.inStock && product.variants.some(variant => variant.inStock !== false));
+  }
 }
 const productWatchers = new Set();
 async function refreshProducts() {
