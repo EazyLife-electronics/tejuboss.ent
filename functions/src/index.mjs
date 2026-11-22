@@ -268,3 +268,5 @@ export { manageLegacyDeliveryConfig, createLegacyDelivery, updateLegacyDelivery,
 export { manageLegacyPublicContent } from "./legacy-public-content-admin.mjs";
 
 export { manageLegacyProducts } from "./legacy-product-admin.mjs";
+
+export { manageLegacyOrderLifecycle } from "./legacy-order-lifecycle-admin.mjs";
