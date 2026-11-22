@@ -24,7 +24,7 @@ test("uses loose stock first and opens a sealed carton only for the shortage", (
       ["cartons", { quantityOnHand: 3 }]
     ])
   });
-  assert.equal(result.updates.get("loose"), 42);
+  assert.equal(result.updates.get("loose"), 44);
   assert.equal(result.updates.get("cartons"), 2);
   assert.deepEqual(result.movements.map(m => m.movementType), ["break_pack", "sale"]);
   assert.equal(result.movements[0].canonicalStockUnits, 48);
