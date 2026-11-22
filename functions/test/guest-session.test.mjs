@@ -23,6 +23,7 @@ test("validates the correct token only within its active lifetime", () => {
     tokenHash: session.tokenHash,
     createdAtMillis: session.createdAtMillis,
     expiresAtMillis: session.expiresAtMillis,
+    revokedAtMillis: null
   };
   assert.equal(isGuestSessionRecordValid({ rawToken: session.rawToken, record, now: 1000 }), true);
   assert.equal(isGuestSessionRecordValid({ rawToken: session.rawToken, record, now: 5999 }), true);
