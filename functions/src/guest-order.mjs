@@ -9,6 +9,28 @@ import { buildIdempotencyRecord, inspectIdempotencyReplay, createTrackingCredent
 
 const inventoryMappingId = item => createHash("sha256").update(JSON.stringify([item.productId, item.variantId, item.sellingOptionId])).digest("hex");
 
+function fail(code, message, details) { throw new HttpsError(code, message, details); }
+
+function sessionToken(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data) ||
+      Object.keys(data).some(key => !["sessionToken", "order"].includes(key))) {
+    fail("invalid-argument", "Request must contain sessionToken and order only.");
+  }
+  if (typeof data.sessionToken !== "string") fail("unauthenticated", "Guest checkout session is required.");
+  return data.sessionToken;
+}
+
+function toTierRules(configSnap, productId, variantId) {
+  if (!configSnap?.exists) return [];
+  const config = configSnap.data();
+  const rules = config.rules && typeof config.rules === "object" ? config.rules : {};
+  const now = Date.now();
+  return Object.values(rules).filter(rule => rule && rule.enabled === true &&
+    (rule.effectiveFromMillis == null || (Number.isSafeInteger(rule.effectiveFromMillis) && rule.effectiveFromMillis <= now)) &&
+    (rule.effectiveUntilMillis == null || (Number.isSafeInteger(rule.effectiveUntilMillis) && now < rule.effectiveUntilMillis))
+  ).map(rule => ({ productId, variantId, rule }));
+}
+
 /**
  * Trusted guest order creation.
  * Order submission is stock-neutral. Stock deductions are snapshotted from
