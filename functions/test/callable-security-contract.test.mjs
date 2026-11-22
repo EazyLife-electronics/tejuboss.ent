@@ -18,6 +18,7 @@ test("all guest-facing callable endpoints require Firebase App Check", () => {
     ["../src/guest-order.mjs", "createGuestOrder"],
     ["../src/order-tracking.mjs", "getGuestOrderTracking"],
     ["../src/order-tracking.mjs", "recoverGuestOrderTracking"],
+    ["../src/legacy-order-tracking.mjs", "getLegacyOrderTracking"],
     ["../src/delivery-public.mjs", "getPublicDeliveryOptions"]
   ];
   for (const [path, name] of endpoints) {
@@ -64,4 +65,16 @@ test("guest session and idempotency records carry Firestore TTL timestamps", () 
   const orders = read("../src/guest-order.mjs");
   assert.match(sessions, /expiresAt:\s*Timestamp\.fromMillis\(credential\.expiresAtMillis\)/);
   assert.match(orders, /expiresAt:\s*Timestamp\.fromMillis\(now\s*\+\s*30\s*\*\s*24\s*\*\s*60\s*\*\s*60\s*\*\s*1000\)/);
+});
+
+
+test("legacy tracking callable verifies phone suffix and returns a minimized projection", () => {
+  const legacy = read("../src/legacy-order-tracking.mjs");
+  assert.match(callableConfig(legacy, "getLegacyOrderTracking"), /enforceAppCheck:\\s*true/);
+  assert.match(legacy, /phoneLast4/);
+  assert.match(legacy, /storedPhone\.slice\(-4\) !== phoneLast4/);
+  assert.match(legacy, /order\.source === "guest"/);
+  assert.match(legacy, /tracking:\s*\{/);
+  assert.doesNotMatch(legacy, /return\s*\{\s*success:\s*true,\s*order\s*:/);
+  assert.doesNotMatch(legacy, /phone:\s*storedPhone/);
 });
