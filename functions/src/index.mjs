@@ -263,4 +263,4 @@ export { listCommerceOrderArchive } from "./order-archive.mjs";
 
 export { receiveLegacyPurchase, voidLegacyPurchase, listLegacyPurchases, adjustLegacyVariantStock, listLegacySuppliers, saveLegacySupplier, syncLegacyPurchaseSupplierLinks, updateLegacyVariantMetadata } from "./purchase-operations.mjs";
 
-export { manageLegacyDeliveryConfig, createLegacyDelivery, updateLegacyDelivery } from "./delivery-operations-admin.mjs";
+export { manageLegacyDeliveryConfig, createLegacyDelivery, updateLegacyDelivery, listLegacyDeliveryOrders } from "./delivery-operations-admin.mjs";
