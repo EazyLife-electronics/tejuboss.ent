@@ -3,6 +3,7 @@
 // Inventory-aware order status changes are performed transactionally.
 
 import { initFirebase } from './firebase.mjs';
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   onSnapshot, query, orderBy, serverTimestamp, runTransaction
@@ -49,27 +50,39 @@ if (typeof window !== 'undefined' &&
 
 /* ---------------- PRODUCTS ---------------- */
 
+const manageProductsCallable = httpsCallable(contentFunctions, 'manageLegacyProducts');
+async function productCall(action, product = undefined, id = undefined) {
+  const response = await manageProductsCallable({ action, ...(product === undefined ? {} : { product }), ...(id === undefined ? {} : { id }) });
+  return response.data;
+}
 export async function getProducts() {
-  const snap = await getDocs(collection(db, 'products'));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return productCall('publicList');
 }
-
+const productWatchers = new Set();
+async function refreshProducts() {
+  const rows = await productCall('list');
+  for (const callback of productWatchers) callback(rows);
+  return rows;
+}
 export function watchProducts(callback) {
-  return onSnapshot(collection(db, 'products'), (snap) => {
-    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  productWatchers.add(callback);
+  refreshProducts().catch(error => console.error('Could not load admin products:', error));
+  return () => productWatchers.delete(callback);
 }
-
 export async function addProduct(product) {
-  return addDoc(collection(db, 'products'), product);
+  const result = await productCall('create', product);
+  await refreshProducts();
+  return result;
 }
-
 export async function updateProduct(id, updates) {
-  return updateDoc(doc(db, 'products', id), updates);
+  const result = await productCall('update', updates, id);
+  await refreshProducts();
+  return result;
 }
-
 export async function deleteProduct(id) {
-  return deleteDoc(doc(db, 'products', id));
+  const result = await productCall('delete', undefined, id);
+  await refreshProducts();
+  return result;
 }
 
 /* ---------------- ORDERS ---------------- */
