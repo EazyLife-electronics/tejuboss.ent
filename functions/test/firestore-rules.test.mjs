@@ -142,12 +142,14 @@ test("inventory staff can inspect balances but cannot bypass movement transactio
 test("delivery managers can read delivery reference data but cannot write it", async () => {
   const deliveryDb = env.authenticatedContext("delivery-uid", { role: "delivery_manager" }).firestore();
   const orderDb = env.authenticatedContext("order-uid", { role: "order_manager" }).firestore();
+  const ownerDb = env.authenticatedContext("owner-uid", { role: "owner" }).firestore();
   await assertSucceeds(getDoc(doc(deliveryDb, "deliveryPersonnel", "rider-1")));
   await assertSucceeds(getDoc(doc(deliveryDb, "deliveryTypes", "home")));
   await assertSucceeds(getDoc(doc(deliveryDb, "deliveryCheckpoints", "hub")));
   await assertFails(setDoc(doc(deliveryDb, "deliveryPersonnel", "forged"), { name: "Forged" }));
   await assertFails(updateDoc(doc(deliveryDb, "deliveryTypes", "home"), { active: false }));
   await assertFails(getDoc(doc(orderDb, "deliveryPersonnel", "rider-1")));
+  await assertSucceeds(getDoc(doc(ownerDb, "deliveryPersonnel", "rider-1")));
 });
 
 test("only owner and payment staff can read payment receipt records", async () => {
@@ -168,8 +170,7 @@ test("unmigrated legacy admin collections remain closed in the hardened candidat
   // These legacy UI workflows still use direct Firestore operations. They
   // must not become public merely to preserve compatibility during migration.
   for (const collectionName of [
-    "heroes", "reviews", "requests", "settings", "purchases", "suppliers",
-    "deliveryPersonnel", "deliveryTypes", "deliveryCheckpoints"
+    "heroes", "reviews", "requests", "settings", "purchases", "suppliers"
   ]) {
     await assertFails(getDoc(doc(visitor, collectionName, "sample")));
     await assertFails(setDoc(doc(visitor, collectionName, "forged"), { value: true }));
