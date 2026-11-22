@@ -140,11 +140,14 @@ export async function placeOrder(order) {
   return trackingCode;
 }
 
-export async function getOrderByTrackingCode(code) {
-  const snap = await getDoc(doc(db, 'orders', code.trim().toUpperCase()));
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+const legacyTrackingCallable = httpsCallable(contentFunctions, 'getLegacyOrderTracking');
+export async function getOrderByTrackingCode(code, phoneLast4) {
+  if (typeof phoneLast4 !== 'string' || !/^\\d{4}$/.test(phoneLast4)) {
+    throw new Error('The last four digits of the order phone number are required for tracking.');
+  }
+  const response = await legacyTrackingCallable({ trackingCode: code, phoneLast4 });
+  return response.data?.tracking || null;
 }
-
 // Links an order to the delivery record created for it, so the public
 // tracking page can fetch that one delivery directly by ID (a plain `get`,
 // same trust model as order lookup) instead of needing broader read access
