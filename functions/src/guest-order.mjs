@@ -204,6 +204,7 @@ export const createGuestOrder = onCall(
           pricingConfigVersion: pricingSnaps.map(s => s.exists ? s.data().version : 0),
           inventoryDeductions,
           trackingTokenHash: trackingCredential.tokenHash,
+          guestSessionHash: sessionHash,
           createdAtMillis: now,
           updatedAtMillis: now
         };
