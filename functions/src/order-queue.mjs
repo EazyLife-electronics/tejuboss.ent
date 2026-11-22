@@ -6,17 +6,20 @@ export const listPendingCommerceOrders = onCall(
   async request => {
     if (!request.auth) throw new HttpsError("unauthenticated", "Staff sign-in is required.");
     const role = request.auth.token.role;
-    if (role !== "owner" && role !== "order_manager" && role !== "delivery_manager") {
-      throw new HttpsError("permission-denied", "Order or delivery manager access is required.");
+    if (!["owner", "order_manager", "delivery_manager", "payment_manager"].includes(role)) {
+      throw new HttpsError("permission-denied", "An authorized order, delivery or payment manager account is required.");
     }
     const db = getFirestore();
     const [pending, confirmed] = await Promise.all([
-      db.collection("orders").where("status", "==", "awaiting_confirmation").limit(500).get(),
+      role === "payment_manager" ? Promise.resolve({ docs: [], size: 0 }) :
+        db.collection("orders").where("status", "==", "awaiting_confirmation").limit(500).get(),
       db.collection("orders").where("status", "==", "confirmed").limit(500).get()
     ]);
-    const docs = [...pending.docs, ...confirmed.docs].filter(doc =>
-      role !== "delivery_manager" || doc.data().fulfilment?.method === "delivery"
-    );
+    const docs = [...pending.docs, ...confirmed.docs].filter(doc => {
+      const method = doc.data().fulfilment?.method;
+      if (role === "delivery_manager") return method === "delivery";
+      return true;
+    });
     const orders = docs.map(doc => {
       const d = doc.data();
       return {
@@ -25,6 +28,7 @@ export const listPendingCommerceOrders = onCall(
         lines: Array.isArray(d.lines) ? d.lines : [],
         subtotalMinor: d.subtotalMinor ?? 0, discountMinor: d.discountMinor ?? 0,
         deliveryFeeMinor: d.deliveryFeeMinor ?? 0, grandTotalMinor: d.grandTotalMinor ?? 0,
+        paymentTotalMinor: d.paymentTotalMinor ?? 0,
         currency: d.currency || "NGN", createdAtMillis: d.createdAtMillis ?? null,
         note: d.note || "", paymentStatus: d.paymentStatus || "unpaid"
       };
