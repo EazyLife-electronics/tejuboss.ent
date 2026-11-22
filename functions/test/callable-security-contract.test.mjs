@@ -57,3 +57,11 @@ test("all privileged commerce callables require App Check and backend authorizat
 test("public backend status endpoint intentionally remains callable without App Check", () => {
   assert.match(callableConfig(source, "backendStatus"), /enforceAppCheck:\s*false/);
 });
+
+
+test("guest session and idempotency records carry Firestore TTL timestamps", () => {
+  const sessions = read("../src/guest-checkout-session.mjs");
+  const orders = read("../src/guest-order.mjs");
+  assert.match(sessions, /expiresAt:\s*Timestamp\.fromMillis\(credential\.expiresAtMillis\)/);
+  assert.match(orders, /expiresAt:\s*Timestamp\.fromMillis\(now\s*\+\s*30\s*\*\s*24\s*\*\s*60\s*\*\s*60\s*\*\s*1000\)/);
+});
