@@ -97,3 +97,26 @@ Do not replace the live rules yet. The next implementation slices should be:
 - End-to-end emulator tests: cover public shop, homepage, review/request forms, admin tabs, purchasing, supplier master, stock reports, delivery operations, customer records and tracking.
 
 No production rules or Functions have been deployed as part of this audit.
+
+## Next migration slice: public content and legacy admin adapters
+
+A source review of the current `js/store.mjs` confirms that the remaining legacy browser data layer still contains direct Firestore operations for:
+
+- Product catalogue create/update/delete and full product subscriptions.
+- Legacy order creation, tracking-code lookup, delivery linking, status transitions and cancellation.
+- Hero slide create/update/delete and unrestricted collection subscriptions.
+- Review submission/moderation and unrestricted review subscriptions.
+- Sourcing request creation/status updates and staff request subscriptions.
+- The single `settings/site` document, which currently mixes public shop settings with operational delivery and pricing settings.
+
+These are not yet compatible with the hardened candidate's deny-by-default treatment of legacy collections. They must not be fixed by adding blanket read/write rules.
+
+### Migration order and acceptance criteria
+
+1. **Public-safe content contract:** separate public fields from operational settings; make homepage hero reads and approved-review reads explicitly public-safe. Public request/review submissions must have field allow-lists, size/type validation and abuse controls.
+2. **Admin content callables:** move hero CRUD, review moderation, request status changes and settings updates to App Check protected callables with the appropriate owner/content-management role. Admin lists should return bounded projections rather than relying on unrestricted collection listeners.
+3. **Product catalogue adapter:** preserve the existing product/variant schema and storefront behaviour while moving catalogue writes to authorized backend operations. Inventory, SKU, cost and reorder metadata must remain separately controlled; catalogue edits must not silently overwrite stock.
+4. **Legacy order/customer compatibility:** remove remaining direct order/delivery reads and writes from the shared store layer. Public tracking remains projection-only; stock deduction/restoration, payment and delivery state remain server-authoritative.
+5. **Verification:** add callable contract tests, rules emulator tests for allowed and denied roles, and UI source-contract tests for each migrated module. Re-run the complete CI workflow before marking a slice complete.
+
+The branch remains a migration/testing branch. No production rules or Functions deployment is authorized by this audit update.
