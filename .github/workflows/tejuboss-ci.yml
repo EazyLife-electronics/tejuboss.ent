@@ -1,0 +1,51 @@
+name: Tejuboss foundation checks
+
+on:
+  push:
+    branches: [tejuboss-foundation]
+  pull_request:
+    branches: [main, tejuboss-foundation]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  commerce-domain:
+    name: Catalogue, pricing and inventory tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate Functions module syntax
+        working-directory: functions
+        run: find src -name '*.mjs' -print0 | xargs -0 -n1 node --check && find ../admin/js -name '*.mjs' -print0 | xargs -0 -n1 node --check && find ../js -name '*.mjs' -print0 | xargs -0 -n1 node --check && node ../scripts/check-inline-modules.mjs
+      - name: Run pure domain tests
+        working-directory: functions
+        run: npm test
+
+  firestore-rules:
+    name: Firestore security rules emulator tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Set up Java for Firebase Emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Install emulator test dependencies
+        working-directory: functions
+        run: npm install
+      - name: Run Firestore security rules tests
+        working-directory: functions
+        run: npm run test:rules

@@ -1,0 +1,88 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'damzyeazy@gmail.com';
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow create: if request.resource.data.keys().hasAll(['items', 'customerName', 'phone', 'total'])
+                    && request.resource.data.total is number
+                    && request.resource.data.items is list;
+      allow get: if true;
+      allow list: if isAdmin();
+      allow update, delete: if isAdmin();
+
+      match /payments/{paymentId} {
+        allow read, create, update, delete: if isAdmin();
+      }
+    }
+
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /heroes/{heroId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['name', 'text'])
+                    && request.resource.data.name is string
+                    && request.resource.data.text is string;
+      allow update, delete: if isAdmin();
+    }
+
+    match /requests/{requestId} {
+      allow create: if request.resource.data.keys().hasAll(['name', 'phone', 'need'])
+                    && request.resource.data.name is string
+                    && request.resource.data.phone is string;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /inventoryMovements/{movementId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /purchases/{purchaseId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /suppliers/{supplierId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /deliveryPersonnel/{personId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /deliveryTypes/{typeId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /deliveryCheckpoints/{checkpointId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /deliveries/{deliveryId} {
+      // Public `get` only (never `list`): the tracking page fetches one
+      // specific delivery by ID, which it can only learn from the order's
+      // own `deliveryId` field after looking that order up by tracking code —
+      // same one-way trust model already used for `orders` below. `list`
+      // stays admin-only so the whole collection can't be enumerated.
+      allow get: if true;
+      allow list, create, update, delete: if isAdmin();
+    }
+  }
+}

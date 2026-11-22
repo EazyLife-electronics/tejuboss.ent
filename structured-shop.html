@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#9b2027"><title>Shop | Tejuboss Enterprise</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#202124;background:#f6f6f6;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0}header{background:#971f27;color:#fff;padding:17px max(16px,calc((100% - 1160px)/2));display:flex;justify-content:space-between;align-items:center;gap:12px;position:sticky;top:0;z-index:5;box-shadow:0 2px 12px #0002}
+.brand{font-weight:900;letter-spacing:.04em}.header-actions{display:flex;gap:9px;align-items:center}button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:11px 14px;font-weight:750}.cart-button{background:#fff;color:#8e1b22}.primary{background:#991f28;color:white}.secondary{background:#f0e7e7;color:#812028}.muted{color:#777}
+main{max-width:1160px;margin:auto;padding:24px 16px 60px}.hero{padding:12px 0 20px}.eyebrow{color:#9b2027;font-size:.74rem;font-weight:850;text-transform:uppercase;letter-spacing:.09em}.hero h1{font-size:clamp(1.8rem,5vw,2.7rem);margin:7px 0}.hero p{max-width:700px;color:#666;line-height:1.6;margin:0}
+.notice{background:#fff8e8;border:1px solid #eed59b;color:#6d4b12;border-radius:12px;padding:13px 15px;margin:15px 0 20px;line-height:1.5;font-size:.88rem}
+.toolbar{display:flex;gap:10px;margin:18px 0}.toolbar input,.field input,.field textarea,.field select{width:100%;border:1px solid #ddd;border-radius:10px;padding:12px;font:inherit;background:white;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,255px),1fr));gap:15px}.card,.panel{background:#fff;border:1px solid #e8e8e8;border-radius:16px;padding:16px;box-shadow:0 3px 12px #00000008}.card h2{font-size:1.08rem;margin:6px 0}.desc{font-size:.85rem;color:#666;line-height:1.5;min-height:2.5em}.card label,.field label{display:block;font-size:.78rem;font-weight:800;color:#555;margin:12px 0 6px}.price{font-size:1.35rem;font-weight:900;margin-top:13px}.unit{font-size:.78rem;color:#777}.card .add{width:100%;margin-top:14px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,370px);gap:18px;margin-top:24px;align-items:start}.panel h2{font-size:1.15rem;margin:0 0 13px}.cart-line{padding:12px 0;border-bottom:1px solid #eee}.line-top{display:flex;justify-content:space-between;gap:10px}.line-title{font-weight:800;font-size:.9rem}.line-sub{font-size:.78rem;color:#777;margin-top:4px}.line-actions{display:flex;align-items:center;gap:8px;margin-top:9px}.line-actions input{width:72px;border:1px solid #ddd;border-radius:8px;padding:7px}.remove{background:#f7eeee;color:#9b2027;padding:7px 9px}.totals{display:flex;justify-content:space-between;padding-top:14px;font-weight:900}.empty{color:#777;font-size:.88rem;padding:16px 0}.field{margin:12px 0}.field textarea{min-height:72px;resize:vertical}.choice{display:flex;gap:8px;align-items:center;margin:8px 0;font-size:.9rem}.choice input{accent-color:#991f28}.hidden{display:none!important}.submit{width:100%;margin-top:14px;padding:14px}.result{margin-top:14px;padding:14px;border-radius:12px;background:#eef8f0;border:1px solid #b7dfc0;line-height:1.55;overflow-wrap:anywhere}.error{background:#fff0ef;border-color:#efc0bc;color:#8b1e1e}.track-card{padding:12px;border:1px solid #eee;border-radius:10px;margin:9px 0;font-size:.83rem}.status-pill{display:inline-block;background:#f4eded;color:#86202a;padding:4px 8px;border-radius:99px;font-size:.73rem;font-weight:800}
+footer{margin-top:30px;color:#777;font-size:.78rem}
+@media(max-width:820px){.layout{grid-template-columns:1fr}.cart-panel{order:0}}@media(max-width:520px){header{padding:13px 12px}.brand{font-size:.83rem}.header-actions button{padding:9px 10px;font-size:.8rem}main{padding:18px 12px 45px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.card{padding:12px;border-radius:13px}.card h2{font-size:.93rem}.desc{font-size:.76rem}.card label{font-size:.72rem}.card select{padding:9px;font-size:.8rem}.card .add{padding:10px 7px;font-size:.8rem}.price{font-size:1.12rem}}
+@media(prefers-color-scheme:dark){:root{color:#eee;background:#111}header{background:#64191e}.hero p,footer,.muted{color:#aaa}.card,.panel{background:#1b1b1b;border-color:#333}.desc,.unit,.card label,.field label{color:#aaa}.toolbar input,.field input,.field textarea,.field select,.line-actions input{background:#222;border-color:#444;color:#eee}.notice{background:#332812;border-color:#70531e;color:#f2d99d}.cart-line,.track-card{border-color:#383838}.secondary,.remove{background:#392426;color:#f3b7ba}.empty{color:#aaa}.result{background:#172a1c;border-color:#315e3c;color:#d6f4dc}.result.error{background:#321c1b;border-color:#693330;color:#ffc7c2}}
+</style>
+</head>
+<body>
+<header><div class="brand">TEJUBOSS ENTERPRISE</div><div class="header-actions"><button class="cart-button" id="cartJump">Cart <span id="cartCount">0</span></button></div></header>
+<main>
+<section class="hero"><div class="eyebrow">Shop Tejuboss</div><h1>Everyday essentials, made easy.</h1><p>Browse our published products, choose the pack or unit you need, and place an order without creating an account.</p></section>
+<div class="notice"><strong>Development checkout:</strong> this is a separate preview of the new ordering system. Stock is checked by the secure backend when you place an order. Orders await confirmation by Tejuboss. No online payment is collected on this page.</div>
+<div class="toolbar"><input id="search" type="search" placeholder="Search products, brands or categories…" aria-label="Search products"></div>
+<div id="status" class="panel" role="status">Loading products…</div>
+<section id="catalogue" class="grid"></section>
+<section class="layout">
+<aside class="panel cart-panel" id="cartPanel"><h2>Your basket</h2><div id="cartLines" class="empty">Your basket is empty.</div><div class="totals"><span>Estimated total</span><span id="cartTotal">₦0</span></div><p class="muted" style="font-size:.76rem;line-height:1.45">Final prices, quantity offers and delivery charges are recalculated by Tejuboss secure checkout. This estimate is for guidance only.</p></aside>
+<section class="panel" id="checkoutPanel"><h2>Checkout details</h2>
+<div class="field"><label for="customerName">Full name</label><input id="customerName" autocomplete="name" maxlength="120" required></div>
+<div class="field"><label for="customerPhone">Phone number</label><input id="customerPhone" autocomplete="tel" inputmode="tel" maxlength="32" required></div>
+<div class="field"><label for="customerEmail">Email (optional)</label><input id="customerEmail" type="email" autocomplete="email"></div>
+<div class="field"><span style="font-weight:800;font-size:.8rem">How would you like to receive your order?</span>
+<label class="choice"><input type="radio" name="fulfilment" value="pickup" checked> Store pickup</label>
+<label class="choice"><input type="radio" name="fulfilment" value="delivery"> Delivery</label></div>
+<div id="deliveryFields" class="hidden">
+<div class="field"><label for="deliveryArea">Delivery area</label><select id="deliveryArea"><option value="">Loading delivery areas…</option></select></div>
+<div class="field"><label for="deliveryAddress">Delivery address</label><textarea id="deliveryAddress" maxlength="500" autocomplete="street-address"></textarea></div>
+<p id="deliveryMessage" class="muted" style="font-size:.78rem"></p>
+</div>
+<div class="field"><label for="orderNote">Order note (optional)</label><textarea id="orderNote" maxlength="1000" placeholder="Any useful details for the shop"></textarea></div>
+<button id="placeOrder" class="primary submit" disabled>Place order</button>
+<div id="checkoutResult" aria-live="polite"></div>
+</section>
+</section>
+<section class="panel" style="margin-top:18px"><h2>Track an order</h2><p class="muted" style="font-size:.83rem">Orders placed on this device are saved here. Keep your tracking details private.</p><div id="savedTracking"></div></section>
+<footer>Tejuboss Enterprise · Guest ordering development preview</footer>
+</main>
+<script type="module">
+import { getPublishedStructuredCatalogue } from "./js/structured-catalogue.mjs";
+import { publicOptionUnitPrice } from "./functions/src/domain/public-catalogue-view.mjs";
+import { getPublicOffersForVariant, formatPublicOfferRows } from "./functions/src/domain/public-quantity-offers.mjs";
+import { getStructuredDeliveryOptions, submitStructuredGuestOrder, getStructuredOrderTracking, getSavedStructuredTrackingOrders, recoverStructuredOrderTracking } from "./js/structured-commerce.mjs";
+
+const $ = id => document.getElementById(id);
+const money = minor => new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",maximumFractionDigits:2}).format(minor/100);
+const esc = value => String(value ?? "").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+let products=[],publicPricing=[],delivery={enabled:false,areas:[]},cart=[];
+const selected = new Map();
+function selectedVariant(product){return product.variants.find(v=>v.id===selected.get(product.id)?.variantId)||product.variants[0]}
+function selectedOption(product,variant){return variant.sellingOptions.find(o=>o.id===selected.get(product.id)?.optionId)||variant.sellingOptions[0]}
+function getOffers(product,variant,option){
+ const offers=getPublicOffersForVariant({productId:product.id,variant,publicPricing});
+ return offers.filter(o=>o.eligibleSellingOptionIds.includes(option.id)).flatMap(o=>formatPublicOfferRows(o).map(row=>{
+  const range=row.maximumQuantity===null?row.minimumQuantity+"+":row.minimumQuantity+"–"+row.maximumQuantity;
+  const rates=row.rates.filter(rate=>o.qualificationBasis==="base_stock_quantity"||rate.unit===option.label);
+  return rates.map(rate=>({text:"Buy "+range+" "+(o.qualificationBasis==="base_stock_quantity"?(variant.stockUnitLabel||"stock units"):option.label)+": "+money(rate.priceMinor)+" / "+rate.unit}));
+ })).flat();
+}
+function renderCatalogue(){
+ const term=$("search").value.trim().toLowerCase();
+ const list=products.filter(p=>[p.name,p.brand,p.category,p.description].some(v=>String(v||"").toLowerCase().includes(term)));
+ $("catalogue").innerHTML=list.map(p=>{
+  const v=selectedVariant(p),o=selectedOption(p,v);
+  const variantOpts=p.variants.map(x=>'<option value="'+esc(x.id)+'" '+(x.id===v.id?"selected":"")+'>'+esc(x.stockUnitLabel||"Variant")+'</option>').join("");
+  const optionOpts=v.sellingOptions.map(x=>'<option value="'+esc(x.id)+'" '+(x.id===o.id?"selected":"")+'>'+esc(x.label)+'</option>').join("");
+  const offers=getOffers(p,v,o);
+  return '<article class="card" data-id="'+esc(p.id)+'"><div class="eyebrow">'+esc(p.category)+'</div><h2>'+esc(p.name)+'</h2><div class="unit">'+esc(p.brand)+'</div><p class="desc">'+esc(p.description)+'</p><label>Variant</label><select class="variant">'+variantOpts+'</select><label>Selling unit</label><select class="option">'+optionOpts+'</select><div class="price">'+money(publicOptionUnitPrice(o))+'</div><div class="unit">per '+esc(o.label)+'</div>'+(offers.length?'<div class="unit" style="margin-top:9px">'+offers.map(x=>esc(x.text)).join("<br>")+'</div>':"")+'<button class="primary add" type="button">Add to basket</button></article>';
+ }).join("");
+ $("status").hidden=list.length>0;
+ $("status").textContent=products.length?"No products match your search.":"No published products are available yet.";
+}
+function renderCart(){
+ const count=cart.reduce((s,l)=>s+l.quantity,0);$("cartCount").textContent=count;
+ if(!cart.length){$("cartLines").innerHTML='<div class="empty">Your basket is empty.</div>';$("cartTotal").textContent=money(0);$("placeOrder").disabled=true;return}
+ $("cartLines").innerHTML=cart.map((l,i)=>'<div class="cart-line"><div class="line-top"><div><div class="line-title">'+esc(l.productName)+'</div><div class="line-sub">'+esc(l.variantLabel)+' · '+esc(l.optionLabel)+'</div></div><strong>'+money(l.displayPriceMinor*l.quantity)+'</strong></div><div class="line-actions"><label style="margin:0">Qty</label><input type="number" value="'+l.quantity+'" min="'+l.minimumOrderQuantity+'" step="'+l.orderQuantityStep+'" data-qty="'+i+'"><button class="remove" data-remove="'+i+'">Remove</button></div></div>').join("");
+ $("cartTotal").textContent=money(cart.reduce((s,l)=>s+l.displayPriceMinor*l.quantity,0));
+ $("placeOrder").disabled=false;
+}
+$("catalogue").addEventListener("change",e=>{
+ const card=e.target.closest("[data-id]");if(!card)return;
+ const p=products.find(x=>x.id===card.dataset.id);if(!p)return;
+ const state=selected.get(p.id)||{};
+ if(e.target.classList.contains("variant")){state.variantId=e.target.value;state.optionId=null}
+ if(e.target.classList.contains("option"))state.optionId=e.target.value;
+ selected.set(p.id,state);renderCatalogue();
+});
+$("catalogue").addEventListener("click",e=>{
+ if(!e.target.classList.contains("add"))return;
+ const card=e.target.closest("[data-id]"),p=products.find(x=>x.id===card.dataset.id);if(!p)return;
+ const v=selectedVariant(p),o=selectedOption(p,v);
+ const found=cart.find(x=>x.productId===p.id&&x.variantId===v.id&&x.sellingOptionId===o.id);
+ if(found)found.quantity+=found.orderQuantityStep;
+ else cart.push({productId:p.id,variantId:v.id,sellingOptionId:o.id,productName:p.name,variantLabel:v.stockUnitLabel,optionLabel:o.label,displayPriceMinor:publicOptionUnitPrice(o),quantity:o.minimumOrderQuantity,minimumOrderQuantity:o.minimumOrderQuantity,orderQuantityStep:o.orderQuantityStep,quantityPrecision:v.quantityPrecision});
+ renderCart();
+});
+$("cartLines").addEventListener("change",e=>{
+ if(!e.target.matches("[data-qty]"))return;
+ const i=Number(e.target.dataset.qty),qty=Number(e.target.value);
+ const line=cart[i];const units=(qty-line.minimumOrderQuantity)/line.orderQuantityStep;const scale=10**line.quantityPrecision;
+ if(!Number.isFinite(qty)||qty<line.minimumOrderQuantity||Math.abs(qty*scale-Math.round(qty*scale))>1e-7||Math.abs(units-Math.round(units))>1e-7){renderCart();return}
+ line.quantity=qty;renderCart();
+});
+$("cartLines").addEventListener("click",e=>{if(e.target.matches("[data-remove]")){cart.splice(Number(e.target.dataset.remove),1);renderCart()}});
+$("search").addEventListener("input",renderCatalogue);
+$("cartJump").addEventListener("click",()=>$("cartPanel").scrollIntoView({behavior:"smooth"}));
+document.querySelectorAll('input[name="fulfilment"]').forEach(el=>el.addEventListener("change",()=>{
+ const isDelivery=document.querySelector('input[name="fulfilment"]:checked').value==="delivery";
+ $("deliveryFields").classList.toggle("hidden",!isDelivery);
+ $("deliveryMessage").textContent=delivery.enabled?"The final delivery fee will be confirmed by secure checkout.":"Delivery is not currently available through this checkout. Please choose store pickup.";
+}));
+async function loadTracking(){
+ const entries=getSavedStructuredTrackingOrders();const host=$("savedTracking");
+ if(!entries.length){host.innerHTML='<p class="muted" style="font-size:.82rem">No orders saved on this device yet.</p>';return}
+ host.innerHTML=entries.map((x,i)=>'<div class="track-card"><strong>Order '+esc(x.orderId)+'</strong><div id="trackstate'+i+'" class="muted" style="margin:6px 0">Loading status…</div><button class="secondary" data-track="'+i+'">Refresh status</button> <button class="secondary" data-recover="'+i+'">Recover tracking token</button></div>').join("");
+ for(let i=0;i<entries.length;i++)refreshTracking(i);
+}
+async function refreshTracking(i){
+ const entries=getSavedStructuredTrackingOrders(),entry=entries[i];if(!entry)return;
+ try{const t=await getStructuredOrderTracking(entry.trackingToken);$("trackstate"+i).innerHTML='<span class="status-pill">'+esc(t.status.replaceAll("_"," "))+'</span> · Payment: '+esc(t.paymentStatus)+' · Fulfilment: '+esc(t.fulfilmentStatus)+'<br>Total: '+money(t.grandTotalMinor||0)}
+ catch(e){$("trackstate"+i).textContent="Tracking could not be loaded. If the token was lost, try recovery while your checkout session is still active."}
+}
+$("savedTracking").addEventListener("click",async e=>{
+ const i=Number(e.target.dataset.track??e.target.dataset.recover);if(!Number.isInteger(i))return;
+ const entries=getSavedStructuredTrackingOrders(),entry=entries[i];if(!entry)return;
+ e.target.disabled=true;
+ try{if(e.target.hasAttribute("data-recover"))await recoverStructuredOrderTracking(entry.orderId);await refreshTracking(i)}
+ catch(err){$("trackstate"+i).textContent=err.message||"Could not update tracking."}
+ finally{e.target.disabled=false}
+});
+$("checkoutResult").addEventListener("click",async e=>{if(e.target.id!=="copyTrackingToken")return;const token=$("newTrackingToken")?.textContent||"";try{await navigator.clipboard.writeText(token);e.target.textContent="Copied"}catch{e.target.textContent="Copy unavailable, select the token above"}});
+$("placeOrder").addEventListener("click",async()=>{
+ const result=$("checkoutResult");result.className="";result.textContent="";
+ if(!cart.length){result.textContent="Add at least one product to your basket.";return}
+ const customer={name:$("customerName").value.trim(),phone:$("customerPhone").value.trim()};
+ if($("customerEmail").value.trim())customer.email=$("customerEmail").value.trim();
+ const method=document.querySelector('input[name="fulfilment"]:checked').value;
+ const fulfilment={method};
+ if(method==="delivery"){
+  fulfilment.area=$("deliveryArea").value;
+  fulfilment.address=$("deliveryAddress").value.trim();
+  if(!delivery.enabled||!fulfilment.area){result.textContent="Delivery is not configured. Please choose store pickup.";result.className="result error";return}
+  if(!fulfilment.address){result.textContent="Enter your delivery address.";result.className="result error";return}
+ }
+ if(!customer.name||!customer.phone){result.textContent="Enter your name and phone number.";result.className="result error";return}
+ const items=cart.map(({productId,variantId,sellingOptionId,quantity})=>({productId,variantId,sellingOptionId,quantity}));
+ const button=$("placeOrder");button.disabled=true;button.textContent="Submitting securely…";
+ try{
+  const order=await submitStructuredGuestOrder({items,customer,fulfilment,note:$("orderNote").value.trim()});
+  result.className="result";result.innerHTML='<strong>Order received!</strong><br>Order reference: <strong>'+esc(order.orderId)+'</strong><br>Current status: awaiting confirmation<br>Order total: <strong>'+money(order.grandTotalMinor)+'</strong><br>Payment status: unpaid. Tejuboss will confirm your order and payment arrangements.<br><p style="font-size:.82rem">Your private tracking credential is saved on this device. Keep it private; copy it for safekeeping.</p><p style="font-size:.78rem;overflow-wrap:anywhere"><strong>Tracking token:</strong><br><code id="newTrackingToken">'+esc(order.trackingToken)+'</code></p><button type="button" class="secondary" id="copyTrackingToken">Copy tracking token</button>';
+  cart=[];renderCart();await loadTracking();$("checkoutPanel").scrollIntoView({behavior:"smooth"});
+ }catch(error){result.className="result error";result.textContent=error.message||"Could not place this order. Please retry; safe retry handling is enabled."}
+ finally{button.textContent="Place order";button.disabled=!cart.length}
+});
+async function start(){
+ try{
+  const catalogue=await getPublishedStructuredCatalogue();
+  products=catalogue.products;publicPricing=catalogue.publicPricing;
+  try{delivery=await getStructuredDeliveryOptions()}catch(error){console.warn("Delivery options unavailable until App Check and backend are configured.",error);delivery={enabled:false,areas:[]}}
+  const area=$("deliveryArea");
+  if(delivery.enabled&&delivery.areas.length){area.innerHTML=delivery.areas.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.label)+'</option>').join("");$("deliveryMessage").textContent="Delivery fees are calculated by the secure checkout."}
+  else{area.innerHTML='<option value="">Delivery not configured</option>';$("deliveryMessage").textContent="Delivery is not enabled yet. Store pickup is available if the shop accepts the order."}
+  renderCatalogue();await loadTracking();
+  if(catalogue.rejectedCount)console.warn("Some invalid catalogue records were skipped.",catalogue.rejectedCount);
+ }catch(error){
+  console.error(error);$("status").hidden=false;$("status").textContent="The new shop could not connect to its development services. This preview is not live checkout yet. Check Firebase App Check and the development backend before testing orders.";
+  $("placeOrder").disabled=true;
+ }
+}
+start();
+</script>
+</body></html>

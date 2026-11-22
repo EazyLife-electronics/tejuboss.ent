@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#b91c1c">
+  <title>Structured Catalogue Preview | Tejuboss Enterprise</title>
+  <style>
+    :root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#191919;background:#f7f7f7}
+    *{box-sizing:border-box}body{margin:0}header{background:#991b1b;color:#fff;padding:22px max(18px,calc((100% - 1120px)/2))}
+    header a{color:#fff;text-decoration:none;font-weight:800}main{max-width:1120px;margin:0 auto;padding:24px 18px 60px}
+    h1{font-size:clamp(1.6rem,4vw,2.35rem);margin:8px 0}.intro{color:#555;line-height:1.6;max-width:720px}
+    .notice{border:1px solid #f2cf8b;background:#fff8e8;color:#744b0a;border-radius:12px;padding:14px 16px;margin:20px 0;line-height:1.5}
+    .toolbar{display:flex;gap:10px;margin:20px 0}.toolbar input{width:100%;padding:13px 14px;border:1px solid #ddd;border-radius:10px;font:inherit;background:#fff}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}
+    .card{background:#fff;border:1px solid #e8e8e8;border-radius:16px;padding:18px;box-shadow:0 3px 14px #00000008}
+    .eyebrow{font-size:.75rem;color:#9b2424;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+    .card h2{font-size:1.12rem;margin:7px 0}.desc{color:#666;font-size:.9rem;line-height:1.5;min-height:2.6em}
+    label{display:block;font-size:.8rem;font-weight:700;color:#555;margin:14px 0 6px}
+    select{width:100%;padding:11px;border:1px solid #ddd;border-radius:9px;background:#fff;font:inherit}
+    .price{font-size:1.35rem;font-weight:850;margin:14px 0 4px}.unit{color:#777;font-size:.82rem}
+    .offers{margin-top:16px;padding:12px;border:1px solid #eadede;border-radius:10px;background:#fffafa}.offers h3{font-size:.9rem;margin:0 0 8px}.offer-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid #eee;font-size:.82rem}.offer-row strong{text-align:right}.offer-note{font-size:.72rem;color:#777;line-height:1.4;margin:8px 0 0}.no-offer{font-size:.8rem;color:#777;margin:12px 0 0}
+    .unavailable{display:block;margin-top:14px;padding:10px;border-radius:9px;background:#f3f3f3;color:#555;font-size:.82rem;line-height:1.4}
+    .state{padding:28px 12px;text-align:center;color:#666;background:#fff;border:1px dashed #ccc;border-radius:14px}
+    footer{color:#777;font-size:.8rem;margin-top:28px}
+    @media(prefers-color-scheme:dark){:root{color:#f2f2f2;background:#111}header{background:#651919}.intro,footer{color:#aaa}.card,.toolbar input,.state{background:#1b1b1b;border-color:#333;color:#eee}.desc,.unit,label{color:#aaa}select{background:#222;color:#eee;border-color:#444}.notice{background:#332812;border-color:#6e511e;color:#f2d99d}.unavailable{background:#292929;color:#ccc}.offers{background:#241b1b;border-color:#4a3333}.offer-row{border-color:#3a3030}.offer-note,.no-offer{color:#aaa}}
+  </style>
+</head>
+<body>
+  <header><a href="./">TEJUBOSS ENTERPRISE</a></header>
+  <main>
+    <div class="eyebrow">Development preview</div>
+    <h1>Our structured catalogue</h1>
+    <p class="intro">This preview reads published products from the new catalogue structure. It is separate from the current shop while we complete stock and secure checkout integration.</p>
+    <div class="notice"><strong>Preview only:</strong> prices and selling options are displayed for review. Stock availability has not yet been connected, and ordering is intentionally disabled here. No order or inventory changes can be made from this page.</div>
+    <div class="toolbar"><input id="search" type="search" placeholder="Search products, brands or categories…" aria-label="Search products"></div>
+    <div id="status" class="state" role="status">Loading published products…</div>
+    <section id="catalogue" class="grid" aria-live="polite"></section>
+    <footer>Tejuboss Enterprise · Structured catalogue development preview</footer>
+  </main>
+  <script type="module">
+    import { getPublishedStructuredCatalogue } from "./js/structured-catalogue.mjs";
+    import { publicOptionUnitPrice } from "./functions/src/domain/public-catalogue-view.mjs";
+    import { getPublicOffersForVariant, formatPublicOfferRows } from "./functions/src/domain/public-quantity-offers.mjs";
+
+    const grid = document.getElementById("catalogue");
+    const status = document.getElementById("status");
+    const search = document.getElementById("search");
+    let products = [];
+    let publicPricing = [];
+
+    const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"
+    }[char]));
+    const money = minor => new Intl.NumberFormat("en-NG", {
+      style:"currency",currency:"NGN",maximumFractionDigits:2
+    }).format(minor / 100);
+
+    function cardMarkup(product) {
+      const variants = product.variants;
+      const firstVariant = variants[0];
+      const firstOption = firstVariant.sellingOptions[0];
+      const variantOptions = variants.map(variant =>
+        '<option value="' + escapeHtml(variant.id) + '">' +
+        escapeHtml(variant.stockUnitLabel || "Option") + '</option>'
+      ).join("");
+      const optionOptions = firstVariant.sellingOptions.map(option =>
+        '<option value="' + escapeHtml(option.id) + '">' +
+        escapeHtml(option.label) + '</option>'
+      ).join("");
+      return `<article class="card" data-product="${escapeHtml(product.id)}">
+        <div class="eyebrow">${escapeHtml(product.category)}</div>
+        <h2>${escapeHtml(product.name)}</h2>
+        <div class="unit">${escapeHtml(product.brand)}</div>
+        <p class="desc">${escapeHtml(product.description || "Quality products from Tejuboss Enterprise.")}</p>
+        <label>Choose variant</label>
+        <select class="variant-select">${variantOptions}</select>
+        <label>Choose selling unit</label>
+        <select class="selling-select">${optionOptions}</select>
+        <div class="price" data-price>${money(publicOptionUnitPrice(firstOption))}</div>
+        <div class="unit" data-unit>per ${escapeHtml(firstOption.label)}</div>
+        <div data-offers></div>
+        <span class="unavailable">Availability not connected yet. Ordering will be enabled after stock and trusted checkout are integrated.</span>
+      </article>`;
+    }
+
+    function renderOffers(card, product, variant, selectedOption) {
+      const offers = getPublicOffersForVariant({
+        productId: product.id,
+        variant,
+        publicPricing
+      }).filter(offer => offer.eligibleSellingOptionIds.includes(selectedOption.id));
+      const rows = offers.flatMap(offer => formatPublicOfferRows(offer).map(row => {
+        const relevantRates = offer.qualificationBasis === "selected_option_quantity"
+          ? row.rates.filter(rate => rate.unit === selectedOption.label)
+          : row.rates;
+        const range = row.maximumQuantity === null
+          ? `${row.minimumQuantity}+`
+          : `${row.minimumQuantity}–${row.maximumQuantity}`;
+        const qualificationUnit = offer.qualificationBasis === "base_stock_quantity"
+          ? (variant.stockUnitLabel || "stock units")
+          : selectedOption.label;
+        return relevantRates.map(rate => ({
+          label: `Buy ${range} ${qualificationUnit}`,
+          price: `${money(rate.priceMinor)} / ${rate.unit === "base stock unit" ? (variant.stockUnitLabel || "stock unit") : rate.unit}`,
+          aggregate: offer.aggregateAcrossOptions
+        }));
+      })).flat();
+
+      const container = card.querySelector("[data-offers]");
+      if (!rows.length) {
+        container.innerHTML = '<p class="no-offer">No quantity offer currently applies to this selling option.</p>';
+        return;
+      }
+      container.innerHTML = `<section class="offers">
+        <h3>Quantity offers</h3>
+        ${rows.map(row => `<div class="offer-row"><span>${escapeHtml(row.label)}</span><strong>${escapeHtml(row.price)}</strong></div>`).join("")}
+        <p class="offer-note">Offers are recalculated by the secure checkout. They do not combine with catalogue promotional prices.${rows.some(row => row.aggregate) ? " Eligible selling options may contribute to the same base-stock quantity threshold." : ""}</p>
+      </section>`;
+    }
+
+    function render() {
+      const term = search.value.trim().toLowerCase();
+      const filtered = products.filter(product =>
+        [product.name,product.brand,product.category,product.description]
+          .some(value => String(value || "").toLowerCase().includes(term))
+      );
+      grid.innerHTML = filtered.map(cardMarkup).join("");
+      filtered.forEach(product => {
+        const card = grid.querySelector('[data-product="' + CSS.escape(product.id) + '"]');
+        if (!card) return;
+        const variant = product.variants[0];
+        const option = variant.sellingOptions[0];
+        renderOffers(card, product, variant, option);
+      });
+      status.hidden = filtered.length > 0;
+      status.textContent = products.length
+        ? "No products match your search."
+        : "No published structured products are available yet.";
+    }
+
+    grid.addEventListener("change", event => {
+      const card = event.target.closest("[data-product]");
+      if (!card) return;
+      const product = products.find(item => item.id === card.dataset.product);
+      if (!product) return;
+      const variantSelect = card.querySelector(".variant-select");
+      const optionSelect = card.querySelector(".selling-select");
+      const variant = product.variants.find(item => item.id === variantSelect.value) || product.variants[0];
+      const currentOptionId = optionSelect.value;
+      optionSelect.innerHTML = variant.sellingOptions.map(option =>
+        '<option value="' + escapeHtml(option.id) + '">' + escapeHtml(option.label) + '</option>'
+      ).join("");
+      const option = variant.sellingOptions.find(item => item.id === currentOptionId) || variant.sellingOptions[0];
+      optionSelect.value = option.id;
+      card.querySelector("[data-price]").textContent = money(publicOptionUnitPrice(option));
+      card.querySelector("[data-unit]").textContent = "per " + option.label;
+      renderOffers(card, product, variant, option);
+    });
+
+    search.addEventListener("input", render);
+
+    try {
+      const result = await getPublishedStructuredCatalogue();
+      products = result.products;
+      publicPricing = result.publicPricing;
+      render();
+      if (result.rejectedCount) {
+        console.warn(result.rejectedCount + " invalid published catalogue record(s) were skipped.");
+      }
+    } catch (error) {
+      console.error(error);
+      status.hidden = false;
+      status.textContent = "The structured catalogue could not be loaded. Check the development Firebase rules and connection.";
+    }
+  </script>
+</body>
+</html>
