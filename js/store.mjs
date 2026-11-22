@@ -8,7 +8,24 @@ import {
   onSnapshot, query, orderBy, serverTimestamp, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const { db } = initFirebase();
+const { db, app } = initFirebase();
+const contentFunctions = getFunctions(app, 'europe-west1');
+const manageContentCallable = httpsCallable(contentFunctions, 'manageLegacyPublicContent');
+async function contentCall(collectionName, action, values = undefined, id = undefined, extra = {}) {
+  const response = await manageContentCallable({ collection: collectionName, action, ...(values === undefined ? {} : { values }), ...(id === undefined ? {} : { id }), ...extra });
+  return response.data;
+}
+const contentWatchers = { heroes: new Set(), reviews: new Set(), requests: new Set() };
+async function refreshContent(collectionName, publicOnly = false) {
+  const rows = await contentCall(collectionName, 'list', undefined, undefined, publicOnly ? { publicOnly: true } : {});
+  for (const callback of contentWatchers[collectionName] || []) callback(rows);
+  return rows;
+}
+function watchContent(collectionName, callback) {
+  const callbacks = contentWatchers[collectionName]; callbacks.add(callback);
+  refreshContent(collectionName, false).catch(error => console.error(`Could not load ${collectionName}:`, error));
+  return () => callbacks.delete(callback);
+}
 
 /* ---------------- ADMIN ERROR FEEDBACK ---------------- */
 // Many Admin buttons intentionally use fire-and-forget async handlers. If an async
@@ -283,88 +300,38 @@ export async function cancelOrder(id, { reason = null, customerNote = null, inte
   });
 }
 
-/* ---------------- HEROES ---------------- */
+/* ---------------- LEGACY CONTENT VIA TRUSTED FUNCTIONS ---------------- */
 
 export async function getHeroes() {
-  const q = query(collection(db, 'heroes'), orderBy('order', 'asc'));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return contentCall('heroes', 'list', undefined, undefined, { publicOnly: true });
 }
-
-export function watchHeroes(callback) {
-  const q = query(collection(db, 'heroes'), orderBy('order', 'asc'));
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
-}
-
-export async function addHero(hero) {
-  return addDoc(collection(db, 'heroes'), hero);
-}
-
-export async function updateHero(id, updates) {
-  return updateDoc(doc(db, 'heroes', id), updates);
-}
-
-export async function deleteHero(id) {
-  return deleteDoc(doc(db, 'heroes', id));
-}
-
-/* ---------------- REVIEWS ---------------- */
+export function watchHeroes(callback) { return watchContent('heroes', callback); }
+export async function addHero(hero) { const result = await contentCall('heroes', 'create', hero); await refreshContent('heroes'); return result; }
+export async function updateHero(id, updates) { const result = await contentCall('heroes', 'update', updates, id); await refreshContent('heroes'); return result; }
+export async function deleteHero(id) { const result = await contentCall('heroes', 'delete', undefined, id); await refreshContent('heroes'); return result; }
 
 export async function getApprovedReviews() {
-  const snap = await getDocs(collection(db, 'reviews'));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(r => r.approved === true);
+  return contentCall('reviews', 'list', undefined, undefined, { publicOnly: true });
 }
-
-export function watchReviews(callback) {
-  return onSnapshot(collection(db, 'reviews'), (snap) => {
-    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
-}
-
-export async function addReview(review) {
-  return addDoc(collection(db, 'reviews'), review);
-}
-
-export async function updateReview(id, updates) {
-  return updateDoc(doc(db, 'reviews', id), updates);
-}
-
-export async function deleteReview(id) {
-  return deleteDoc(doc(db, 'reviews', id));
-}
-
-/* ---------------- SOURCING REQUESTS ---------------- */
+export function watchReviews(callback) { return watchContent('reviews', callback); }
+export async function addReview(review) { const result = await contentCall('reviews', 'create', review); await refreshContent('reviews'); return result; }
+export async function updateReview(id, updates) { const result = await contentCall('reviews', 'update', updates, id); await refreshContent('reviews'); return result; }
+export async function deleteReview(id) { const result = await contentCall('reviews', 'delete', undefined, id); await refreshContent('reviews'); return result; }
 
 export async function placeRequest(request) {
-  return addDoc(collection(db, 'requests'), {
-    ...request,
-    status: 'new',
-    createdAt: serverTimestamp()
-  });
+  return contentCall('requests', 'create', { name: request.name, phone: request.phone, need: request.need, category: request.category || '', budget: request.budget ?? '' });
 }
-
-export function watchRequests(callback) {
-  const q = query(collection(db, 'requests'), orderBy('createdAt', 'desc'));
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
-}
-
-export async function updateRequestStatus(id, status) {
-  return updateDoc(doc(db, 'requests', id), { status });
-}
-
-/* ---------------- SETTINGS ---------------- */
+export function watchRequests(callback) { return watchContent('requests', callback); }
+export async function updateRequestStatus(id, status) { const result = await contentCall('requests', 'update', { status }, id); await refreshContent('requests'); return result; }
 
 export async function getSettings() {
-  const snap = await getDoc(doc(db, 'settings', 'site'));
-  return snap.exists() ? snap.data() : {};
+  return contentCall('settings', 'get');
 }
-
+export async function getPublicSettings() {
+  return contentCall('settings', 'getPublic');
+}
 export async function saveSettings(settings) {
-  return setDoc(doc(db, 'settings', 'site'), settings, { merge: true });
+  return contentCall('settings', 'save', settings);
 }
 
 /* ---------------- INVENTORY ADMIN TAB ---------------- */
