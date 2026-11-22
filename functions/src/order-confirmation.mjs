@@ -79,7 +79,7 @@ export const decideOrder = onCall(
               item.stockUnits <= 0 || seen.has(item.balanceId) ||
               !Number.isSafeInteger(item.stockUnitsPerBalanceUnit) || item.stockUnitsPerBalanceUnit <= 0 ||
               !["productId", "variantId", "locationId", "inventoryFormId", "stockUnitCode"].every(key => typeof item[key] === "string" && ID.test(item[key])) ||
-              (item.sealedBalanceId !== null && item.sealedBalanceId !== undefined && (!ID.test(item.sealedBalanceId) || !Number.isSafeInteger(item.unitsPerPackage) || item.unitsPerPackage <= 0))) {
+              (item.sealedBalanceId !== null && item.sealedBalanceId !== undefined && (item.sealedBalanceId === item.balanceId || !ID.test(item.sealedBalanceId) || typeof item.sealedInventoryFormId !== "string" || !ID.test(item.sealedInventoryFormId) || !Number.isSafeInteger(item.unitsPerPackage) || item.unitsPerPackage <= 0))) {
             throw new HttpsError("failed-precondition", "Order inventory snapshot is invalid or duplicated.");
           }
           seen.add(item.balanceId);
@@ -193,7 +193,7 @@ export const decideOrder = onCall(
                 productId: item.productId,
                 variantId: item.variantId,
                 locationId: item.locationId,
-                sourceInventoryFormId: item.sealedBalanceId,
+                sourceInventoryFormId: item.sealedInventoryFormId,
                 destinationInventoryFormId: item.inventoryFormId,
                 packagesOpened,
                 unitsTransferred: transferredUnits,
