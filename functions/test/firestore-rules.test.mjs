@@ -13,7 +13,8 @@ import {
   getDocs,
   setDoc,
   updateDoc,
-  serverTimestamp
+  serverTimestamp,
+  where
 } from "firebase/firestore";
 
 const projectId = "tejuboss-rules-test";
@@ -204,6 +205,17 @@ test("active legacy rules keep direct order submission but block public private-
   });
   const visitor = legacyEnv.unauthenticatedContext().firestore();
   const admin = legacyEnv.authenticatedContext("admin-uid", { email: "damzyeazy@gmail.com" }).firestore();
+
+  await legacyEnv.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, "products", "public-product"), { name: "Rice", inStock: true, variants: [] });
+    await setDoc(doc(db, "products", "hidden-product"), { name: "Unpublished item", inStock: false, variants: [] });
+  });
+  await assertSucceeds(getDoc(doc(visitor, "products", "public-product")));
+  await assertFails(getDoc(doc(visitor, "products", "hidden-product")));
+  await assertFails(getDocs(collection(visitor, "products")));
+  await assertSucceeds(getDocs(query(collection(visitor, "products"), where("inStock", "==", true))));
+  await assertSucceeds(getDoc(doc(admin, "products", "hidden-product")));
 
   await assertFails(getDoc(doc(visitor, "orders", "private-order")));
   await assertFails(getDoc(doc(visitor, "deliveries", "private-delivery")));
