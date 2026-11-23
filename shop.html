@@ -1172,7 +1172,25 @@
         // qty edit here would double up on what's already in the cart.
         const existing = cart.find(i => i.lineId === lineId);
         if (existing) {
-            existing.quantity = pmQty;
+            // Refresh the saved line from the current catalogue whenever the
+            // customer reopens and confirms this option, not just its quantity.
+            Object.assign(existing, {
+                quantity: pmQty,
+                productName: pmProduct.name,
+                variantLabel: variantLabel(v),
+                upgradeIds: upgrades.map(u => String(u.id)),
+                upgradeNames: upgrades.map(u => u.name),
+                upgradeItems: upgrades.map(u => ({ id: String(u.id), name: u.name, price: u.price || 0 })),
+                unitBasePrice,
+                originalUnitBasePrice,
+                unitPrice,
+                originalUnitPrice,
+                unitDeliveryFee: (v.deliveryFee != null && v.deliveryFee !== '') ? v.deliveryFee : null,
+                deliveryRoute: v.deliveryRoute === 'separate' ? 'separate' : 'general',
+                bulkSavingsPercent: bulk.percent,
+                bulkSavingsMinQty: bulk.minQty,
+                image: v.image || ''
+            });
         } else {
             cart.push({
                 lineId,
