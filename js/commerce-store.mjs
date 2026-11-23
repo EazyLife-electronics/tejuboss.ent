@@ -1,0 +1,247 @@
+// Spark-compatible commerce data layer for the clean TejuBoss schema.
+// Browser-submitted quotes are unverified. This module never deducts stock
+// during guest checkout and never treats client prices as authoritative.
+
+import { initFirebase } from "./firebase.mjs";
+import {
+  collection, doc, getDoc, getDocs, query, where, orderBy, limit,
+  setDoc, updateDoc, deleteDoc, serverTimestamp, runTransaction
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const { db, auth } = initFirebase();
+const ADMIN_EMAIL = "damzyeazy@gmail.com";
+const isAdmin = () => auth.currentUser?.email?.toLowerCase() === ADMIN_EMAIL;
+
+function requireAdmin() {
+  if (!isAdmin()) throw new Error("Administrator sign-in is required.");
+}
+function randomHex(bytes = 16) {
+  const data = new Uint8Array(bytes);
+  crypto.getRandomValues(data);
+  return [...data].map(value => value.toString(16).padStart(2, "0")).join("");
+}
+function cleanText(value, max = 500) {
+  return String(value ?? "").trim().slice(0, max);
+}
+function toMinor(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < 0 || number > 100000000) {
+    throw new Error("A displayed price is invalid. Refresh the catalogue and try again.");
+  }
+  return Math.round(number * 100);
+}
+
+export async function listPublicCatalogue() {
+  const snap = await getDocs(query(
+    collection(db, "catalogueProducts"),
+    where("published", "==", true),
+    limit(200)
+  ));
+  return snap.docs.map(item => ({ id: item.id, ...item.data() }));
+}
+
+export async function listAdminCatalogue() {
+  requireAdmin();
+  const snap = await getDocs(query(collection(db, "catalogueProducts"), limit(500)));
+  return snap.docs.map(item => ({ id: item.id, ...item.data() }));
+}
+
+export async function saveCatalogueProduct(product, productId = null) {
+  requireAdmin();
+  const name = cleanText(product?.name, 160);
+  if (!name) throw new Error("Product name is required.");
+  const options = Array.isArray(product.sellingOptions) ? product.sellingOptions : [];
+  if (!options.length || options.length > 50) throw new Error("Add between 1 and 50 selling options.");
+  const normalizedOptions = options.map((option, index) => {
+    const id = cleanText(option.id || randomHex(8), 80);
+    const priceMinor = toMinor(option.priceMinor ?? (Number(option.price || 0) * 100) / 100);
+    return {
+      id,
+      label: cleanText(option.label || `Option ${index + 1}`, 100),
+      sku: cleanText(option.sku, 80),
+      priceMinor,
+      currency: "NGN",
+      enabled: option.enabled !== false
+    };
+  });
+  const payload = {
+    schemaVersion: 1,
+    name,
+    slug: cleanText(product.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""), 180),
+    description: cleanText(product.description, 3000),
+    brand: cleanText(product.brand, 100),
+    categoryId: cleanText(product.categoryId || product.category, 100),
+    images: (Array.isArray(product.images) ? product.images : []).slice(0, 12).map((image, index) => ({
+      url: cleanText(typeof image === "string" ? image : image.url, 1500),
+      alt: cleanText(typeof image === "string" ? name : image.alt || name, 180),
+      sortOrder: index
+    })).filter(image => image.url),
+    sellingOptions: normalizedOptions,
+    published: product.published === true,
+    availability: product.availability === "unavailable" ? "unavailable" : "available",
+    updatedAt: serverTimestamp()
+  };
+  if (productId) {
+    await updateDoc(doc(db, "catalogueProducts", productId), payload);
+    return productId;
+  }
+  const ref = doc(collection(db, "catalogueProducts"));
+  await setDoc(ref, { ...payload, createdAt: serverTimestamp() });
+  return ref.id;
+}
+
+export async function deleteCatalogueProduct(productId) {
+  requireAdmin();
+  await deleteDoc(doc(db, "catalogueProducts", productId));
+}
+
+export async function submitGuestOrderRequest(input) {
+  const name = cleanText(input.customerName, 100);
+  const phone = cleanText(input.phone, 20);
+  const address = cleanText(input.address, 500);
+  if (name.length < 1 || phone.length < 7) throw new Error("Enter your name and a valid phone number.");
+  const sourceItems = Array.isArray(input.items) ? input.items : [];
+  if (!sourceItems.length || sourceItems.length > 30) throw new Error("Your order must contain between 1 and 30 items.");
+
+  const lines = sourceItems.map(item => {
+    const quantity = Number(item.quantity);
+    if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > 1000) {
+      throw new Error("One or more item quantities are invalid.");
+    }
+    return {
+      productId: cleanText(item.productId, 128),
+      sellingOptionId: cleanText(item.variantId, 128),
+      requestedName: cleanText(item.name, 160),
+      requestedOption: cleanText(item.variant, 120),
+      requestedAddons: Array.isArray(item.upgrades) ? item.upgrades.slice(0, 10).map(value => cleanText(value, 100)) : [],
+      quantity,
+      displayedUnitPriceMinor: toMinor(item.price)
+    };
+  });
+  if (lines.some(line => !line.productId || !line.sellingOptionId)) {
+    throw new Error("A selected item is missing its catalogue reference. Refresh the shop and try again.");
+  }
+
+  const subtotalMinor = toMinor(input.subtotal);
+  const deliveryFeeMinor = toMinor(input.deliveryFee);
+  const grandTotalMinor = toMinor(input.total);
+  const orderRef = doc(collection(db, "orders"));
+  const trackingToken = randomHex(16);
+  const now = serverTimestamp();
+  const fulfilment = {
+    method: cleanText(input.fulfilmentMethod || "delivery", 20) === "pickup" ? "pickup" : "delivery",
+    address,
+    city: cleanText(input.city, 100),
+    state: cleanText(input.state, 100),
+    note: cleanText(input.deliveryNote, 500)
+  };
+  await runTransaction(db, async transaction => {
+    transaction.set(orderRef, {
+      schemaVersion: 1,
+      orderId: orderRef.id,
+      status: "awaiting_review",
+      customer: {
+        name,
+        phone,
+        email: cleanText(input.email, 254) || null
+      },
+      fulfilment,
+      lines,
+      quote: {
+        currency: "NGN",
+        subtotalMinor,
+        deliveryFeeMinor,
+        grandTotalMinor
+      },
+      quoteStatus: "unverified",
+      createdAt: now,
+      updatedAt: now
+    });
+    transaction.set(doc(db, "orderTracking", trackingToken), {
+      orderId: orderRef.id,
+      status: "submitted",
+      createdAt: now,
+      updatedAt: now
+    });
+  });
+  return trackingToken;
+}
+
+export async function getPublicOrderTracking(token) {
+  const safeToken = String(token || "").trim().toLowerCase();
+  if (!/^[a-f0-9]{32}$/.test(safeToken)) throw new Error("Enter a valid tracking token.");
+  const snap = await getDoc(doc(db, "orderTracking", safeToken));
+  if (!snap.exists()) return null;
+  const data = snap.data();
+  return { status: data.status, createdAt: data.createdAt, updatedAt: data.updatedAt };
+}
+
+export async function listOrdersForAdmin() {
+  requireAdmin();
+  const snap = await getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc"), limit(100)));
+  return snap.docs.map(item => ({ id: item.id, ...item.data() }));
+}
+
+export async function setOrderReviewDecision(orderId, decision, verification = {}) {
+  requireAdmin();
+  if (!["approved", "rejected"].includes(decision)) throw new Error("Invalid order decision.");
+  const orderRef = doc(db, "orders", orderId);
+  const orderSnap = await getDoc(orderRef);
+  if (!orderSnap.exists()) throw new Error("Order not found.");
+  const order = orderSnap.data();
+  if (order.status !== "awaiting_review") throw new Error("Only orders awaiting review can be decided.");
+  const trackingToken = cleanText(verification.trackingToken, 64);
+  const patch = {
+    status: decision,
+    quoteStatus: "staff_verified",
+    staffVerification: {
+      acceptedTotalMinor: decision === "approved" ? toMinor(verification.acceptedTotal) : null,
+      note: cleanText(verification.note, 1000),
+      verifiedBy: auth.currentUser.uid,
+      verifiedAt: serverTimestamp()
+    },
+    updatedAt: serverTimestamp()
+  };
+  await updateDoc(orderRef, patch);
+  if (trackingToken && /^[a-f0-9]{32}$/.test(trackingToken)) {
+    await updateDoc(doc(db, "orderTracking", trackingToken), {
+      status: decision,
+      updatedAt: serverTimestamp()
+    });
+  }
+  return { id: orderId, status: decision };
+}
+
+// Explicitly separate staff stock movements from order submission/review.
+// This transaction prevents negative balances and writes the balance and
+// corresponding immutable movement together.
+export async function recordInventoryMovement({ balanceId, quantityDelta, movementType, reason, referenceId = "" }) {
+  requireAdmin();
+  if (!Number.isSafeInteger(quantityDelta) || quantityDelta === 0) throw new Error("Enter a non-zero whole-number stock change.");
+  const balanceRef = doc(db, "inventoryBalances", cleanText(balanceId, 128));
+  const movementRef = doc(collection(db, "inventoryMovements"));
+  await runTransaction(db, async transaction => {
+    const snapshot = await transaction.get(balanceRef);
+    if (!snapshot.exists()) throw new Error("Inventory balance has not been initialized.");
+    const current = Number(snapshot.data().quantityOnHand);
+    const next = current + quantityDelta;
+    if (!Number.isSafeInteger(current) || next < 0) throw new Error("This movement would make stock negative.");
+    transaction.update(balanceRef, {
+      quantityOnHand: next,
+      updatedAt: serverTimestamp(),
+      updatedBy: auth.currentUser.uid
+    });
+    transaction.set(movementRef, {
+      productId: cleanText(snapshot.data().productId, 128),
+      sellingOptionId: cleanText(snapshot.data().sellingOptionId, 128),
+      locationId: cleanText(snapshot.data().locationId, 128),
+      quantityDelta,
+      movementType: cleanText(movementType, 40) || "adjustment",
+      reason: cleanText(reason, 500),
+      referenceId: cleanText(referenceId, 128),
+      actorUid: auth.currentUser.uid,
+      createdAt: serverTimestamp()
+    });
+  });
+  return movementRef.id;
+}
