@@ -32,7 +32,12 @@ export function initTabs() {
 // Lists images from assets/products/ or assets/heroes/ on GitHub so a non-technical
 // manager can click a thumbnail instead of typing/copying an image URL.
 
-// GitHub Pages deploys this repository from the main branch.
+// TODO: set this to the actual GitHub "owner/repo" this site is hosted from
+// (e.g. 'yourusername/tejuboss.ent'), so the image picker below can list
+// files from assets/products/ and assets/heroes/. Until this is set, the
+// picker modal will show "Folder not found" — admins can still paste image
+// URLs directly into the product/hero forms as a fallback.
+// Update BRANCH if you later switch which branch GitHub Pages deploys from.
 const GITHUB_REPO = 'EazyLife-electronics/tejuboss.ent';
 const GITHUB_BRANCH = 'main';
 
@@ -71,7 +76,7 @@ export async function openImagePicker(folder, targetInputId) {
 
     grid.innerHTML = files.map(f => `
       <button type="button" data-picker-path="${escapeHtml(f.path)}" data-picker-url="${escapeHtml(f.download_url)}"
-              class="picker-thumb rounded-lg overflow-hidden border border-gray-200 hover:border-[#00B09B] aspect-square bg-gray-50">
+              class="picker-thumb rounded-lg overflow-hidden border border-gray-200 hover:border-[#DC2626] aspect-square bg-gray-50">
         <img src="${escapeHtml(f.download_url)}" class="w-full h-full object-cover" loading="lazy">
       </button>
     `).join('');
