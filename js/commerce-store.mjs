@@ -269,7 +269,7 @@ function legacyProductView(product) {
       rom: "",
       price: Number(option.priceMinor || 0) / 100,
       promoPrice: 0,
-      image: product.images?.[0]?.url || "",
+      image: (typeof product.images?.[0] === "string" ? product.images[0] : product.images?.[0]?.url) || "",
       inStock: option.enabled !== false
     })),
     upgrades: []
