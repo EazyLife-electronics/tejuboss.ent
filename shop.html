@@ -449,7 +449,7 @@
 </div>
 
 <script type="module">
-    import { getProducts, placeOrder } from './js/commerce-store.mjs';
+    import { getProducts, placeOrder, getPublicSiteSettings } from './js/commerce-store.mjs';
     import { calcGroupedDeliveryFee, buildDeliveryFeeSummary, resolveDeliveryFee, variantUnitPrice, productPriceRange, productOriginalPriceRange, hasPromo, variantDiscountPercent, productHasPromo, buildPriceSavingsSummary, variantLabel, resolveBulkSavings, calcBulkSavingsForLine, buildBulkSavingsSummary } from './js/pricing.mjs';
 
     const CKEY = "tejuboss_cart_v1";
@@ -496,7 +496,7 @@
     async function init() {
         try {
             const prods = await getProducts();
-            const settings = {};
+            const settings = await getPublicSiteSettings().catch(error => { console.warn('Public settings unavailable; using shop defaults.', error); return {}; });
             products = prods;
             if (settings.whatsapp) whatsappNumber = settings.whatsapp;
             if (settings.deliveryFeePerItem != null) deliveryFeePerItem = settings.deliveryFeePerItem;
