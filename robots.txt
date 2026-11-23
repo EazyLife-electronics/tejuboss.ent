@@ -1,11 +1,9 @@
-# robots.txt — EazyLife Robotics & Electronics Solutions
-# https://eazylife.ng
+# robots.txt for Tejuboss Enterprise
+# https://tejuboss.ng
 
 User-agent: *
 Allow: /
-
-# Block admin folder from crawlers
 Disallow: /admin/
+Disallow: /track.html
 
-# Sitemap location
-Sitemap: https://eazylife.ng/sitemap.xml
+Sitemap: https://tejuboss.ng/sitemap.xml
