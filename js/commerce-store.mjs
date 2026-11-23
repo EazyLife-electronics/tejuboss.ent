@@ -319,3 +319,10 @@ export async function placeOrder(order) {
     fulfilmentMethod: "delivery"
   });
 }
+
+export function watchOrders(callback) {
+  let active = true;
+  listOrdersForAdmin().then(rows => { if (active) callback(rows, { readOnlyFallback: false }); })
+    .catch(error => console.error("Could not load order requests:", error));
+  return () => { active = false; };
+}
