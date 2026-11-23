@@ -43,7 +43,7 @@ service cloud.firestore {
         && data.schemaVersion == 1
         && data.orderId == orderId
         && data.trackingToken is string
-        && data.trackingToken.matches('^[a-f0-9]{32}
+        && data.trackingToken.matches('^[a-f0-9]{32}$')
         && data.quoteStatus == 'unverified'
         && customer is map
         && hasOnlyKeys(customer, ['name', 'phone', 'email'])
