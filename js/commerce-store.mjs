@@ -388,9 +388,9 @@ function legacyProductView(product) {
       image: (typeof product.images?.[0] === "string" ? product.images[0] : product.images?.[0]?.url) || "",
       inStock: option.enabled !== false
     })),
-    upgrades: (Array.isArray(product.addOns) ? product.addOns : []).map(item => ({
-      id: item.id, name: item.name, price: Number(item.priceMinor || 0) / 100
-    }))
+    upgrades: (Array.isArray(product.addOns) ? product.addOns : [])
+      .filter(item => item.enabled !== false)
+      .map(item => ({ id: item.id, name: item.name, price: Number(item.priceMinor || 0) / 100 }))
   };
 }
 function fromLegacyProduct(product) {
