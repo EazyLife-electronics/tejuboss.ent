@@ -1568,22 +1568,6 @@
                 ...orderInput,
                 idempotencyKey: pendingAttempt.key
             });
-                items: checkoutSnapshot.map(i => ({
-                    productId: i.productId,
-                    variantId: i.variantId,
-                    name: i.productName,
-                    variant: i.variantLabel,
-                    upgrades: i.upgradeNames,
-                    price: i.unitPrice,
-                    quantity: i.quantity
-                })),
-                customerName: name,
-                phone,
-                address: addr,
-                subtotal: totals.subtotal,
-                deliveryFee: totals.deliveryFee,
-                total: totals.total
-            });
 
             // The tracking token is also the retry key. Clear it only after the
             // original request is confirmed, so a network retry cannot duplicate an order.
