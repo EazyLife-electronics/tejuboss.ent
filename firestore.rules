@@ -70,6 +70,7 @@ service cloud.firestore {
         && data.quote.deliveryFeeMinor >= 0
         && data.quote.grandTotalMinor is int
         && data.quote.grandTotalMinor >= 0
+        && data.quote.grandTotalMinor == data.quote.subtotalMinor + data.quote.deliveryFeeMinor
         && data.createdAt == request.time
         && data.updatedAt == request.time;
     }
