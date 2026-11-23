@@ -1548,9 +1548,10 @@
             deliveryFee: totals.deliveryFee,
             total: totals.total
         };
-        const fingerprint = JSON.stringify(orderInput);
-        let pendingAttempt;
         try {
+            const fingerprint = JSON.stringify(orderInput);
+            let pendingAttempt;
+            try {
             pendingAttempt = JSON.parse(localStorage.getItem("tejuboss_pending_checkout") || "null");
         } catch (_) { pendingAttempt = null; }
         if (!pendingAttempt || pendingAttempt.fingerprint !== fingerprint || !/^[a-f0-9]{32}$/.test(pendingAttempt.key || "")) {
@@ -1561,9 +1562,8 @@
                 key: [...bytes].map(value => value.toString(16).padStart(2, "0")).join("")
             };
             localStorage.setItem("tejuboss_pending_checkout", JSON.stringify(pendingAttempt));
-        }
+            }
 
-        try {
             const trackingCode = await placeOrder({
                 ...orderInput,
                 idempotencyKey: pendingAttempt.key
