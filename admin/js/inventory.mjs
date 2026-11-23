@@ -1,16 +1,12 @@
 // admin/js/inventory.mjs
 // Inventory foundation: variant-level SKUs, quantities, cost prices, movements and dashboard.
 import { initFirebase } from '../../js/firebase.mjs';
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 import {
   collection, doc, getDoc, getDocs, onSnapshot, query, orderBy,
   runTransaction, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const { app, db } = initFirebase();
-const functions = getFunctions(app, "europe-west1");
-const adjustLegacyStockCall = httpsCallable(functions, "adjustLegacyVariantStock");
-const updateLegacyVariantMetadataCall = httpsCallable(functions, "updateLegacyVariantMetadata");
+const { db } = initFirebase();
 let unsubscribe = null;
 let products = [];
 let productBridgeInstalled = false;
@@ -50,27 +46,64 @@ function flattenProducts() {
   return rows;
 }
 
-async function changeStock(productId, variantId, delta, type, reason, reference = '', expectedQuantity = 0) {
+async function changeStock(productId, variantId, delta, type, reason, reference = '') {
   if (!Number.isInteger(delta) || delta === 0) throw new Error('Quantity must be a non-zero whole number.');
-  if (!String(reason || '').trim()) throw new Error('A reason is required for every manual stock adjustment.');
-  const result = await adjustLegacyStockCall({
-    productId, variantId, delta, expectedQuantity,
-    reason: String(reason).trim(), reference: String(reference || '').trim(),
-    idempotencyKey: crypto.randomUUID().replaceAll('-', '')
+
+  const productRef = doc(db, 'products', productId);
+  const movementRef = doc(collection(db, 'inventoryMovements'));
+
+  await runTransaction(db, async tx => {
+    const snap = await tx.get(productRef);
+    if (!snap.exists()) throw new Error('Product no longer exists.');
+    const product = snap.data();
+    const variants = Array.isArray(product.variants) ? [...product.variants] : [];
+    const index = variants.findIndex(v => v.id === variantId);
+    if (index < 0) throw new Error('Variant no longer exists.');
+
+    const current = Number(variants[index].stockQty || 0);
+    const next = current + delta;
+    if (next < 0) throw new Error(`Insufficient stock. Current stock is ${current}.`);
+
+    variants[index] = { ...variants[index], stockQty: next, inStock: next > 0 };
+    tx.update(productRef, { variants, inStock: variants.some(v => Number(v.stockQty || 0) > 0) });
+    tx.set(movementRef, {
+      productId,
+      variantId,
+      sku: variants[index].sku || '',
+      productName: product.name || '',
+      variantLabel: variantLabel(variants[index], index),
+      type,
+      quantity: delta,
+      previousQty: current,
+      newQty: next,
+      reason: reason || '',
+      reference: reference || '',
+      createdAt: serverTimestamp()
+    });
   });
-  if (result.data?.outcome === 'already_applied') return;
 }
 
 async function saveVariantSettings(row, sku, reorderLevel, costPrice) {
-  const result = await updateLegacyVariantMetadataCall({
-    productId: row.productId,
-    variantId: row.variantId,
-    sku: sku.trim() || makeSku({ brand: row.brand, name: row.productName }, row.variant, row.variantIndex),
-    reorderLevel: Math.max(0, parseInt(reorderLevel, 10) || 0),
-    costPrice: Math.max(0, Math.round(Number(costPrice) || 0)),
-    expectedQuantity: row.stockQty
+  const productRef = doc(db, 'products', row.productId);
+  await runTransaction(db, async tx => {
+    const snap = await tx.get(productRef);
+    if (!snap.exists()) throw new Error('Product no longer exists.');
+    const product = snap.data();
+    const variants = Array.isArray(product.variants) ? [...product.variants] : [];
+    const index = variants.findIndex(v => v.id === row.variantId);
+    if (index < 0) throw new Error('Variant no longer exists.');
+
+    const currentStock = Math.max(0, Number(variants[index].stockQty || 0));
+    variants[index] = {
+      ...variants[index],
+      sku: sku.trim() || makeSku(product, variants[index], index),
+      reorderLevel: Math.max(0, parseInt(reorderLevel, 10) || 0),
+      costPrice: Math.max(0, Number(costPrice) || 0),
+      stockQty: currentStock,
+      inStock: currentStock > 0
+    };
+    tx.update(productRef, { variants, inStock: variants.some(v => Number(v.stockQty || 0) > 0) });
   });
-  return result.data;
 }
 
 function render() {
@@ -148,11 +181,10 @@ async function movementDialog(row, direction) {
   if (rawQty === null) return;
   const qty = parseInt(rawQty, 10);
   if (!Number.isInteger(qty) || qty <= 0) return alert('Enter a positive whole number.');
-  const reason = prompt('Reason (e.g. damaged, found during count, correction):') || '';
-  if (!reason.trim()) return alert('A reason is required for every stock adjustment.');
+  const reason = prompt('Reason (e.g. New purchase, damaged, customer sale):') || '';
   const reference = prompt('Reference / invoice / order ID (optional):') || '';
   try {
-    await changeStock(row.productId, row.variantId, direction * qty, direction > 0 ? 'stock_in' : 'stock_out', reason, reference, row.stockQty);
+    await changeStock(row.productId, row.variantId, direction * qty, direction > 0 ? 'stock_in' : 'stock_out', reason, reference);
   } catch (e) { alert(e.message); }
 }
 

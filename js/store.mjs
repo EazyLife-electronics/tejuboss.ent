@@ -3,30 +3,12 @@
 // Inventory-aware order status changes are performed transactionally.
 
 import { initFirebase } from './firebase.mjs';
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 import {
-  collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
-  onSnapshot, query, where, orderBy, limit, serverTimestamp, runTransaction
+  collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
+  onSnapshot, query, orderBy, where, Timestamp, serverTimestamp, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const { db, app } = initFirebase();
-const contentFunctions = getFunctions(app, 'europe-west1');
-const manageContentCallable = httpsCallable(contentFunctions, 'manageLegacyPublicContent');
-async function contentCall(collectionName, action, values = undefined, id = undefined, extra = {}) {
-  const response = await manageContentCallable({ collection: collectionName, action, ...(values === undefined ? {} : { values }), ...(id === undefined ? {} : { id }), ...extra });
-  return response.data;
-}
-const contentWatchers = { heroes: new Set(), reviews: new Set(), requests: new Set() };
-async function refreshContent(collectionName, publicOnly = false) {
-  const rows = await contentCall(collectionName, 'list', undefined, undefined, publicOnly ? { publicOnly: true } : {});
-  for (const callback of contentWatchers[collectionName] || []) callback(rows);
-  return rows;
-}
-function watchContent(collectionName, callback) {
-  const callbacks = contentWatchers[collectionName]; callbacks.add(callback);
-  refreshContent(collectionName, false).catch(error => console.error(`Could not load ${collectionName}:`, error));
-  return () => callbacks.delete(callback);
-}
+const { db } = initFirebase();
 
 /* ---------------- ADMIN ERROR FEEDBACK ---------------- */
 // Many Admin buttons intentionally use fire-and-forget async handlers. If an async
@@ -50,117 +32,34 @@ if (typeof window !== 'undefined' &&
 
 /* ---------------- PRODUCTS ---------------- */
 
-const manageProductsCallable = httpsCallable(contentFunctions, 'manageLegacyProducts');
-async function productCall(action, product = undefined, id = undefined) {
-  const response = await manageProductsCallable({ action, ...(product === undefined ? {} : { product }), ...(id === undefined ? {} : { id }) });
-  return response.data;
-}
-// The free-tier storefront must remain usable when the optional callable
-// catalogue endpoint is not deployed. Firestore already permits public product
-// reads; project the same explicitly public fields as publicProduct() in the
-// callable and never pass the raw document to the storefront.
-function publicProductProjection(id, data = {}) {
-  return {
-    id,
-    name: data.name || '',
-    brand: data.brand || '',
-    category: data.category || '',
-    desc: data.desc || '',
-    inStock: data.inStock !== false,
-    variants: (Array.isArray(data.variants) ? data.variants : []).map(v => ({
-      id: v.id, color: v.color || '', processor: v.processor || '',
-      ram: v.ram || '', rom: v.rom || '', price: v.price || 0,
-      promoPrice: v.promoPrice || 0, image: v.image || '',
-      deliveryFee: v.deliveryFee ?? null, deliveryRoute: v.deliveryRoute || 'general',
-      bulkSavingsEnabled: !!v.bulkSavingsEnabled,
-      bulkSavingsMode: v.bulkSavingsMode || 'general',
-      bulkSavingsPercent: v.bulkSavingsPercent || 0,
-      bulkSavingsMinQty: v.bulkSavingsMinQty || 0, inStock: v.inStock !== false
-    })),
-    upgrades: Array.isArray(data.upgrades)
-      ? data.upgrades.map(u => ({ id: u.id || '', name: u.name || '', price: u.price || 0 }))
-      : []
-  };
-}
-function isCallableUnavailable(error) {
-  return ['functions/internal', 'functions/unavailable', 'functions/not-found',
-    'functions/failed-precondition'].includes(error?.code);
-}
 export async function getProducts() {
-  try {
-    return await productCall('publicList');
-  } catch (error) {
-    if (!isCallableUnavailable(error)) throw error;
-    console.warn('Catalogue callable is unavailable; using the safe public Firestore projection.', error);
-    const snapshot = await getDocs(query(collection(db, 'products'), where('inStock', '==', true)));
-    return snapshot.docs.map(docSnap => publicProductProjection(docSnap.id, docSnap.data()))
-      .filter(product => product.inStock && product.variants.some(variant => variant.inStock !== false));
-  }
-}
-const productWatchers = new Set();
-// The admin dashboard must remain manageable on Firebase Spark when the
-// optional callable Functions are not deployed. These direct operations are
-// intentionally admin-only in practice: Firestore security rules must enforce
-// isAdmin() for reading and writing product documents.
-async function adminProductOperation(action, product = undefined, id = undefined) {
-  try {
-    return await productCall(action, product, id);
-  } catch (error) {
-    if (!isCallableUnavailable(error)) throw error;
-    console.warn('Product admin callable is unavailable; using the admin-only Firestore path.', error);
-
-    if (action === 'list') {
-      const snapshot = await getDocs(collection(db, 'products'));
-      return snapshot.docs.map(docSnap => ({ ...docSnap.data(), id: docSnap.id }));
-    }
-    if (action === 'create') {
-      const ref = doc(collection(db, 'products'));
-      await setDoc(ref, { ...product, id: ref.id });
-      return { id: ref.id };
-    }
-    if (action === 'update') {
-      await updateDoc(doc(db, 'products', id), product);
-      return { id };
-    }
-    if (action === 'delete') {
-      await deleteDoc(doc(db, 'products', id));
-      return { id };
-    }
-    throw error;
-  }
+  const snap = await getDocs(collection(db, 'products'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-async function refreshProducts() {
-  const rows = await adminProductOperation('list');
-  for (const callback of productWatchers) callback(rows);
-  return rows;
-}
 export function watchProducts(callback) {
-  productWatchers.add(callback);
-  refreshProducts().catch(error => console.error('Could not load admin products:', error));
-  return () => productWatchers.delete(callback);
+  return onSnapshot(collection(db, 'products'), (snap) => {
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  });
 }
+
 export async function addProduct(product) {
-  const result = await adminProductOperation('create', product);
-  await refreshProducts();
-  return result;
+  return addDoc(collection(db, 'products'), product);
 }
+
 export async function updateProduct(id, updates) {
-  const result = await adminProductOperation('update', updates, id);
-  await refreshProducts();
-  return result;
+  return updateDoc(doc(db, 'products', id), updates);
 }
+
 export async function deleteProduct(id) {
-  const result = await adminProductOperation('delete', undefined, id);
-  await refreshProducts();
-  return result;
+  return deleteDoc(doc(db, 'products', id));
 }
 
 /* ---------------- ORDERS ---------------- */
 
 function generateTrackingCode() {
   const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-  let code = 'TB-';
+  let code = 'EZ-';
   for (let i = 0; i < 6; i++) code += alphabet[Math.floor(Math.random() * alphabet.length)];
   return code;
 }
@@ -170,18 +69,22 @@ function variantLabelForOrder(v, index) {
   return bits.length ? bits.join(' / ') : `Variant ${index + 1}`;
 }
 
-async function resolveOrderItems(items) {
-  const productIds = [...new Set((items || [])
-    .filter(item => item?.productId && !item.variantId)
-    .map(item => String(item.productId)))];
-  const productSnapshots = await Promise.all(productIds.map(id => getDoc(doc(db, 'products', id))));
-  const products = new Map(productSnapshots.map(snapshot => [
-    snapshot.id,
-    snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null
-  ]));
+async function resolveOrderItems(items, { enforceCatalogPrice = false } = {}) {
+  const productsSnap = await getDocs(collection(db, 'products'));
+  const products = new Map(productsSnap.docs.map(d => [d.id, { id: d.id, ...d.data() }]));
 
   return (items || []).map(item => {
-    if (!item?.productId || item.variantId) return item;
+    if (!item?.productId) return item;
+
+    if (item.variantId) {
+      if (!enforceCatalogPrice) return item;
+      const product = products.get(item.productId);
+      const variant = (Array.isArray(product?.variants) ? product.variants : []).find(v => v.id === item.variantId);
+      if (!product || !variant) throw new Error(`A selected project kit item is no longer available in the catalogue. Please refresh the kit page.`);
+      const currentPrice = Number(variant.promoPrice > 0 ? variant.promoPrice : variant.price || 0);
+      if (Number(item.price) !== currentPrice) throw new Error(`The catalogue price for ${product.name} has changed. Please refresh the kit page and review the updated total.`);
+      return { ...item, name: product.name || item.name, variant: variantLabelForOrder(variant, (product.variants || []).indexOf(variant)), price: currentPrice, sku: variant.sku || '' };
+    }
 
     const product = products.get(item.productId);
     const variants = Array.isArray(product?.variants) ? product.variants : [];
@@ -204,15 +107,10 @@ async function resolveOrderItems(items) {
 
 export async function placeOrder(order) {
   const trackingCode = generateTrackingCode();
-  const items = await resolveOrderItems(order.items || []);
+  const items = await resolveOrderItems(order.items || [], { enforceCatalogPrice: order.orderType === 'project_kit' });
   await setDoc(doc(db, 'orders', trackingCode), {
-    customerName: String(order.customerName || '').trim(),
-    phone: String(order.phone || '').trim(),
-    address: String(order.address || '').trim(),
+    ...order,
     items,
-    subtotal: Number(order.subtotal),
-    deliveryFee: Number(order.deliveryFee),
-    total: Number(order.total),
     trackingCode,
     status: 'new',
     inventoryApplied: false,
@@ -222,117 +120,309 @@ export async function placeOrder(order) {
   return trackingCode;
 }
 
-const legacyTrackingCallable = httpsCallable(contentFunctions, 'getLegacyOrderTracking');
-export async function getOrderByTrackingCode(code, phoneLast4) {
-  if (typeof phoneLast4 !== 'string' || !/^\d{4}$/.test(phoneLast4)) {
-    throw new Error('The last four digits of the order phone number are required for tracking.');
-  }
-  const response = await legacyTrackingCallable({ trackingCode: code, phoneLast4 });
-  return response.data?.tracking || null;
+export async function getOrderByTrackingCode(code) {
+  const snap = await getDoc(doc(db, 'orders', code.trim().toUpperCase()));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
+
 // Links an order to the delivery record created for it, so the public
 // tracking page can fetch that one delivery directly by ID (a plain `get`,
 // same trust model as order lookup) instead of needing broader read access
 // to the deliveries collection.
-const linkDeliveryCallable = httpsCallable(contentFunctions, 'linkLegacyOrderDelivery');
 export async function linkOrderToDelivery(orderId, deliveryId) {
-  const response = await linkDeliveryCallable({ orderId, deliveryId });
-  return response.data;
+  await updateDoc(doc(db, 'orders', orderId), { deliveryId });
 }
 
-const listLegacyOrdersCallable = httpsCallable(contentFunctions, 'listLegacyOrders');
-const orderWatchers = new Set();
-async function refreshOrders() {
-  try {
-    const response = await listLegacyOrdersCallable({ limit: 100 });
-    const rows = response.data.orders || [];
-    for (const callback of orderWatchers) callback(rows, { readOnlyFallback: false });
-    return rows;
-  } catch (error) {
-    if (!isCallableUnavailable(error)) throw error;
-    // Firestore rules restrict order listing to the configured administrator.
-    // This fallback is deliberately read-only: lifecycle and stock changes
-    // must continue through the trusted callable, never browser-side writes.
-    console.warn('Order-list callable unavailable; loading the admin-only read-only queue.', error);
-    const snapshot = await getDocs(query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(100)));
-    const rows = snapshot.docs.map(orderDoc => ({ id: orderDoc.id, ...orderDoc.data() }));
-    for (const callback of orderWatchers) callback(rows, { readOnlyFallback: true });
-    return rows;
+// Public read: anyone with an order's tracking code can already see that
+// order's full details (see the `orders` Firestore rule), so exposing the
+// one delivery record it links to is the same trust boundary, not a new one.
+export async function getDelivery(deliveryId) {
+  if (!deliveryId) return null;
+  const snap = await getDoc(doc(db, 'deliveries', deliveryId));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+
+export function watchOrders(callback) {
+  const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  });
+}
+
+function isConfirmedStatus(status) {
+  return ['confirmed', 'shipped', 'delivered'].includes(String(status || '').toLowerCase());
+}
+
+function isReversalStatus(status) {
+  return ['cancelled', 'returned'].includes(String(status || '').toLowerCase());
+}
+
+/*
+ * Firestore transactions require all reads to happen before any writes.
+ * Read and validate every affected product first, then perform the writes.
+ * This also guarantees that a multi-item order cannot partially change stock.
+ */
+async function applyOrderInventory(tx, order, direction) {
+  const items = Array.isArray(order.items) ? order.items : [];
+  const grouped = new Map();
+
+  for (const item of items) {
+    if (!item?.productId || !item?.variantId) {
+      throw new Error(`Order ${order.id || order.trackingCode || ''} contains an item without a variant ID. Inventory cannot be changed safely.`.trim());
+    }
+    const qty = Math.max(0, parseInt(item.quantity, 10) || 0);
+    if (!qty) continue;
+    const key = `${item.productId}::${item.variantId}`;
+    const current = grouped.get(key) || { productId: item.productId, variantId: item.variantId, quantity: 0, item };
+    current.quantity += qty;
+    grouped.set(key, current);
+  }
+
+  const changes = [];
+
+  // READ PHASE — no transaction writes before all product reads finish.
+  for (const entry of grouped.values()) {
+    const productRef = doc(db, 'products', entry.productId);
+    const productSnap = await tx.get(productRef);
+    if (!productSnap.exists()) throw new Error(`Product ${entry.item.name || entry.productId} no longer exists.`);
+
+    const product = productSnap.data();
+    const variants = Array.isArray(product.variants) ? [...product.variants] : [];
+    const index = variants.findIndex(v => v.id === entry.variantId);
+    if (index < 0) throw new Error(`Variant for ${entry.item.name || entry.productId} no longer exists.`);
+
+    const current = Math.max(0, Number(variants[index].stockQty || 0));
+    const delta = direction > 0 ? -entry.quantity : entry.quantity;
+    const next = current + delta;
+    if (next < 0) {
+      throw new Error(`Insufficient stock for ${entry.item.name || product.name || 'product'} (${entry.item.variant || entry.variantId}). Current stock: ${current}, requested: ${entry.quantity}.`);
+    }
+
+    variants[index] = { ...variants[index], stockQty: next, inStock: next > 0 };
+    changes.push({
+      productRef,
+      product,
+      variants,
+      index,
+      current,
+      next,
+      delta,
+      item: entry.item,
+      productId: entry.productId,
+      variantId: entry.variantId
+    });
+  }
+
+  // WRITE PHASE — only after every read and stock check succeeded.
+  for (const change of changes) {
+    tx.update(change.productRef, {
+      variants: change.variants,
+      inStock: change.variants.some(v => Number(v.stockQty || 0) > 0)
+    });
+
+    const movementRef = doc(collection(db, 'inventoryMovements'));
+    tx.set(movementRef, {
+      productId: change.productId,
+      variantId: change.variantId,
+      sku: change.variants[change.index].sku || change.item.sku || '',
+      productName: change.product.name || change.item.name || '',
+      variantLabel: change.item.variant || variantLabelForOrder(change.variants[change.index], change.index),
+      type: direction > 0 ? 'sale' : 'return',
+      quantity: change.delta,
+      previousQty: change.current,
+      newQty: change.next,
+      reason: direction > 0 ? 'Customer order confirmed' : 'Order cancelled/returned',
+      reference: order.trackingCode || order.id || '',
+      orderId: order.id || order.trackingCode || '',
+      createdAt: serverTimestamp()
+    });
   }
 }
-export function watchOrders(callback) {
-  orderWatchers.add(callback);
-  refreshOrders().catch(error => console.error('Could not load orders:', error));
-  return () => orderWatchers.delete(callback);
-}
 
-const legacyOrderCallable = httpsCallable(contentFunctions, 'manageLegacyOrderLifecycle');
 export async function updateOrderStatus(id, status) {
-  const response = await legacyOrderCallable({ action: 'status', orderId: id, status });
-  const result = response.data;
-  await refreshOrders();
-  return result;
-}
-export async function cancelOrder(id, { reason = null, customerNote = null, internalNote = null } = {}) {
-  const response = await legacyOrderCallable({ action: 'cancel', orderId: id, reason, customerNote, internalNote });
-  const result = response.data;
-  await refreshOrders();
-  return result;
+  const orderRef = doc(db, 'orders', id);
+
+  return runTransaction(db, async tx => {
+    const snap = await tx.get(orderRef);
+    if (!snap.exists()) throw new Error('Order no longer exists.');
+
+    const order = { id, ...snap.data() };
+    const oldStatus = String(order.status || '').toLowerCase();
+    const newStatus = String(status || '').toLowerCase();
+
+    if (!newStatus) throw new Error('Order status is required.');
+    if (oldStatus === newStatus) return;
+
+    const shouldDeduct = isConfirmedStatus(newStatus) && !isConfirmedStatus(oldStatus) && order.inventoryApplied !== true;
+    const shouldRestore = isReversalStatus(newStatus) && order.inventoryApplied === true && order.inventoryReturned !== true;
+
+    if (shouldDeduct) {
+      await applyOrderInventory(tx, order, 1);
+      tx.update(orderRef, { status: newStatus, inventoryApplied: true, inventoryReturned: false, inventoryAppliedAt: serverTimestamp() });
+      return;
+    }
+
+    if (shouldRestore) {
+      await applyOrderInventory(tx, order, -1);
+      tx.update(orderRef, { status: newStatus, inventoryReturned: true, inventoryReturnedAt: serverTimestamp() });
+      return;
+    }
+
+    tx.update(orderRef, { status: newStatus });
+  });
 }
 
-/* ---------------- LEGACY CONTENT VIA TRUSTED FUNCTIONS ---------------- */
+export async function cancelOrder(id, { reason = null, customerNote = null, internalNote = null } = {}) {
+  const orderRef = doc(db, 'orders', id);
+  return runTransaction(db, async tx => {
+    const snap = await tx.get(orderRef);
+    if (!snap.exists()) throw new Error('Order no longer exists.');
+    const order = { id, ...snap.data() };
+    const alreadyCancelled = String(order.status || '').toLowerCase() === 'cancelled';
+    if (!alreadyCancelled && order.inventoryApplied === true && order.inventoryReturned !== true) {
+      await applyOrderInventory(tx, order, -1);
+    }
+    tx.update(orderRef, {
+      status: 'cancelled',
+      cancelReason: reason,
+      cancelCustomerNote: customerNote,
+      cancelInternalNote: internalNote,
+      cancelledAt: serverTimestamp(),
+      ...(order.inventoryApplied === true && order.inventoryReturned !== true ? { inventoryReturned: true, inventoryReturnedAt: serverTimestamp() } : {})
+    });
+  });
+}
+
+/* ---------------- HEROES ---------------- */
 
 export async function getHeroes() {
-  return contentCall('heroes', 'list', undefined, undefined, { publicOnly: true });
+  const q = query(collection(db, 'heroes'), orderBy('order', 'asc'));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
-export function watchHeroes(callback) { return watchContent('heroes', callback); }
-export async function addHero(hero) { const result = await contentCall('heroes', 'create', hero); await refreshContent('heroes'); return result; }
-export async function updateHero(id, updates) { const result = await contentCall('heroes', 'update', updates, id); await refreshContent('heroes'); return result; }
-export async function deleteHero(id) { const result = await contentCall('heroes', 'delete', undefined, id); await refreshContent('heroes'); return result; }
+
+export function watchHeroes(callback) {
+  const q = query(collection(db, 'heroes'), orderBy('order', 'asc'));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  });
+}
+
+export async function addHero(hero) {
+  return addDoc(collection(db, 'heroes'), hero);
+}
+
+export async function updateHero(id, updates) {
+  return updateDoc(doc(db, 'heroes', id), updates);
+}
+
+export async function deleteHero(id) {
+  return deleteDoc(doc(db, 'heroes', id));
+}
+
+
+/* ---------------- ENGINEERING PROJECTS ---------------- */
+// Admin watches all records. Public reads are restricted by Firestore rules
+// to published records whose publishAt timestamp has arrived.
+export function watchProjects(callback) {
+  return onSnapshot(collection(db, 'projects'), snap => {
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  });
+}
+export async function getPublishedProjects() {
+  // Scheduled projects stay private until an authenticated admin session
+  // promotes them to status "published".
+  const q = query(collection(db, 'projects'), where('status', '==', 'published'));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+export async function addProject(project) {
+  return addDoc(collection(db, 'projects'), project);
+}
+export async function updateProject(id, updates) {
+  return updateDoc(doc(db, 'projects', id), updates);
+}
+export async function deleteProject(id) {
+  return deleteDoc(doc(db, 'projects', id));
+}
+
+/* ---------------- REVIEWS ---------------- */
 
 export async function getApprovedReviews() {
-  return contentCall('reviews', 'list', undefined, undefined, { publicOnly: true });
+  // Public pages request only approved records. Pending submissions remain private.
+  const approvedQuery = query(collection(db, 'reviews'), where('approved', '==', true));
+  const snap = await getDocs(approvedQuery);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
-export function watchReviews(callback) { return watchContent('reviews', callback); }
-export async function addReview(review) { const result = await contentCall('reviews', 'create', review); await refreshContent('reviews'); return result; }
-export async function updateReview(id, updates) { const result = await contentCall('reviews', 'update', updates, id); await refreshContent('reviews'); return result; }
-export async function deleteReview(id) { const result = await contentCall('reviews', 'delete', undefined, id); await refreshContent('reviews'); return result; }
+
+export function watchReviews(callback) {
+  return onSnapshot(collection(db, 'reviews'), (snap) => {
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  });
+}
+
+export async function addReview(review) {
+  return addDoc(collection(db, 'reviews'), {
+    ...review,
+    createdAt: review.createdAt || serverTimestamp(),
+    adminReviewed: review.approved === true,
+    ...(review.approved === true ? { adminReviewedAt: serverTimestamp() } : {})
+  });
+}
+
+export async function updateReview(id, updates) {
+  return updateDoc(doc(db, 'reviews', id), updates);
+}
+
+export async function setReviewApproval(id, approved) {
+  return updateDoc(doc(db, 'reviews', id), {
+    approved: approved === true,
+    adminReviewed: true,
+    adminReviewedAt: serverTimestamp()
+  });
+}
+
+export async function markReviewHandled(id) {
+  return updateDoc(doc(db, 'reviews', id), {
+    adminReviewed: true,
+    adminReviewedAt: serverTimestamp()
+  });
+}
+
+export async function deleteReview(id) {
+  return deleteDoc(doc(db, 'reviews', id));
+}
+
+/* ---------------- SOURCING REQUESTS ---------------- */
 
 export async function placeRequest(request) {
-  return contentCall('requests', 'create', { name: request.name, phone: request.phone, need: request.need, category: request.category || '', budget: request.budget ?? '' });
+  return addDoc(collection(db, 'requests'), {
+    ...request,
+    status: 'new',
+    createdAt: serverTimestamp()
+  });
 }
-export function watchRequests(callback) { return watchContent('requests', callback); }
-export async function updateRequestStatus(id, status) { const result = await contentCall('requests', 'update', { status }, id); await refreshContent('requests'); return result; }
 
-// Only these fields are intended for storefront use. Keep the projection in
-// sync with PUBLIC_SETTINGS in functions/src/legacy-public-content-admin.mjs.
-const PUBLIC_SETTING_FIELDS = [
-  'whatsapp', 'tagline', 'aboutText', 'deliveryFeePerItem',
-  'deliveryDiscountPercent', 'minOrderValue', 'bulkSavingsPercent',
-  'bulkSavingsMinQty'
-];
-async function readPublicSettingsFromFirestore() {
-  const snapshot = await getDoc(doc(db, 'settings', 'site'));
-  if (!snapshot.exists()) return {};
-  const source = snapshot.data();
-  return Object.fromEntries(PUBLIC_SETTING_FIELDS
-    .filter(field => Object.prototype.hasOwnProperty.call(source, field))
-    .map(field => [field, source[field]]));
+export function watchRequests(callback) {
+  const q = query(collection(db, 'requests'), orderBy('createdAt', 'desc'));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  });
 }
+
+export async function updateRequestStatus(id, status) {
+  return updateDoc(doc(db, 'requests', id), { status });
+}
+
+/* ---------------- SETTINGS ---------------- */
+
 export async function getSettings() {
-  try {
-    return await contentCall('settings', 'getPublic');
-  } catch (error) {
-    if (!isCallableUnavailable(error)) throw error;
-    console.warn('Public settings callable is unavailable; using the safe public settings projection.', error);
-    return readPublicSettingsFromFirestore();
-  }
+  const snap = await getDoc(doc(db, 'settings', 'site'));
+  return snap.exists() ? snap.data() : {};
 }
-export async function getPublicSettings() {
-  return getSettings();
-}
+
 export async function saveSettings(settings) {
-  return contentCall('settings', 'save', settings);
+  return setDoc(doc(db, 'settings', 'site'), settings, { merge: true });
 }
 
 /* ---------------- INVENTORY ADMIN TAB ---------------- */

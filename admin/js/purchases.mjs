@@ -1,26 +1,18 @@
 // admin/js/purchases.mjs
 // Stage 5: supplier purchase / stock receiving workflow.
 import { initFirebase } from '../../js/firebase.mjs';
-import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+import { collection, doc, getDoc, getDocs, onSnapshot, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { ensureSupplierRecord } from './suppliers.mjs';
 import './purchase-void.mjs';
 
-const { app, db, auth } = initFirebase();
-const functions = getFunctions(app, 'europe-west1');
-const receivePurchaseCall = httpsCallable(functions, 'receiveLegacyPurchase');
-const listPurchasesCall = httpsCallable(functions, 'listLegacyPurchases');
+const { db, auth } = initFirebase();
 let products = [];
 let unsubscribeProducts = null;
 let tabInstalled = false;
 let panelInstalled = false;
 let currentUser = null;
 let purchaseHistory = [];
-let pendingPurchaseSubmission = null;
-try {
-  const saved = localStorage.getItem('tejuboss.pendingPurchaseSubmission');
-  if (saved) pendingPurchaseSubmission = JSON.parse(saved);
-} catch { pendingPurchaseSubmission = null; }
 
 function money(v) { return `₦${Number(v || 0).toLocaleString()}`; }
 function escapeHtml(v) {
@@ -187,43 +179,53 @@ async function receivePurchase() {
   const selectedSupplierId = supplierInputEl.dataset.supplierId || '';
   const reference = document.getElementById('purchaseReference').value.trim();
   const selected = document.getElementById('purchaseVariant').value;
-  const qty = Number(document.getElementById('purchaseQty').value);
+  const qty = parseInt(document.getElementById('purchaseQty').value, 10);
   const unitCost = Number(document.getElementById('purchaseCost').value || 0);
   const notes = document.getElementById('purchaseNotes').value.trim();
   if (!supplierInput) return showMessage('Supplier name is required.', true);
   if (!selected) return showMessage('Select a product variant.', true);
-  if (!Number.isSafeInteger(qty) || qty <= 0) return showMessage('Quantity must be a positive whole number.', true);
-  if (!Number.isSafeInteger(unitCost) || unitCost < 0) return showMessage('Enter a valid whole-naira unit cost.', true);
+  if (!Number.isInteger(qty) || qty <= 0) return showMessage('Quantity must be a positive whole number.', true);
+  if (!Number.isFinite(unitCost) || unitCost < 0) return showMessage('Enter a valid unit cost.', true);
+
   const [productId, variantId] = selected.split('::');
-  const button = document.getElementById('receivePurchaseBtn');
-  button.disabled = true;
-  button.textContent = 'Receiving...';
+  const purchaseRef = doc(collection(db, 'purchases'));
+  const movementRef = doc(collection(db, 'inventoryMovements'));
+  const productRef = doc(db, 'products', productId);
+  const variantInfo = variantOptions().find(v => v.productId === productId && v.variantId === variantId);
+
   try {
-    const payload = {
-      supplierName: supplierInput, ...(selectedSupplierId ? { supplierId: selectedSupplierId } : {}),
-      reference, productId, variantId, quantity: qty, unitCost, notes
-    };
-    if (pendingPurchaseSubmission && JSON.stringify(pendingPurchaseSubmission.payload) !== JSON.stringify(payload)) {
-      throw new Error('A previous purchase submission may still be processing. Retry it with the original details first; do not change the form until its outcome is confirmed.');
+    let supplierRecord;
+    if (selectedSupplierId) {
+      const supplierSnap = await getDoc(doc(db, 'suppliers', selectedSupplierId));
+      if (!supplierSnap.exists()) {
+        delete supplierInputEl.dataset.supplierId;
+        throw new Error('The selected Supplier Master record no longer exists. Refresh and select the supplier again.');
+      }
+      supplierRecord = { id: supplierSnap.id, ...supplierSnap.data(), created: false };
+    } else {
+      supplierRecord = await ensureSupplierRecord(supplierInput);
     }
-    if (!pendingPurchaseSubmission) {
-      pendingPurchaseSubmission = { key: crypto.randomUUID().replaceAll('-', ''), payload };
-      localStorage.setItem('tejuboss.pendingPurchaseSubmission', JSON.stringify(pendingPurchaseSubmission));
-    }
-    const result = await receivePurchaseCall({ ...payload, idempotencyKey: pendingPurchaseSubmission.key });
-    const outcome = result.data?.outcome;
-    pendingPurchaseSubmission = null;
-    localStorage.removeItem('tejuboss.pendingPurchaseSubmission');
-    showMessage(outcome === 'already_received'
-      ? 'This purchase submission was already received. No duplicate stock was added.'
-      : `Received ${qty} unit${qty === 1 ? '' : 's'} successfully. Stock and the audit trail were updated together.`, false);
+    const supplier = supplierRecord.name;
+
+    await runTransaction(db, async tx => {
+      const snap = await tx.get(productRef);
+      if (!snap.exists()) throw new Error('Product no longer exists.');
+      const product = snap.data();
+      const variants = Array.isArray(product.variants) ? [...product.variants] : [];
+      const index = variants.findIndex(v => v.id === variantId);
+      if (index < 0) throw new Error('Variant no longer exists.');
+      const current = Number(variants[index].stockQty || 0);
+      const next = current + qty;
+      variants[index] = { ...variants[index], stockQty: next, inStock: true, costPrice: unitCost };
+      tx.update(productRef, { variants, inStock: true });
+      tx.set(purchaseRef, { supplier, supplierId: supplierRecord.id, reference, productId, variantId, productName: product.name || variantInfo?.productName || '', variantLabel: label(variants[index], index), sku: variants[index].sku || variantInfo?.sku || '', quantity: qty, unitCost, totalCost: qty * unitCost, notes, status: 'received', createdAt: serverTimestamp() });
+      tx.set(movementRef, { productId, variantId, sku: variants[index].sku || variantInfo?.sku || '', productName: product.name || variantInfo?.productName || '', variantLabel: label(variants[index], index), type: 'purchase_received', quantity: qty, previousQty: current, newQty: next, reason: 'Purchase received', reference: reference || supplier, purchaseId: purchaseRef.id, supplier, supplierId: supplierRecord.id, unitCost, totalCost: qty * unitCost, createdAt: serverTimestamp() });
+    });
+    showMessage(`Received ${qty} unit${qty === 1 ? '' : 's'} successfully. Stock is now updated and the supplier record is synced.`, false);
     document.getElementById('clearPurchaseBtn').click();
     await loadPurchases();
   } catch (e) {
     showMessage(e.message || 'Could not receive purchase.', true);
-  } finally {
-    button.disabled = false;
-    button.textContent = 'Receive Stock';
   }
 }
 
@@ -240,10 +242,8 @@ async function loadPurchases() {
   if (!el) return;
   el.innerHTML = '<p class="text-xs text-gray-400 py-3">Loading purchases...</p>';
   try {
-    const result = await listPurchasesCall({});
-    purchaseHistory = (result.data?.purchases || []).map(p => ({
-      ...p, createdAt: p.createdAtMillis ? new Date(p.createdAtMillis) : null
-    }));
+    const snap = await getDocs(collection(db, 'purchases'));
+    purchaseHistory = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
     renderPurchaseHistory();
   } catch (e) {
     purchaseHistory = [];

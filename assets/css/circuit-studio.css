@@ -1,0 +1,150 @@
+:root{--cs-accent:#00a995;--cs-ink:#172b28;--cs-muted:#71817d;--cs-border:#dce7e3;--cs-panel:#fff;--cs-work:#edf3f1;--cs-canvas:#fff;--cs-soft:#f5f8f7;--cs-danger:#b93838}
+[data-theme=dark]{--cs-ink:#e8f0ed;--cs-muted:#a1b1ac;--cs-border:#344641;--cs-panel:#182622;--cs-work:#101a17;--cs-canvas:#121d19;--cs-soft:#20302b;--cs-danger:#ff7777}
+*{box-sizing:border-box}.cs-page{margin:0;min-height:100vh;background:var(--cs-work);color:var(--cs-ink);font-family:Inter,"DM Sans",system-ui,sans-serif}.cs-topbar{height:64px;padding:0 22px;background:var(--cs-panel);border-bottom:1px solid var(--cs-border);display:flex;align-items:center;justify-content:space-between;gap:14px}.cs-brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;font-weight:800;flex:0 0 auto}.cs-brand img{height:34px;width:auto}.cs-brand span{border-left:1px solid var(--cs-border);padding-left:12px}.cs-top-actions{display:flex;align-items:center;justify-content:flex-end;gap:14px;min-width:0;overflow-x:auto;scrollbar-width:none}.cs-top-actions::-webkit-scrollbar{display:none}.cs-home-link{font-size:13px;color:var(--cs-muted);text-decoration:none;white-space:nowrap;flex:0 0 auto}.cs-home-link:hover{color:var(--cs-accent)}.cs-icon-btn{border:1px solid var(--cs-border);background:var(--cs-soft);color:var(--cs-ink);border-radius:9px;width:36px;height:36px;cursor:pointer}.cs-app{height:calc(100vh - 64px);min-height:600px;display:flex;flex-direction:column}.cs-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:var(--cs-panel);border-bottom:1px solid var(--cs-border);flex-wrap:wrap}.cs-tool-group{display:flex;align-items:center;gap:6px}.cs-btn,.cs-small-btn{border:1px solid var(--cs-border);background:var(--cs-panel);color:var(--cs-ink);border-radius:8px;padding:8px 11px;font-size:12px;font-weight:650;cursor:pointer}.cs-btn:hover,.cs-small-btn:hover{border-color:var(--cs-accent)}.cs-primary{background:var(--cs-accent);border-color:var(--cs-accent);color:#fff}.cs-danger{color:var(--cs-danger)}.cs-style-label{font-size:12px;color:var(--cs-muted);display:flex;align-items:center;gap:6px}.cs-style-label select{background:var(--cs-panel);color:var(--cs-ink);border:1px solid var(--cs-border);border-radius:7px;padding:7px}.cs-view-tools{font-size:12px;color:var(--cs-muted)}.cs-workspace{display:grid;grid-template-columns:245px minmax(300px,1fr) 260px;min-height:0;flex:1}.cs-library-panel,.cs-properties-panel{background:var(--cs-panel);min-height:0;overflow:auto;padding:16px;border-right:1px solid var(--cs-border)}.cs-properties-panel{border-right:0;border-left:1px solid var(--cs-border)}.cs-panel-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.cs-panel-heading h2{font-size:17px;margin:3px 0 0}.cs-eyebrow{font-size:9px;letter-spacing:1.3px;color:var(--cs-accent);font-weight:800}.cs-count{font-size:11px;padding:4px 8px;background:var(--cs-soft);border-radius:20px;color:var(--cs-muted)}.cs-search{width:100%;padding:10px;border:1px solid var(--cs-border);border-radius:9px;background:var(--cs-soft);color:var(--cs-ink);outline:none}.cs-search:focus{border-color:var(--cs-accent)}.cs-categories{display:flex;flex-wrap:wrap;gap:5px;margin:11px 0}.cs-category{border:1px solid var(--cs-border);background:transparent;color:var(--cs-muted);padding:5px 8px;border-radius:20px;font-size:10px;cursor:pointer}.cs-category.active{background:var(--cs-accent);border-color:var(--cs-accent);color:white}.cs-component-list{display:grid;grid-template-columns:1fr 1fr;gap:7px}.cs-component-card{min-width:0;border:1px solid var(--cs-border);background:var(--cs-panel);color:var(--cs-ink);border-radius:9px;padding:8px 5px;cursor:grab;text-align:center}.cs-component-card:hover,.cs-component-card:focus{border-color:var(--cs-accent);background:var(--cs-soft)}.cs-component-card svg{display:block;width:100%;height:45px;color:var(--cs-ink);overflow:visible}.cs-component-card span{font-size:10px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cs-hint{font-size:10px;line-height:1.5;color:var(--cs-muted)}.cs-canvas-panel{display:flex;flex-direction:column;min-width:0;min-height:0}.cs-canvas-head{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 13px;background:var(--cs-panel);border-bottom:1px solid var(--cs-border)}.cs-canvas-head>div:first-child{display:flex;flex-direction:column;gap:2px}.cs-canvas-head strong{font-size:12px}.cs-canvas-head span{font-size:10px;color:var(--cs-muted)}.cs-canvas-actions{display:flex;gap:5px}.cs-small-btn{padding:6px 8px;font-size:10px}.cs-small-btn.active{border-color:var(--cs-accent);color:var(--cs-accent)}.cs-canvas-wrap{position:relative;flex:1;min-height:0;overflow:hidden;background:var(--cs-canvas)}#circuitCanvas{width:100%;height:100%;display:block;touch-action:none;color:var(--cs-ink);cursor:crosshair}.cs-canvas-empty{position:absolute;pointer-events:none;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:var(--cs-muted);width:min(280px,80%)}.cs-canvas-empty span{font-size:34px;color:var(--cs-accent)}.cs-canvas-empty strong{display:block;color:var(--cs-ink);font-size:14px}.cs-canvas-empty p{font-size:11px;line-height:1.5}.cs-statusbar{height:29px;padding:0 10px;display:flex;justify-content:space-between;align-items:center;background:var(--cs-panel);border-top:1px solid var(--cs-border);font-size:9px;color:var(--cs-muted)}.cs-properties-content{display:flex;flex-direction:column;gap:11px}.cs-empty-property{font-size:11px;line-height:1.6;color:var(--cs-muted);padding:12px;background:var(--cs-soft);border-radius:8px}.cs-field{display:flex;flex-direction:column;gap:5px;font-size:10px;color:var(--cs-muted)}.cs-field input,.cs-field select,.cs-field textarea{width:100%;border:1px solid var(--cs-border);border-radius:7px;padding:8px;background:var(--cs-soft);color:var(--cs-ink);font:inherit;font-size:12px}.cs-field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cs-property-preview{height:90px;background:var(--cs-soft);border:1px solid var(--cs-border);border-radius:8px;display:grid;place-items:center}.cs-property-preview svg{width:85%;height:75px}.cs-inspector-note{margin-top:20px;padding:10px;background:var(--cs-soft);border-radius:8px}.cs-inspector-note strong{font-size:10px}.cs-inspector-note p{font-size:10px;color:var(--cs-muted);line-height:1.5;margin:5px 0 0}.cs-pin-btn{font-size:10px;padding:7px;border:1px solid var(--cs-border);border-radius:7px;background:transparent;color:var(--cs-ink);cursor:pointer}.cs-dialog{width:min(900px,94vw);max-height:90vh;border:1px solid var(--cs-border);border-radius:14px;background:var(--cs-panel);color:var(--cs-ink);padding:18px}.cs-dialog::backdrop{background:#071b16aa}.cs-dialog-head{display:flex;justify-content:space-between;align-items:center}.cs-dialog-head h2{margin:3px 0 14px;font-size:18px}.cs-editor-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}.cs-editor-grid label{font-size:11px;color:var(--cs-muted)}#svgSource{display:block;width:100%;height:330px;margin-top:6px;background:var(--cs-work);color:var(--cs-ink);border:1px solid var(--cs-border);border-radius:8px;padding:10px;font:11px/1.5 ui-monospace,monospace;resize:vertical}.cs-live-preview{border:1px solid var(--cs-border);border-radius:9px;padding:12px;min-width:0}.cs-live-preview strong{font-size:11px}.cs-live-preview>div{height:250px;display:grid;place-items:center;overflow:hidden}.cs-live-preview svg{width:100%;height:100%}.cs-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.cs-toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#18352e;color:#fff;padding:10px 15px;border-radius:9px;font-size:12px;transition:.2s;z-index:20}.cs-toast.show{opacity:1;transform:translate(-50%,0)}.cs-pin{cursor:crosshair}.cs-pin circle{fill:#168f80;stroke:var(--cs-canvas);stroke-width:2}.cs-pin text{font-size:9px;fill:var(--cs-muted);pointer-events:none}.cs-selected .cs-symbol-art{filter:drop-shadow(0 0 2px #00a995)}.cs-selected .cs-selection-box{display:block}.cs-selection-box{display:none;fill:none;stroke:var(--cs-accent);stroke-width:1.5;stroke-dasharray:5 4;pointer-events:none}.cs-wire{fill:none;stroke:#168f80;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}.cs-annotation{font:16px system-ui;fill:currentColor}
+@media(max-width:900px){.cs-workspace{grid-template-columns:205px minmax(280px,1fr)}.cs-properties-panel{grid-column:1/-1;border-left:0;border-top:1px solid var(--cs-border);max-height:220px}.cs-library-panel{grid-row:1/3}.cs-app{height:auto;min-height:calc(100vh - 64px)}.cs-canvas-panel{min-height:520px}.cs-properties-panel{min-height:160px}}
+@media(max-width:620px){.cs-topbar{padding:0 12px}.cs-home-link{display:none}.cs-toolbar{padding:8px;gap:7px}.cs-tool-group{flex-wrap:wrap}.cs-btn{padding:7px 8px;font-size:10px}.cs-workspace{display:flex;flex-direction:column}.cs-library-panel{order:2;max-height:250px;border-right:0;border-top:1px solid var(--cs-border)}.cs-canvas-panel{order:1;min-height:55vh}.cs-properties-panel{order:3;max-height:none}.cs-component-list{grid-template-columns:repeat(4,minmax(0,1fr))}.cs-canvas-head{padding:0 8px}.cs-statusbar span:nth-child(2){display:none}.cs-editor-grid{grid-template-columns:1fr}.cs-dialog{padding:12px}.cs-top-actions{gap:6px}}
+
+.cs-pin-editor{display:grid;grid-template-columns:1.1fr .8fr .8fr;gap:5px;padding:7px 0;border-bottom:1px solid var(--cs-border)}.cs-pin-editor .cs-field{font-size:9px}.cs-pin-editor input{padding:6px 5px;font-size:10px;min-width:0}
+
+/* Direct-manipulation editor improvements */
+.cs-editable-label{cursor:text;user-select:none}.cs-editable-label:hover{filter:drop-shadow(0 0 3px var(--cs-accent));text-decoration:underline;text-decoration-style:dotted}
+.cs-canvas-wrap{overscroll-behavior:contain;touch-action:none}
+.cs-component-card{touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.cs-text-dialog{width:min(420px,calc(100vw - 24px))}
+.cs-text-dialog .cs-field{margin:10px 0}
+.cs-text-dialog input{font-size:16px;padding:12px}
+.cs-properties-content input,.cs-properties-content textarea{font-size:16px;min-height:42px}
+.cs-properties-content .cs-pin-btn,.cs-small-btn,.cs-btn{min-height:38px;touch-action:manipulation}
+@media(max-width:620px){
+ /* Keep the editor viewport tall; the drawing area grows into the available space
+    instead of being capped at a short viewport-height fraction. */
+ .cs-app{height:auto;min-height:calc(100dvh - 64px)}
+ .cs-toolbar{overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start;scrollbar-width:thin}
+ .cs-tool-group{flex:0 0 auto;flex-wrap:nowrap}
+ .cs-workspace{flex:1 0 auto;min-height:calc(100dvh - 190px)}
+ .cs-canvas-panel{min-height:0;flex:1 0 auto}
+ .cs-canvas-wrap{min-height:calc(100dvh - 255px);flex:1 0 auto}
+ .cs-library-panel{max-height:none;padding:12px}
+ .cs-component-list{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .cs-properties-panel{max-height:none;padding:12px}
+ .cs-canvas-head{height:auto;min-height:48px;gap:8px;flex-wrap:wrap;padding:8px}
+ .cs-canvas-actions{flex-wrap:wrap}
+ .cs-statusbar{min-height:30px}
+ .cs-pin-editor{grid-template-columns:1fr 1fr 1fr}
+}
+
+/* Contextual selection toolbar and group selection */
+.cs-selection-toolbar{position:absolute;z-index:5;top:12px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:5px;padding:6px;background:var(--cs-panel);border:1px solid var(--cs-border);border-radius:12px;box-shadow:0 5px 22px #10251f22;max-width:calc(100% - 20px);overflow-x:auto}
+.cs-selection-toolbar[hidden]{display:none}
+.cs-selection-toolbar button{border:1px solid var(--cs-border);background:var(--cs-soft);color:var(--cs-ink);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:650;white-space:nowrap;min-height:36px}
+.cs-selection-toolbar button:active{background:var(--cs-accent);color:#fff}
+.cs-selection-toolbar button.danger{color:var(--cs-danger)}
+.cs-selection-toolbar span{height:22px;border-left:1px solid var(--cs-border);margin:0 2px}
+.cs-annotation-selected{filter:drop-shadow(0 0 2px var(--cs-accent));stroke:var(--cs-accent);stroke-width:.7px;paint-order:stroke;cursor:move}
+.cs-selected .cs-selection-box{stroke-width:2.5;stroke-dasharray:4 3}
+@media(max-width:620px){.cs-selection-toolbar{top:6px;gap:4px;padding:5px}.cs-selection-toolbar button{padding:7px 9px;font-size:10px;min-height:40px}}
+
+/* Explicit tool modes and touch-sized pin handles */
+.cs-btn.active{background:var(--cs-accent);border-color:var(--cs-accent);color:#fff}.cs-pin{cursor:crosshair;touch-action:none}.cs-pin circle{stroke-width:2.5}.cs-pin-edit{cursor:move}.cs-pin-edit circle{fill:#f0a52b;stroke:#fff;stroke-width:2}.cs-pin-cross{stroke:#fff;stroke-width:1.5;pointer-events:none}.cs-pin-start circle{fill:#e49b22;stroke:#fff;stroke-width:3}.cs-selection-box{pointer-events:all;cursor:move}.cs-selected .cs-selection-box{pointer-events:all}
+@media(max-width:620px){.cs-toolbar{gap:6px}.cs-tool-group{gap:4px}.cs-btn{white-space:nowrap}.cs-pin circle{r:9}}
+
+/* Meaningful engineering vs educational symbol treatments */
+.cs-symbol-art{color:var(--cs-ink)}.cs-edu-plate{fill:#e7f6f2;stroke:#8ed7c8;stroke-width:1.5;stroke-dasharray:3 3;pointer-events:none}.cs-style-educational .cs-symbol-art{color:#087f8c}.cs-style-educational .cs-symbol-art path,.cs-style-educational .cs-symbol-art line,.cs-style-educational .cs-symbol-art rect,.cs-style-educational .cs-symbol-art circle,.cs-style-educational .cs-symbol-art polygon{stroke-width:4;stroke-linecap:round;stroke-linejoin:round}.cs-style-educational .cs-editable-label{fill:#075d57;font-weight:700}.cs-edu-pin-label{font:9px system-ui,sans-serif;fill:#087f8c;pointer-events:none}.cs-zoom-help{font-size:10px;color:var(--cs-muted);white-space:nowrap}
+.cs-canvas-wrap{touch-action:none;cursor:default}.cs-canvas-wrap svg{touch-action:none;user-select:none;-webkit-user-select:none}
+
+/* Editable orthogonal wire routing */
+.cs-wire{pointer-events:stroke;cursor:pointer;stroke-width:3.5}.cs-wire-selected{stroke:#1676d2;stroke-width:4.5}.cs-bend-handle{fill:#fff;stroke:#1676d2;stroke-width:2.5;cursor:move;touch-action:none}
+.cs-bend-handle.cs-bend-selected{fill:#f59e0b;stroke:#fff;stroke-width:2.5;cursor:grab}
+.cs-junction{fill:#168f80;stroke:#fff;stroke-width:1.5;pointer-events:all;cursor:pointer}.cs-junction.cs-junction-selected{fill:#f59e0b;stroke:#fff;stroke-width:2.5}.cs-wire-bends{margin-top:8px}.cs-wire-bends .cs-pin-editor{grid-template-columns:1fr 1fr auto;align-items:end}.cs-wire-bends .cs-pin-btn{min-width:36px;min-height:38px}
+
+/* Open-world canvas and explicit SVG capture frame */
+.cs-canvas-wrap{background-color:var(--cs-panel);background-image:none}.cs-canvas-wrap.cs-grid-dots{background-image:radial-gradient(color-mix(in srgb,var(--cs-muted) 48%,transparent) 1.15px,transparent 1.15px);background-size:18px 18px}.cs-canvas-wrap.cs-grid-plain{background-image:none}
+.cs-capture-frame{fill:rgba(0,176,155,.035);stroke:#00a88f;stroke-width:3;stroke-dasharray:14 8;vector-effect:non-scaling-stroke;pointer-events:none}
+#toolCapture.active{background:var(--cs-accent);border-color:var(--cs-accent);color:#fff}
+
+
+/* Full-viewport studio: the canvas is the base layer, tool panels float above it. */
+@media(min-width:621px){
+ .cs-page{overflow:hidden}
+ .cs-topbar{position:fixed;z-index:30;inset:0 0 auto;height:54px;background:color-mix(in srgb,var(--cs-panel) 92%,transparent);backdrop-filter:blur(12px)}
+ .cs-app{position:fixed;inset:0;width:100vw;height:100dvh;min-height:0}
+ .cs-toolbar{position:fixed;z-index:25;top:54px;left:50%;transform:translateX(-50%);width:min(96vw,1500px);max-height:104px;overflow:auto;border:1px solid var(--cs-border);border-radius:13px;box-shadow:0 8px 28px #10251f1c;background:color-mix(in srgb,var(--cs-panel) 94%,transparent);backdrop-filter:blur(12px)}
+ .cs-workspace{position:fixed;inset:0;display:block;width:100vw;height:100dvh}
+ .cs-canvas-panel{position:absolute;inset:0;min-width:0;min-height:0}
+ .cs-canvas-head{position:absolute;z-index:12;top:166px;left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 30px);border:1px solid var(--cs-border);border-radius:11px;box-shadow:0 5px 20px #10251f16;background:color-mix(in srgb,var(--cs-panel) 92%,transparent);backdrop-filter:blur(10px)}
+ .cs-canvas-wrap{position:absolute;inset:0;width:100vw;height:100dvh;flex:none}
+ #circuitCanvas{width:100%;height:100%}
+ .cs-statusbar{position:fixed;z-index:15;bottom:8px;left:50%;transform:translateX(-50%);width:max-content;max-width:90vw;border:1px solid var(--cs-border);border-radius:9px;background:color-mix(in srgb,var(--cs-panel) 92%,transparent);backdrop-filter:blur(10px)}
+ .cs-library-panel{position:fixed;z-index:20;left:12px;top:170px;bottom:44px;width:220px;max-height:none;border:1px solid var(--cs-border);border-radius:13px;box-shadow:0 8px 28px #10251f18;background:color-mix(in srgb,var(--cs-panel) 94%,transparent);backdrop-filter:blur(12px)}
+ .cs-properties-panel{position:fixed;z-index:20;right:12px;top:170px;bottom:44px;width:250px;max-height:none;border:1px solid var(--cs-border);border-radius:13px;box-shadow:0 8px 28px #10251f18;background:color-mix(in srgb,var(--cs-panel) 94%,transparent);backdrop-filter:blur(12px)}
+}
+@media(max-width:620px){
+ .cs-page{overflow:hidden;width:100vw;height:100dvh;min-height:0}
+ .cs-topbar{position:fixed;z-index:40;top:0;left:0;right:0;height:48px;padding:0 10px;background:color-mix(in srgb,var(--cs-panel) 92%,transparent);backdrop-filter:blur(12px)}
+ .cs-brand img{height:27px}.cs-brand{gap:7px;font-size:12px}.cs-brand span{padding-left:7px}
+ .cs-app{position:fixed;inset:0;width:100vw;height:100dvh;min-height:0;overflow:hidden}
+ .cs-toolbar{position:fixed;z-index:35;top:52px;left:8px;right:8px;width:auto;max-height:82px;overflow-x:auto;overflow-y:hidden;display:flex;flex-wrap:nowrap;justify-content:flex-start;gap:5px;padding:5px;border:1px solid var(--cs-border);border-radius:11px;background:color-mix(in srgb,var(--cs-panel) 91%,transparent);backdrop-filter:blur(12px);box-shadow:0 5px 18px #10251f18}
+ .cs-tool-group{flex:0 0 auto;flex-wrap:nowrap;gap:4px}
+ .cs-btn{min-height:34px;padding:6px 8px;font-size:10px}
+ .cs-workspace{position:fixed;inset:0;display:block;width:100vw;height:100dvh;min-height:0;flex:none}
+ .cs-canvas-panel{position:absolute;inset:0;min-height:0;width:100vw;height:100dvh}
+ .cs-canvas-wrap{position:absolute;inset:0;width:100vw;height:100dvh;min-height:0;flex:none}
+ #circuitCanvas{display:block;width:100%;height:100%}
+ .cs-canvas-head{position:fixed;z-index:32;top:142px;left:8px;right:8px;width:auto;transform:none;min-height:38px;height:auto;flex-wrap:nowrap;justify-content:space-between;gap:5px;padding:5px 7px;border:1px solid var(--cs-border);border-radius:10px;background:color-mix(in srgb,var(--cs-panel) 90%,transparent);backdrop-filter:blur(10px);box-shadow:0 4px 15px #10251f14}
+ .cs-canvas-head>div:first-child{min-width:0}.cs-canvas-head strong{font-size:10px}.cs-canvas-head span{font-size:9px}
+ .cs-canvas-actions{flex-wrap:nowrap;gap:3px}.cs-small-btn{min-height:32px;padding:5px 6px;font-size:9px}
+ .cs-library-panel{position:fixed;z-index:38;left:8px;right:8px;bottom:8px;top:auto;order:initial;width:auto;max-height:24dvh;min-height:0;overflow:auto;padding:8px 10px;border:1px solid var(--cs-border);border-radius:13px;background:color-mix(in srgb,var(--cs-panel) 95%,transparent);backdrop-filter:blur(14px);box-shadow:0 8px 28px #10251f24}
+ .cs-library-panel .cs-panel-heading{margin-bottom:5px}.cs-library-panel .cs-panel-heading h2{font-size:13px}.cs-library-panel .cs-eyebrow{font-size:8px}.cs-library-panel .cs-search{padding:7px;font-size:12px}.cs-library-panel .cs-categories{margin:5px 0}.cs-library-panel .cs-component-list{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.cs-component-card{padding:4px 3px}.cs-component-card svg{height:28px}.cs-component-card span{font-size:9px}.cs-library-panel .cs-hint{display:none}
+ .cs-properties-panel{position:fixed;z-index:37;left:8px;right:8px;bottom:calc(24dvh + 16px);top:auto;width:auto;max-height:20dvh;min-height:0;overflow:auto;padding:8px 10px;border:1px solid var(--cs-border);border-radius:12px;background:color-mix(in srgb,var(--cs-panel) 95%,transparent);backdrop-filter:blur(12px)}
+ .cs-properties-panel .cs-panel-heading{margin-bottom:5px}.cs-properties-panel .cs-panel-heading h2{font-size:13px}.cs-inspector-note{display:none}
+ .cs-statusbar{position:fixed;z-index:34;bottom:calc(24dvh + 18px);left:8px;right:8px;width:auto;min-height:26px;padding:4px 7px;border:1px solid var(--cs-border);border-radius:8px;background:color-mix(in srgb,var(--cs-panel) 90%,transparent);backdrop-filter:blur(10px)}
+ .cs-statusbar span:nth-child(2){display:none}
+ .cs-selection-toolbar{top:190px}
+}
+
+/* Compact visible connection nodes with a larger invisible hit area for touch and wire selection */
+.cs-pin .cs-pin-hit{fill:transparent;stroke:transparent;stroke-width:0;pointer-events:all}
+.cs-pin .cs-pin-node{r:2.5px;fill:#168f80;stroke:var(--cs-canvas);stroke-width:1;pointer-events:none}
+.cs-pin.cs-pin-start .cs-pin-node{r:4px;fill:#1676d2;stroke-width:1.25}
+
+/* Selected wire endpoint handles for direct reconnection */
+.cs-wire-endpoint{fill:var(--cs-panel);stroke:#1676d2;stroke-width:2.5;cursor:crosshair;pointer-events:all}
+.cs-wire-endpoint:hover{fill:#d9edff;stroke-width:3.5}
+
+
+/* Live wire-drawing feedback */
+.cs-wire-preview{fill:none;stroke:#168f80;stroke-width:2.5;stroke-dasharray:7 5;stroke-linecap:round;stroke-linejoin:round;opacity:.9;pointer-events:none}
+
+
+/* AutoCAD-style selection windows: left-to-right contains, right-to-left crosses */
+.cs-wire{pointer-events:none}
+.cs-wire-hit{fill:none;stroke:transparent;stroke-width:18;pointer-events:stroke;cursor:pointer;stroke-linecap:round;stroke-linejoin:round}
+.cs-marquee{pointer-events:none;stroke-width:1.5;vector-effect:non-scaling-stroke}
+.cs-marquee-window{fill:#168f80;fill-opacity:.12;stroke:#168f80;stroke-dasharray:5 3}
+.cs-marquee-crossing{fill:#1676d2;fill-opacity:.13;stroke:#1676d2;stroke-dasharray:2 2}
+
+/* Electrical pin metadata in component properties */
+.cs-property-section-title{display:block;margin:18px 0 4px;font-size:.9rem}
+.cs-pin-type-list{display:grid;gap:7px;margin:8px 0 12px}
+.cs-pin-type-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(112px,48%);align-items:center;gap:10px;font-size:.82rem}
+.cs-pin-type-row span{overflow-wrap:anywhere}
+.cs-pin-type-row select{width:100%;min-width:0;padding:7px 8px;border:1px solid var(--cs-border);border-radius:7px;background:var(--cs-panel);color:var(--cs-text);font:inherit;font-size:.8rem}
+
+@media(max-width:760px){.cs-topbar{padding:0 12px;gap:8px}.cs-top-actions{gap:10px}.cs-home-link{font-size:12px}}
+
+/* Independently positioned component reference and value labels */
+.cs-component-label-group{cursor:move;touch-action:none;user-select:none}.cs-component-label-group .cs-editable-label{cursor:move;pointer-events:all}.cs-label-override-active{border-color:var(--cs-accent)!important;background:var(--cs-soft)!important;color:var(--cs-accent)!important}
+
+/* Generous component body hit target for touch and pointer dragging */
+.cs-component-hit{fill:transparent;stroke:none;pointer-events:all;touch-action:none;cursor:move}
+.cs-component-layer [data-component]{touch-action:none;cursor:move}
+
+/* Private named project library */
+.cs-project-dialog{width:min(720px,94vw)}.cs-project-actions{justify-content:flex-start;margin:8px 0 14px}.cs-project-list{display:grid;gap:8px;max-height:55vh;overflow:auto}.cs-project-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px;border:1px solid var(--cs-border);border-radius:10px;background:var(--cs-work)}.cs-project-info{display:grid;gap:4px;min-width:0}.cs-project-info strong{overflow-wrap:anywhere}.cs-project-info small{font-size:11px;color:var(--cs-muted)}.cs-project-row-actions{display:flex;gap:6px;flex-shrink:0}.cs-project-row-actions .cs-btn{padding:6px 10px}@media(max-width:520px){.cs-project-row{align-items:flex-start;flex-direction:column}.cs-project-row-actions{width:100%}.cs-project-row-actions .cs-btn{flex:1}}
+
+#saveCloudProject[hidden],#openCloudProjects[hidden]{display:none!important}
+
+#saveProject[hidden],#importProject[hidden],#exportJson[hidden],#saveCloudProject[hidden],#openCloudProjects[hidden]{display:none!important}
+
+/* Keep grouped admin-only controls hidden until the authorized account is confirmed. */
+.cs-admin-project-tools[hidden]{display:none!important}

@@ -17,22 +17,22 @@ let upgradeRowCounter = 0;
 function variantRowHTML(rowId, v = {}) {
   return `
     <div class="variant-row bg-white border border-gray-200 rounded-xl p-3" data-row-id="${rowId}">
-      <input type="hidden" id="v${rowId}_stableId" value="${escapeHtml(v.id || '')}">
       <div class="grid grid-cols-2 gap-2 mb-2">
-        <input id="v${rowId}_color" placeholder="Variant / Flavour (e.g. Original, Blue)" value="${escapeHtml(v.color || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
-        <input id="v${rowId}_processor" placeholder="Unit / Type (e.g. Bottle, Sachet, Piece)" value="${escapeHtml(v.processor || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
+        <input id="v${rowId}_color" placeholder="Color" value="${escapeHtml(v.color || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
+        <input id="v${rowId}_processor" placeholder="Processor" value="${escapeHtml(v.processor || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
       </div>
       <div class="grid grid-cols-2 gap-2 mb-2">
-        <input id="v${rowId}_ram" placeholder="Size / Weight (e.g. 500g, 1L)" value="${escapeHtml(v.ram || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
-        <input id="v${rowId}_rom" placeholder="Pack / Carton (e.g. Pack of 6)" value="${escapeHtml(v.rom || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
+        <input id="v${rowId}_ram" placeholder="RAM (e.g. 16GB)" value="${escapeHtml(v.ram || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
+        <input id="v${rowId}_rom" placeholder="Storage (e.g. 512GB)" value="${escapeHtml(v.rom || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
       </div>
       <div class="grid grid-cols-2 gap-2 mb-2">
         <input id="v${rowId}_price" type="number" placeholder="Price (₦)" value="${v.price || ''}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
         <input id="v${rowId}_promo" type="number" placeholder="Promo price" value="${v.promoPrice || ''}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
       </div>
       <div class="flex gap-2 mb-2">
-        <input id="v${rowId}_image" placeholder="Image URL" value="${escapeHtml(v.image || '')}" class="flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
+        <input id="v${rowId}_image" placeholder="Image URL" value="${escapeHtml(v.image || '')}" class="flex-1 min-w-0 p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
         <button type="button" onclick="openImagePicker('products','v${rowId}_image')" class="bg-gray-100 text-gray-700 px-3 rounded-lg font-bold text-[10px] whitespace-nowrap">Browse</button>
+        <button type="button" data-media-pick="v${rowId}_image" data-media-multiple="false" class="bg-teal-50 text-teal-700 px-3 rounded-lg font-bold text-[10px] whitespace-nowrap">ImageKit</button>
       </div>
       <img id="v${rowId}_preview" class="${v.image ? '' : 'hidden'} mb-2 h-12 rounded-lg object-cover border border-gray-200" src="${v.image ? escapeHtml(v.image.startsWith('http') ? v.image : '../' + v.image) : ''}">
       <div class="mb-2">
@@ -72,8 +72,7 @@ function variantRowHTML(rowId, v = {}) {
 function upgradeRowHTML(rowId, u = {}) {
   return `
     <div class="upgrade-row bg-white border border-gray-200 rounded-xl p-3 flex gap-2 items-center" data-row-id="${rowId}">
-      <input type="hidden" id="u${rowId}_stableId" value="${escapeHtml(u.id || '')}">
-      <input id="u${rowId}_name" placeholder="Add-on name (e.g. Gift wrap)" value="${escapeHtml(u.name || '')}" class="flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
+      <input id="u${rowId}_name" placeholder="Upgrade name (e.g. RAM upgrade to 16GB)" value="${escapeHtml(u.name || '')}" class="flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
       <input id="u${rowId}_price" type="number" placeholder="+₦" value="${u.price || ''}" class="w-24 p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
       <button type="button" class="remove-upgrade-btn text-red-500 text-[11px] font-bold" data-row-id="${rowId}">Remove</button>
     </div>`;
@@ -112,11 +111,8 @@ function collectVariants() {
     const deliveryFeeRaw = document.getElementById(`v${rowId}_deliveryFee`).value.trim();
     const bulkEnabled = document.getElementById(`v${rowId}_bulkEnabled`).checked;
     const bulkModeOwn = document.querySelector(`input[name="v${rowId}_bulkMode"][value="own"]`).checked;
-    const stableIdInput = document.getElementById(`v${rowId}_stableId`);
-    const stableId = stableIdInput.value.trim() || `variant_${crypto.randomUUID()}`;
-    stableIdInput.value = stableId;
     return {
-      id: stableId,
+      id: 'v' + Date.now() + '_' + rowId,
       color: document.getElementById(`v${rowId}_color`).value.trim(),
       processor: document.getElementById(`v${rowId}_processor`).value.trim(),
       ram: document.getElementById(`v${rowId}_ram`).value.trim(),
@@ -138,11 +134,8 @@ function collectVariants() {
 function collectUpgrades() {
   return [...document.querySelectorAll('.upgrade-row')].map(row => {
     const rowId = row.dataset.rowId;
-    const stableIdInput = document.getElementById(`u${rowId}_stableId`);
-    const stableId = stableIdInput.value.trim() || `upgrade_${crypto.randomUUID()}`;
-    stableIdInput.value = stableId;
     return {
-      id: stableId,
+      id: 'u' + Date.now() + '_' + rowId,
       name: document.getElementById(`u${rowId}_name`).value.trim(),
       price: parseInt(document.getElementById(`u${rowId}_price`).value, 10) || 0
     };
@@ -180,13 +173,8 @@ function editProduct(id) {
 }
 
 async function removeProduct(id) {
-  if (!confirm('Delete this product? This cannot be undone. Existing order records will remain.')) return;
-  try {
-    await deleteProduct(id);
-    selectedProductIds.delete(id);
-  } catch (error) {
-    alert('Could not delete product: ' + error.message);
-  }
+  if (!confirm('Delete this product? This cannot be undone.')) return;
+  await deleteProduct(id);
 }
 
 async function bulkDeleteSelectedProducts() {
@@ -203,9 +191,9 @@ async function bulkDeleteSelectedProducts() {
     alert('Bulk deletion cancelled. No products were deleted.');
     return;
   }
-
   const button = document.getElementById('bulkDeleteProducts');
   button.disabled = true;
+  button.textContent = 'Deleting...';
   let deleted = 0;
   const failed = [];
   try {
@@ -214,91 +202,38 @@ async function bulkDeleteSelectedProducts() {
         await deleteProduct(id);
         selectedProductIds.delete(id);
         deleted++;
-      } catch (error) {
-        console.error('Failed to delete product', id, error);
+      } catch (err) {
+        console.error('Failed to delete product', id, err);
         failed.push(id);
       }
     }
-    alert(deleted + ' product(s) deleted.' + (failed.length ? ' ' + failed.length + ' failed; those products remain selected.' : ''));
+    alert(deleted + ' product(s) deleted.' + (failed.length ? ' ' + failed.length + ' failed; check the console and try again.' : ''));
   } finally {
-    button.disabled = false;
-    renderProductList();
-  }
-}
-
-function productUpdatePayload(product, visible) {
-  const variantFields = ['id', 'color', 'processor', 'ram', 'rom', 'price', 'promoPrice', 'image', 'deliveryFee', 'deliveryRoute', 'bulkSavingsEnabled', 'bulkSavingsMode', 'bulkSavingsPercent', 'bulkSavingsMinQty', 'inStock'];
-  const upgradeFields = ['id', 'name', 'price'];
-  return {
-    name: product.name || '',
-    brand: product.brand || '',
-    category: product.category || '',
-    desc: product.desc || '',
-    inStock: visible,
-    variants: (Array.isArray(product.variants) ? product.variants : []).map(variant =>
-      Object.fromEntries(variantFields.filter(key => Object.prototype.hasOwnProperty.call(variant, key)).map(key => [key, variant[key]]))
-    ),
-    upgrades: (Array.isArray(product.upgrades) ? product.upgrades : []).map(upgrade =>
-      Object.fromEntries(upgradeFields.filter(key => Object.prototype.hasOwnProperty.call(upgrade, key)).map(key => [key, upgrade[key]]))
-    )
-  };
-}
-
-async function bulkSetProductVisibility(visible) {
-  const ids = [...selectedProductIds].filter(id => allProducts.some(product => product.id === id));
-  if (!ids.length) return;
-  const action = visible ? 'show' : 'hide';
-  if (!confirm('Make ' + ids.length + ' selected product(s) ' + (visible ? 'visible' : 'hidden') + ' in the shop?')) return;
-
-  const buttons = ['bulkShowProducts', 'bulkHideProducts', 'bulkDeleteProducts'];
-  buttons.forEach(id => { const button = document.getElementById(id); if (button) button.disabled = true; });
-  let updated = 0;
-  const failed = [];
-  try {
-    for (const id of ids) {
-      const product = allProducts.find(item => item.id === id);
-      if (!product || (product.inStock !== false) === visible) {
-        selectedProductIds.delete(id);
-        continue;
-      }
-      try {
-        await updateProduct(id, productUpdatePayload(product, visible));
-        selectedProductIds.delete(id);
-        updated++;
-      } catch (error) {
-        console.error('Failed to ' + action + ' product', id, error);
-        failed.push(id);
-      }
-    }
-    alert(updated + ' product(s) ' + (visible ? 'made visible' : 'hidden') + '.' + (failed.length ? ' ' + failed.length + ' failed; those products remain selected.' : ''));
-  } finally {
-    buttons.forEach(id => { const button = document.getElementById(id); if (button) button.disabled = false; });
+    button.textContent = 'Delete selected products';
     renderProductList();
   }
 }
 
 /* ---------------- LIST ---------------- */
 
-function priceRangeLabel(product) {
-  const prices = (product.variants || []).map(variant =>
-    Number(variant.promoPrice) > 0 ? Number(variant.promoPrice) : Number(variant.price)
-  ).filter(price => Number.isFinite(price) && price > 0);
-  if (!prices.length) return '—';
+function priceRangeLabel(p) {
+  const prices = (p.variants || []).map(v => (v.promoPrice > 0 ? v.promoPrice : v.price) || 0).filter(Boolean);
+  if (prices.length === 0) return '—';
   const min = Math.min(...prices), max = Math.max(...prices);
-  return min === max ? '₦' + min.toLocaleString() : '₦' + min.toLocaleString() + ' – ₦' + max.toLocaleString();
+  return min === max ? `₦${min.toLocaleString()}` : `₦${min.toLocaleString()} – ₦${max.toLocaleString()}`;
 }
 
-function productEffectivePrices(product) {
-  return (product.variants || []).map(variant =>
-    Number(variant.promoPrice) > 0 ? Number(variant.promoPrice) : Number(variant.price)
-  ).filter(price => Number.isFinite(price) && price > 0);
+function productEffectivePrices(p) {
+  return (p.variants || [])
+    .map(v => Number(v.promoPrice) > 0 ? Number(v.promoPrice) : Number(v.price))
+    .filter(price => Number.isFinite(price) && price > 0);
 }
 
 function updateProductCategoryOptions() {
   const select = document.getElementById('productCategoryFilter');
   if (!select) return;
   const current = select.value;
-  const categories = [...new Set(allProducts.map(product => (product.category || '').trim()).filter(Boolean))]
+  const categories = [...new Set(allProducts.map(p => (p.category || '').trim()).filter(Boolean))]
     .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
   select.innerHTML = '<option value="">All categories</option>' +
     categories.map(category => '<option value="' + escapeHtml(category) + '">' + escapeHtml(category) + '</option>').join('');
@@ -315,14 +250,15 @@ function renderProductList() {
   const minPrice = minRaw === '' ? null : Number(minRaw);
   const maxPrice = maxRaw === '' ? null : Number(maxRaw);
 
-  const filtered = allProducts.filter(product => {
-    const searchText = [product.name, product.brand, product.category, product.desc].filter(Boolean).join(' ').toLowerCase();
-    const prices = productEffectivePrices(product);
-    const hasAvailableVariant = (product.variants || []).some(variant => variant.inStock !== false);
+  let filtered = allProducts.filter(p => {
+    const searchText = [p.name, p.brand, p.category, p.desc].filter(Boolean).join(' ').toLowerCase();
+    const prices = productEffectivePrices(p);
+    const hasAvailableVariant = (p.variants || []).some(v => v.inStock !== false);
+
     if (term && !searchText.includes(term)) return false;
-    if (category && (product.category || '').trim() !== category) return false;
-    if (visibility === 'visible' && product.inStock === false) return false;
-    if (visibility === 'hidden' && product.inStock !== false) return false;
+    if (category && (p.category || '').trim() !== category) return false;
+    if (visibility === 'visible' && p.inStock === false) return false;
+    if (visibility === 'hidden' && p.inStock !== false) return false;
     if (availability === 'available' && !hasAvailableVariant) return false;
     if (availability === 'unavailable' && hasAvailableVariant) return false;
     if (minPrice !== null && !Number.isFinite(minPrice)) return false;
@@ -343,8 +279,8 @@ function renderProductList() {
       return sort === 'price-asc' ? aPrice - bPrice : bPrice - aPrice;
     }
     if (sort === 'variants-asc' || sort === 'variants-desc') {
-      const difference = (a.variants || []).length - (b.variants || []).length;
-      return sort === 'variants-asc' ? difference : -difference;
+      const countDiff = (a.variants || []).length - (b.variants || []).length;
+      return sort === 'variants-asc' ? countDiff : -countDiff;
     }
     return (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' });
   });
@@ -354,44 +290,37 @@ function renderProductList() {
     : filtered.length + ' of ' + allProducts.length + ' items';
 
   const selectedCount = selectedProductIds.size;
-  const selectedCountEl = document.getElementById('selectedProductCount');
-  if (selectedCountEl) selectedCountEl.textContent = selectedCount + ' selected';
-  const deleteButton = document.getElementById('bulkDeleteProducts');
-  const showButton = document.getElementById('bulkShowProducts');
-  const hideButton = document.getElementById('bulkHideProducts');
-  if (deleteButton) {
-    deleteButton.disabled = selectedCount === 0;
-    deleteButton.textContent = selectedCount ? 'Delete ' + selectedCount + ' selected' : 'Delete selected';
-  }
-  if (showButton) showButton.disabled = selectedCount === 0;
-  if (hideButton) hideButton.disabled = selectedCount === 0;
-
-  const visibleIds = filtered.map(product => product.id);
-  const selectedVisible = visibleIds.filter(id => selectedProductIds.has(id)).length;
+  document.getElementById('selectedProductCount').textContent = selectedCount + ' selected';
+  const bulkButton = document.getElementById('bulkDeleteProducts');
+  bulkButton.disabled = selectedCount === 0;
+  bulkButton.textContent = selectedCount ? 'Delete ' + selectedCount + ' selected product(s)' : 'Delete selected products';
   const selectAll = document.getElementById('selectAllVisibleProducts');
+  const visibleIds = filtered.map(p => p.id);
+  const selectedVisible = visibleIds.filter(id => selectedProductIds.has(id)).length;
   selectAll.checked = visibleIds.length > 0 && selectedVisible === visibleIds.length;
   selectAll.indeterminate = selectedVisible > 0 && selectedVisible < visibleIds.length;
 
-  document.getElementById('productList').innerHTML = filtered.map(product => {
-    const thumb = (product.variants && product.variants[0] && product.variants[0].image) || 'assets/pictures/placeholder.svg';
-    const variantCount = (product.variants || []).length;
+  document.getElementById('productList').innerHTML = filtered.map(p => {
+    const thumb = (p.variants && p.variants[0] && p.variants[0].image) || 'assets/pictures/placeholder.svg';
+    const variantCount = (p.variants || []).length;
     return '<div class="bg-white p-4 rounded-2xl border border-gray-100 flex items-center gap-3 shadow-sm">' +
-      '<input type="checkbox" data-select-product="' + escapeHtml(product.id) + '" aria-label="Select ' + escapeHtml(product.name || 'product') + '" class="w-5 h-5 flex-shrink-0 accent-red-600" ' + (selectedProductIds.has(product.id) ? 'checked' : '') + '>' +
+      '<input type="checkbox" data-select-product="' + escapeHtml(p.id) + '" aria-label="Select ' + escapeHtml(p.name) + '" class="w-5 h-5 flex-shrink-0 accent-red-600" ' + (selectedProductIds.has(p.id) ? 'checked' : '') + '>' +
       '<img src="' + (thumb.startsWith('http') ? escapeHtml(thumb) : escapeHtml('../' + thumb)) + '" class="w-12 h-12 rounded-lg object-cover bg-gray-100">' +
       '<div class="flex-grow min-w-0">' +
-      '<h4 class="font-bold text-xs text-gray-800 leading-tight truncate">' + escapeHtml(product.name || 'Unnamed product') + '</h4>' +
-      '<p class="text-[10px] text-gray-400 font-bold uppercase">' + (product.brand ? escapeHtml(product.brand) + ' · ' : '') + escapeHtml(product.category || '') + ' · ' + priceRangeLabel(product) +
-      (product.inStock === false ? '<span class="text-red-400"> · HIDDEN</span>' : '') + '</p>' +
-      '<p class="text-[10px] text-gray-400">' + variantCount + ' variant' + (variantCount === 1 ? '' : 's') + '</p>' +
-      '<p class="text-[9px] text-gray-300 font-mono select-all">ID: ' + escapeHtml(product.id) + '</p></div>' +
+      '<h4 class="font-bold text-xs text-gray-800 leading-tight truncate">' + escapeHtml(p.name) + '</h4>' +
+      '<p class="text-[10px] text-gray-400 font-bold uppercase">' + (p.brand ? escapeHtml(p.brand) + ' · ' : '') + escapeHtml(p.category || '') + ' · ' + priceRangeLabel(p) +
+      (p.inStock === false ? '<span class="text-red-400">· HIDDEN</span>' : '') + '</p>' +
+      '<p class="text-[10px] text-gray-400">' + variantCount + ' variant' + (variantCount === 1 ? '' : 's') +
+      ((p.upgrades || []).length ? ' · ' + p.upgrades.length + ' upgrade option' + (p.upgrades.length === 1 ? '' : 's') : '') + '</p>' +
+      '<p class="text-[9px] text-gray-300 font-mono select-all">ID: ' + escapeHtml(p.id) + '</p></div>' +
       '<div class="flex flex-col gap-1 flex-shrink-0">' +
-      '<button data-edit="' + escapeHtml(product.id) + '" class="text-[10px] bg-gray-100 hover:bg-black hover:text-white px-3 py-1 rounded-md font-bold transition-all">EDIT</button>' +
-      '<button data-del="' + escapeHtml(product.id) + '" class="text-[10px] bg-red-50 text-red-600 hover:bg-red-600 hover:text-white px-3 py-1 rounded-md font-bold transition-all">DEL</button>' +
+      '<button data-edit="' + escapeHtml(p.id) + '" class="text-[10px] bg-gray-100 hover:bg-black hover:text-white px-3 py-1 rounded-md font-bold transition-all">EDIT</button>' +
+      '<button data-del="' + escapeHtml(p.id) + '" class="text-[10px] bg-red-50 text-red-600 hover:bg-red-600 hover:text-white px-3 py-1 rounded-md font-bold transition-all">DEL</button>' +
       '</div></div>';
   }).join('') || '<p class="text-center text-gray-400 text-sm py-10">No products match these search and filter settings.</p>';
 
-  document.querySelectorAll('[data-edit]').forEach(button => button.addEventListener('click', () => editProduct(button.dataset.edit)));
-  document.querySelectorAll('[data-del]').forEach(button => button.addEventListener('click', () => removeProduct(button.dataset.del)));
+  document.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => editProduct(b.dataset.edit)));
+  document.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => removeProduct(b.dataset.del)));
   document.querySelectorAll('[data-select-product]').forEach(input => {
     input.addEventListener('change', () => {
       if (input.checked) selectedProductIds.add(input.dataset.selectProduct);
@@ -446,7 +375,7 @@ function exportProductsToExcel() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(productRows), 'Products');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(upgradeRows), 'Upgrades');
-  XLSX.writeFile(wb, `tejuboss-products-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  XLSX.writeFile(wb, `eazylife-products-${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
 function showImportStatus(text) {
@@ -623,6 +552,7 @@ export function initProducts() {
   });
 
   document.getElementById('resetFormBtn').addEventListener('click', resetForm);
+  updateProductCategoryOptions();
   ['productSearch', 'productSort', 'productCategoryFilter', 'productVisibilityFilter', 'productAvailabilityFilter', 'productMinPrice', 'productMaxPrice']
     .forEach(id => document.getElementById(id)?.addEventListener('input', renderProductList));
   ['productSort', 'productCategoryFilter', 'productVisibilityFilter', 'productAvailabilityFilter']
@@ -637,9 +567,9 @@ export function initProducts() {
     document.getElementById('productMaxPrice').value = '';
     renderProductList();
   });
-  document.getElementById('selectAllVisibleProducts').addEventListener('change', event => {
+  document.getElementById('selectAllVisibleProducts').addEventListener('change', (e) => {
     document.querySelectorAll('[data-select-product]').forEach(input => {
-      if (event.target.checked) selectedProductIds.add(input.dataset.selectProduct);
+      if (e.target.checked) selectedProductIds.add(input.dataset.selectProduct);
       else selectedProductIds.delete(input.dataset.selectProduct);
     });
     renderProductList();
@@ -649,17 +579,12 @@ export function initProducts() {
     renderProductList();
   });
   document.getElementById('bulkDeleteProducts').addEventListener('click', bulkDeleteSelectedProducts);
-  document.getElementById('bulkShowProducts').addEventListener('click', () => bulkSetProductVisibility(true));
-  document.getElementById('bulkHideProducts').addEventListener('click', () => bulkSetProductVisibility(false));
   document.getElementById('exportExcelBtn').addEventListener('click', exportProductsToExcel);
   document.getElementById('importExcelInput').addEventListener('change', handleImportFile);
-  updateProductCategoryOptions();
 }
 
 export function renderProducts(products) {
   allProducts = products;
-  const existingIds = new Set(products.map(product => product.id));
-  selectedProductIds.forEach(id => { if (!existingIds.has(id)) selectedProductIds.delete(id); });
   updateProductCategoryOptions();
   renderProductList();
 }

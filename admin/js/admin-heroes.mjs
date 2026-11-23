@@ -28,7 +28,12 @@ function updateHeroLinkTypeVisibility() {
   const type = hLinkTypeEl.value;
   hLinkValueCategoryEl.classList.toggle('hidden', type !== 'category');
   hLinkValueProductEl.classList.toggle('hidden', type !== 'product');
-  hLinkValueUrlEl.classList.toggle('hidden', type !== 'url');
+  hLinkValueUrlEl.classList.toggle('hidden', !['url', 'section', 'whatsapp'].includes(type));
+  hLinkValueUrlEl.placeholder = type === 'whatsapp'
+    ? 'WhatsApp message to prefill (e.g. I want to discuss a project)'
+    : type === 'section'
+      ? 'Page URL or section anchor (e.g. #services or projects.html)'
+      : 'https://...';
 }
 
 function getHeroLinkValue() {
@@ -53,11 +58,12 @@ function editHero(id) {
   document.getElementById('hTitle').value = h.title || '';
   document.getElementById('hSubtitle').value = h.subtitle || '';
   document.getElementById('hImage').value = h.image || '';
+  document.getElementById('hImage').dispatchEvent(new Event('input', { bubbles: true }));
   document.getElementById('hCtaText').value = h.ctaText || '';
   hLinkTypeEl.value = h.linkType || 'category';
   updateHeroLinkTypeVisibility();
   if (h.linkType === 'product') hLinkValueProductEl.value = h.linkValue || '';
-  else if (h.linkType === 'url') hLinkValueUrlEl.value = h.linkValue || '';
+  else if (['url', 'section', 'whatsapp'].includes(h.linkType)) hLinkValueUrlEl.value = h.linkValue || '';
   else hLinkValueCategoryEl.value = h.linkValue || '';
   document.getElementById('hOrder').value = h.order ?? 0;
   document.getElementById('heroFormTitle').textContent = 'Editing: ' + h.title;
@@ -132,6 +138,8 @@ export function renderHeroes(heroes) {
 // Called whenever the product list changes, since the hero form's "link to
 // category" / "link to product" dropdowns are built from it.
 export function setProductsForHeroLinks(products) {
-  allProducts = products;
+  // Keep legacy phone records available in admin, but do not offer discontinued
+  // phone categories/products as destinations for public homepage promotions.
+  allProducts = products.filter(p => !/phone|mobile/i.test(String(p.category || '') + ' ' + String(p.name || '')));
   refreshHeroLinkOptions();
 }
