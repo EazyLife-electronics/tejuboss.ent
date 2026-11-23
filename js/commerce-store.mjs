@@ -139,6 +139,7 @@ export async function submitGuestOrderRequest(input) {
     transaction.set(orderRef, {
       schemaVersion: 1,
       orderId: orderRef.id,
+      trackingToken,
       status: "awaiting_review",
       customer: {
         name,
@@ -190,7 +191,7 @@ export async function setOrderReviewDecision(orderId, decision, verification = {
   if (!orderSnap.exists()) throw new Error("Order not found.");
   const order = orderSnap.data();
   if (order.status !== "awaiting_review") throw new Error("Only orders awaiting review can be decided.");
-  const trackingToken = cleanText(verification.trackingToken, 64);
+  const trackingToken = cleanText(order.trackingToken, 64);
   const patch = {
     status: decision,
     quoteStatus: "staff_verified",
