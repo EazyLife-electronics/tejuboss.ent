@@ -59,14 +59,6 @@ function addVariantRow(data) {
   document.querySelector(`.remove-variant-btn[data-row-id="${rowId}"]`).addEventListener('click', () => {
     document.querySelector(`.variant-row[data-row-id="${rowId}"]`).remove();
   });
-  document.getElementById(`v${rowId}_bulkEnabled`).addEventListener('change', (e) => {
-    document.getElementById(`v${rowId}_bulkFields`).classList.toggle('hidden', !e.target.checked);
-  });
-  document.querySelectorAll(`input[name="v${rowId}_bulkMode"]`).forEach(radio => {
-    radio.addEventListener('change', () => {
-      document.getElementById(`v${rowId}_bulkOwnFields`).classList.toggle('hidden', radio.value !== 'own' || !radio.checked);
-    });
-  });
 }
 
 function addUpgradeRow(data) {
