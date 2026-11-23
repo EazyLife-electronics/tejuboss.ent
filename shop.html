@@ -1531,9 +1531,43 @@
         submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Placing order...`;
 
         const totals = cartTotals(checkoutSnapshot);
+        const orderInput = {
+            items: checkoutSnapshot.map(i => ({
+                productId: i.productId,
+                variantId: i.variantId,
+                name: i.productName,
+                variant: i.variantLabel,
+                upgrades: i.upgradeNames,
+                price: i.unitPrice,
+                quantity: i.quantity
+            })),
+            customerName: name,
+            phone,
+            address: addr,
+            subtotal: totals.subtotal,
+            deliveryFee: totals.deliveryFee,
+            total: totals.total
+        };
+        const fingerprint = JSON.stringify(orderInput);
+        let pendingAttempt;
+        try {
+            pendingAttempt = JSON.parse(localStorage.getItem("tejuboss_pending_checkout") || "null");
+        } catch (_) { pendingAttempt = null; }
+        if (!pendingAttempt || pendingAttempt.fingerprint !== fingerprint || !/^[a-f0-9]{32}$/.test(pendingAttempt.key || "")) {
+            const bytes = new Uint8Array(16);
+            crypto.getRandomValues(bytes);
+            pendingAttempt = {
+                fingerprint,
+                key: [...bytes].map(value => value.toString(16).padStart(2, "0")).join("")
+            };
+            localStorage.setItem("tejuboss_pending_checkout", JSON.stringify(pendingAttempt));
+        }
 
         try {
             const trackingCode = await placeOrder({
+                ...orderInput,
+                idempotencyKey: pendingAttempt.key
+            });
                 items: checkoutSnapshot.map(i => ({
                     productId: i.productId,
                     variantId: i.variantId,
@@ -1550,6 +1584,10 @@
                 deliveryFee: totals.deliveryFee,
                 total: totals.total
             });
+
+            // The tracking token is also the retry key. Clear it only after the
+            // original request is confirmed, so a network retry cannot duplicate an order.
+            localStorage.removeItem("tejuboss_pending_checkout");
 
             // Remember this order on this device — powers the "My Orders" list on track.html,
             // no login involved, purely local convenience.
@@ -1581,7 +1619,7 @@
             document.getElementById("confirmStep").classList.remove("hidden");
         } catch (e) {
             console.error(e);
-            alert("Something went wrong placing your order. Please try again or message us on WhatsApp.");
+            alert("We could not confirm the submission. Your checkout reference has been kept, so you can safely retry without creating a duplicate order.");
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = `<i class="fas fa-check-circle"></i> Place Order`;
