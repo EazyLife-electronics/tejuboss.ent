@@ -145,13 +145,13 @@ test("only configured administrator can manage catalogue, orders and settings", 
   const admin = env.authenticatedContext("admin-uid", adminClaims).firestore();
   const other = env.authenticatedContext("other-uid", { email: "someone@example.com", email_verified: true }).firestore();
   await assertSucceeds(getDoc(doc(admin, "catalogueProducts", "draft-item")));
+  await assertFails(getDoc(doc(other, "catalogueProducts", "draft-item")));
+  await assertFails(getDoc(doc(other, "orders", "existing-private-order")));
+  await assertFails(updateDoc(doc(other, "catalogueProducts", "published-item"), { published: false }));
   await assertSucceeds(updateDoc(doc(admin, "catalogueProducts", "draft-item"), { published: true }));
   await assertSucceeds(getDoc(doc(admin, "orders", "existing-private-order")));
   await assertSucceeds(updateDoc(doc(admin, "orders", "existing-private-order"), { status: "approved" }));
   await assertSucceeds(setDoc(doc(admin, "siteSettings", "public"), { tagline: "Updated" }, { merge: true }));
-  await assertFails(getDoc(doc(other, "catalogueProducts", "draft-item")));
-  await assertFails(getDoc(doc(other, "orders", "existing-private-order")));
-  await assertFails(updateDoc(doc(other, "catalogueProducts", "published-item"), { published: false }));
 });
 
 test("inventory is administrator-only and movement history is immutable", async () => {
