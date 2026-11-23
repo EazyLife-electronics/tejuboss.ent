@@ -5,7 +5,7 @@
 import { initFirebase } from "./firebase.mjs";
 import {
   collection, doc, getDoc, getDocs, query, where, orderBy, limit,
-  setDoc, updateDoc, deleteDoc, serverTimestamp, runTransaction
+  setDoc, updateDoc, deleteDoc, serverTimestamp, runTransaction, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const { db, auth } = initFirebase();
@@ -137,8 +137,8 @@ export async function submitGuestOrderRequest(input) {
     state: cleanText(input.state, 100),
     note: cleanText(input.deliveryNote, 500)
   };
-  await runTransaction(db, async transaction => {
-    transaction.set(orderRef, {
+  const batch = writeBatch(db);
+  batch.set(orderRef, {
       schemaVersion: 1,
       orderId: orderRef.id,
       trackingToken,
@@ -160,13 +160,13 @@ export async function submitGuestOrderRequest(input) {
       createdAt: now,
       updatedAt: now
     });
-    transaction.set(doc(db, "orderTracking", trackingToken), {
-      orderId: orderRef.id,
-      status: "submitted",
-      createdAt: now,
-      updatedAt: now
-    });
+  batch.set(doc(db, "orderTracking", trackingToken), {
+    orderId: orderRef.id,
+    status: "submitted",
+    createdAt: now,
+    updatedAt: now
   });
+  await batch.commit();
   return trackingToken;
 }
 
@@ -189,30 +189,35 @@ export async function setOrderReviewDecision(orderId, decision, verification = {
   requireAdmin();
   if (!["approved", "rejected"].includes(decision)) throw new Error("Invalid order decision.");
   const orderRef = doc(db, "orders", orderId);
-  const orderSnap = await getDoc(orderRef);
-  if (!orderSnap.exists()) throw new Error("Order not found.");
-  const order = orderSnap.data();
-  if (order.status !== "awaiting_review") throw new Error("Only orders awaiting review can be decided.");
-  const trackingToken = cleanText(order.trackingToken, 64);
-  const patch = {
-    status: decision,
-    quoteStatus: "staff_verified",
-    staffVerification: {
-      acceptedTotalMinor: decision === "approved" ? toMinor(verification.acceptedTotal) : null,
-      note: cleanText(verification.note, 1000),
-      verifiedBy: auth.currentUser.uid,
-      verifiedAt: serverTimestamp()
-    },
-    updatedAt: serverTimestamp()
-  };
-  await updateDoc(orderRef, patch);
-  if (trackingToken && /^[a-f0-9]{32}$/.test(trackingToken)) {
-    await updateDoc(doc(db, "orderTracking", trackingToken), {
+  return runTransaction(db, async transaction => {
+    const orderSnap = await transaction.get(orderRef);
+    if (!orderSnap.exists()) throw new Error("Order not found.");
+    const order = orderSnap.data();
+    if (order.status !== "awaiting_review") throw new Error("Only orders awaiting review can be decided.");
+    const trackingToken = cleanText(order.trackingToken, 64);
+    const trackingRef = /^[a-f0-9]{32}$/.test(trackingToken)
+      ? doc(db, "orderTracking", trackingToken)
+      : null;
+    const trackingSnap = trackingRef ? await transaction.get(trackingRef) : null;
+    if (!trackingSnap?.exists()) throw new Error("The public tracking record is missing; no decision was saved.");
+    const patch = {
+      status: decision,
+      quoteStatus: "staff_verified",
+      staffVerification: {
+        acceptedTotalMinor: decision === "approved" ? toMinor(verification.acceptedTotal) : null,
+        note: cleanText(verification.note, 1000),
+        verifiedBy: auth.currentUser.uid,
+        verifiedAt: serverTimestamp()
+      },
+      updatedAt: serverTimestamp()
+    };
+    transaction.update(orderRef, patch);
+    transaction.update(trackingRef, {
       status: decision,
       updatedAt: serverTimestamp()
     });
-  }
-  return { id: orderId, status: decision };
+    return { id: orderId, status: decision };
+  });
 }
 
 // Explicitly separate staff stock movements from order submission/review.
