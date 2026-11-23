@@ -165,8 +165,12 @@ export async function submitGuestOrderRequest(input) {
   }
 
   const subtotalMinor = toMinor(input.subtotal);
+  const discountMinor = toMinor(input.discount || 0);
   const deliveryFeeMinor = toMinor(input.deliveryFee);
   const grandTotalMinor = toMinor(input.total);
+  if (discountMinor > subtotalMinor || grandTotalMinor !== subtotalMinor - discountMinor + deliveryFeeMinor) {
+    throw new Error("Checkout totals do not balance. Refresh your cart and try again.");
+  }
   // Reuse a caller-persisted 128-bit key so a retry after a lost network
   // response resolves to the original request instead of creating a duplicate.
   const idempotencyKey = cleanText(input.idempotencyKey, 32).toLowerCase();
@@ -205,6 +209,7 @@ export async function submitGuestOrderRequest(input) {
       quote: {
         currency: "NGN",
         subtotalMinor,
+        discountMinor,
         deliveryFeeMinor,
         grandTotalMinor
       },
