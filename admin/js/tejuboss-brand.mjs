@@ -6,7 +6,7 @@
 // EazyLife-branded is ever shown to a Teju Boss customer or admin.
 
 const BRAND = {
-  shortName: 'Teju Boss',
+  shortName: 'Tejuboss',
   accent: '#DC2626',
   accentDark: '#B91C1C'
 };
