@@ -8,7 +8,7 @@ import {
 } from "@firebase/rules-unit-testing";
 import {
   collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc,
-  serverTimestamp, writeBatch
+  serverTimestamp, writeBatch, runTransaction
 } from "firebase/firestore";
 
 const projectId = "tejuboss-commerce-rules-test";
@@ -164,6 +164,41 @@ test("inventory is administrator-only and movement history is immutable", async 
   await assertFails(deleteDoc(doc(admin, "inventoryMovements", "opening")));
   await assertFails(getDoc(doc(visitor, "inventoryBalances", "rice__bag__main")));
   await assertFails(getDoc(doc(visitor, "inventoryMovements", "opening")));
+});
+
+test("administrator order review updates private order and public tracking atomically", async () => {
+  const db = env.authenticatedContext("admin-uid", adminClaims).firestore();
+  const orderRef = doc(db, "orders", "existing-private-order");
+  const trackingRef = doc(db, "orderTracking", "a".repeat(32));
+  await runTransaction(db, async tx => {
+    const order = await tx.get(orderRef);
+    const tracking = await tx.get(trackingRef);
+    assert.equal(order.data().status, "awaiting_review");
+    assert.equal(tracking.data().status, "submitted");
+    tx.update(orderRef, { status: "approved", quoteStatus: "staff_verified" });
+    tx.update(trackingRef, { status: "approved" });
+  });
+  assert.equal((await getDoc(orderRef)).data().status, "approved");
+  assert.equal((await getDoc(trackingRef)).data().status, "approved");
+});
+
+test("administrator inventory movement writes balance and immutable ledger together", async () => {
+  const db = env.authenticatedContext("admin-uid", adminClaims).firestore();
+  const balanceRef = doc(db, "inventoryBalances", "rice__bag__main");
+  const movementRef = doc(collection(db, "inventoryMovements"));
+  await runTransaction(db, async tx => {
+    const balance = await tx.get(balanceRef);
+    const next = balance.data().quantityOnHand - 2;
+    assert.ok(next >= 0);
+    tx.update(balanceRef, { quantityOnHand: next });
+    tx.set(movementRef, {
+      productId: "published-item", sellingOptionId: "bag-5kg", locationId: "main",
+      quantityDelta: -2, movementType: "issue", reason: "Test issue"
+    });
+  });
+  assert.equal((await getDoc(balanceRef)).data().quantityOnHand, 10);
+  assert.equal((await getDoc(movementRef)).data().quantityDelta, -2);
+  await assertFails(updateDoc(movementRef, { quantityDelta: 500 }));
 });
 
 test("unlisted legacy collections remain closed by default", async () => {
