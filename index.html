@@ -373,19 +373,19 @@
           <div class="service-icon"><i class="fas fa-boxes-stacked"></i></div>
           <h3>Bulk &amp; Wholesale Orders</h3>
           <p>Stocking a shop or buying for a large household? Ask about carton and pack pricing on your favourite items.</p>
-          <a href="https://wa.me/2347079557886?text=Hello%20Teju%20Boss,%20I%20want%20to%20place%20a%20bulk%2Fwholesale%20order." target="_blank" class="service-link">Ask about bulk pricing <i class="fas fa-arrow-right"></i></a>
+          <a href="https://wa.me/2347079557886?text=Hello%20Tejuboss,%20I%20want%20to%20place%20a%20bulk%2Fwholesale%20order." target="_blank" class="service-link">Ask about bulk pricing <i class="fas fa-arrow-right"></i></a>
         </div>
         <div class="service-card">
           <div class="service-icon"><i class="fas fa-magnifying-glass-dollar"></i></div>
           <h3>Can't Find It?</h3>
           <p>Don't see the exact item or brand you want? Tell us what you're looking for and we'll try to source it for you.</p>
-          <a href="https://wa.me/2347079557886?text=Hello%20Teju%20Boss,%20I%20am%20looking%20for%20an%20item%20I%20can't%20find%20in%20the%20shop." target="_blank" class="service-link">Make a request <i class="fas fa-arrow-right"></i></a>
+          <a href="https://wa.me/2347079557886?text=Hello%20Tejuboss,%20I%20am%20looking%20for%20an%20item%20I%20can't%20find%20in%20the%20shop." target="_blank" class="service-link">Make a request <i class="fas fa-arrow-right"></i></a>
         </div>
         <div class="service-card">
           <div class="service-icon"><i class="fas fa-truck-fast"></i></div>
           <h3>Fast WhatsApp Ordering &amp; Delivery</h3>
           <p>Order directly on WhatsApp, track your order, and get it delivered to your door — no app download needed.</p>
-          <a href="https://wa.me/2347079557886?text=Hello%20Teju%20Boss,%20I%20am%20interested%20in%20your%20products." target="_blank" class="service-link">Chat with us <i class="fas fa-arrow-right"></i></a>
+          <a href="https://wa.me/2347079557886?text=Hello%20Tejuboss,%20I%20am%20interested%20in%20your%20products." target="_blank" class="service-link">Chat with us <i class="fas fa-arrow-right"></i></a>
         </div>
       </div>
     </div>
@@ -437,16 +437,13 @@
       <div>
         <h3 class="follow-heading" style="font-size:1rem;font-weight:700;margin-bottom:16px;">Follow Us Online</h3>
         <div class="social-cards">
-          <a href="https://wa.me/2347079557886?text=Hello%20Teju%20Boss,%20I%20am%20interested%20in%20your%20products." target="_blank" rel="noopener" class="social-card sc-wa">
+          <a href="https://wa.me/2347079557886?text=Hello%20Tejuboss,%20I%20am%20interested%20in%20your%20products." target="_blank" rel="noopener" class="social-card sc-wa">
             <div class="social-card-left"><div class="social-card-icon"><i class="fab fa-whatsapp"></i></div><div><h4>WhatsApp</h4><p>Chat with us directly</p></div></div>
             <i class="fas fa-arrow-right"></i>
           </a>
 
 
-          <a href="[MAPS_URL]" target="_blank" rel="noopener" class="social-card sc-gm">
-            <div class="social-card-left"><div class="social-card-icon"><i class="fas fa-map-marker-alt"></i></div><div><h4>Google Maps</h4><p>[Address], [City]</p></div></div>
-            <i class="fas fa-arrow-right"></i>
-          </a>
+
         </div>
       </div>
     </div>
@@ -500,55 +497,6 @@
       });
     }
 
-    // Direct Firestore write (shows in admin Reviews tab instantly, unapproved) is the
-    // primary path — it's what actually makes the review usable. Formspree is only a
-    // best-effort email courtesy copy and must never block success or trigger the error
-    // alert on its own; a review that saved to Firestore is a successful submission.
-    //
-    // NOTE: this Formspree form ID (xzdozlbk) still belongs to the original EazyLife
-    // account/domain. Create your own form at formspree.io and swap the ID below —
-    // until then this line will keep failing silently (by design) and no email copy
-    // will be sent, but the review still saves correctly to Firestore either way.
-    document.getElementById('reviewForm').addEventListener('submit', async function (e) {
-      e.preventDefault();
-      const form = e.target;
-      const btn = document.getElementById('reviewSubmitBtn');
-      if (btn.disabled) return; // guard against double-clicks firing a second submit mid-flight
-      const originalBtnHtml = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-
-      const data = new FormData(form);
-      let savedToFirestore = false;
-      try {
-        const { addReview } = await import('./js/store.mjs');
-        await addReview({
-          name: data.get('name') || '',
-          title: data.get('title') || '',
-          stars: parseInt(data.get('stars'), 10) || 0,
-          text: data.get('review') || '',
-          approved: false
-        });
-        savedToFirestore = true;
-      } catch (fsErr) {
-        console.error('Firestore review save failed:', fsErr);
-      }
-
-      try {
-        await fetch(form.action, { method: 'POST', body: data, headers: { 'Accept': 'application/json' } });
-      } catch (emailErr) {
-        console.warn('Formspree email copy failed (not fatal):', emailErr);
-      }
-
-      if (savedToFirestore) {
-        form.style.display = 'none';
-        document.getElementById('formSuccess').classList.add('show');
-      } else {
-        alert('Something went wrong sending your review. Please try again or message us on WhatsApp.');
-        btn.disabled = false;
-        btn.innerHTML = originalBtnHtml;
-      }
-    });
   </script>
 
   <script type="module">
