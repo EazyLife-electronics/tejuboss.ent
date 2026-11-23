@@ -502,8 +502,8 @@
     import { optimizedImageUrl, responsiveImageAttrs } from './js/image-delivery.mjs';
     import { calcGroupedDeliveryFee, buildDeliveryFeeSummary, resolveDeliveryFee, variantUnitPrice, productPriceRange, productOriginalPriceRange, hasPromo, variantDiscountPercent, productHasPromo, buildPriceSavingsSummary, variantLabel, resolveBulkSavings, calcBulkSavingsForLine, buildBulkSavingsSummary } from './js/pricing.mjs';
 
-    const CKEY = "eazylife_cart_v2";
-    const UKEY = "eazylife_user_v2";
+    const CKEY = "tejuboss_cart_v1";
+    const UKEY = "tejuboss_user_v1";
 
     // Escapes text before it's inserted via innerHTML template strings.
     function escapeHtml(value) {
@@ -1605,7 +1605,7 @@
             document.getElementById('trackLink').href = `track.html?code=${trackingCode}`;
 
             // Build an optional WhatsApp confirmation link (not required — order already saved)
-            let msg = `*EAZYLIFE - NEW ORDER*%0A%0A*Tracking Code:* ${trackingCode}%0A%0A`;
+            let msg = `*TEJUBOSS - NEW ORDER*%0A%0A*Tracking Code:* ${trackingCode}%0A%0A`;
             checkoutSnapshot.forEach(i => {
                 msg += `• ${i.productName} (${i.variantLabel}${i.upgradeNames.length ? ', ' + i.upgradeNames.join(', ') : ''})%0A  Qty: ${i.quantity} | ₦${(i.unitPrice * i.quantity).toLocaleString()}%0A%0A`;
             });
