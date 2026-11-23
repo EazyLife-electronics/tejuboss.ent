@@ -851,7 +851,15 @@
     // pick from the modal: the first in-stock variant, else just the first.
     function getDefaultVariant(p) {
         const variants = p.variants || [];
-        return variants.find(v => v.inStock !== false) || variants[0] || null;
+        return variants.find(v => v.inStock !== false) || null;
+    }
+
+    function findUnavailableCartItems(items) {
+        return items.filter(item => {
+            const product = products.find(p => p.id === item.productId);
+            const option = product && (product.variants || []).find(v => v.id === item.variantId);
+            return !product || product.inStock === false || !option || option.inStock === false;
+        });
     }
 
     // Most attractive bulk-savings offer across a product's variants, for the catalog
@@ -945,6 +953,7 @@
     function openProductModal(productId) {
         const p = products.find(x => x.id === productId);
         if (!p) return;
+        if (!getDefaultVariant(p)) return alert('This product currently has no available options. Please contact us if you need help sourcing it.');
         pmProduct = p;
         pmQty = 1;
         document.getElementById('pmName').textContent = p.name;
@@ -1016,7 +1025,8 @@
     function getSelectedVariant() {
         if (!pmProduct) return null;
         const id = document.getElementById('pmVariant').value;
-        return (pmProduct.variants || []).find(v => v.id === id);
+        const option = (pmProduct.variants || []).find(v => v.id === id);
+        return option && option.inStock !== false ? option : null;
     }
 
     function getSelectedUpgrades() {
@@ -1114,7 +1124,7 @@
 
     function addPmToCart() {
         const v = getSelectedVariant();
-        if (!v) return alert('Please choose an option.');
+        if (!v) return alert('Please choose an available option.');
         const upgrades = getSelectedUpgrades();
         const upgradesTotal = upgrades.reduce((a, u) => a + (u.price || 0), 0);
         const unitBasePrice = variantUnitPrice(v);
@@ -1452,6 +1462,11 @@
     function goToCheckout() {
         const included = includedCartItems();
         if (included.length === 0) return;
+        if (findUnavailableCartItems(included).length) {
+            alert('One or more selected items or options are no longer available. Remove them or choose a currently available option before checkout.');
+            showCart();
+            return;
+        }
         const subtotalNow = cartTotals(included).subtotal;
         if (minOrderValue > 0 && subtotalNow < minOrderValue) {
             return alert(`A minimum order of ₦${minOrderValue.toLocaleString()} is required. Add ₦${(minOrderValue - subtotalNow).toLocaleString()} more to continue.`);
@@ -1520,6 +1535,11 @@
 
     async function submitOrder() {
         if (checkoutSnapshot.length === 0) return;
+        if (findUnavailableCartItems(checkoutSnapshot).length) {
+            alert('One or more selected items or options are no longer available. Please return to your cart and update your order.');
+            backToCart();
+            return;
+        }
 
         const user = JSON.parse(localStorage.getItem(UKEY)) || {};
         const name = user.name || "";
