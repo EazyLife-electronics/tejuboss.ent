@@ -25,7 +25,7 @@ import { initSchoolStem, resetSchoolStem } from './admin-school-stem.mjs';
 
 const { auth } = initFirebase();
 
-const MEDIA_WORKER_URL = 'https://eazylife-media.damzyeazy.workers.dev';
+const MEDIA_WORKER_URL = 'https://tejuboss-media.damzyeazy.workers.dev';
 
 async function checkMediaService(user) {
   const statusEl = document.getElementById('mediaServiceStatus');
@@ -50,7 +50,7 @@ async function checkMediaService(user) {
       throw new Error('Worker returned incomplete upload credentials');
     }
 
-    const filesResponse = await fetch(`${MEDIA_WORKER_URL}/files?path=${encodeURIComponent('/eazylife/projects')}`, {
+    const filesResponse = await fetch(`${MEDIA_WORKER_URL}/files?path=${encodeURIComponent('/tejuboss/products')}`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${idToken}` }
     });
@@ -62,7 +62,7 @@ async function checkMediaService(user) {
     statusEl.textContent = 'Media service connected · library access OK';
     statusEl.className = 'text-[10px] px-2 py-1 rounded-full bg-green-50 text-green-700';
   } catch (error) {
-    console.error('EazyLife media service check failed:', error);
+    console.error('TejuBoss media service check failed:', error);
     statusEl.textContent = 'Media service unavailable';
     statusEl.className = 'text-[10px] px-2 py-1 rounded-full bg-red-50 text-red-700';
   }
@@ -153,7 +153,7 @@ loginButton.addEventListener('click', async () => {
     await signInWithEmailAndPassword(auth, email, password);
     errorEl.textContent = 'Sign-in successful. Opening dashboard…';
   } catch (err) {
-    console.error('EazyLife admin sign-in failed:', err);
+    console.error('TejuBoss admin sign-in failed:', err);
     const messages = {
       'auth/unauthorized-domain': 'This preview domain is not authorized in Firebase Authentication. Add raw.githack.com under Authentication → Settings → Authorized domains.',
       'auth/invalid-credential': 'Email or password is incorrect.',
