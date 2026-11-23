@@ -225,12 +225,17 @@ export async function setOrderReviewDecision(orderId, decision, verification = {
       : null;
     const trackingSnap = trackingRef ? await transaction.get(trackingRef) : null;
     if (!trackingSnap?.exists()) throw new Error("The public tracking record is missing; no decision was saved.");
+    const acceptedTotalMinor = decision === "approved" ? toMinor(verification.acceptedTotal) : null;
+    const verificationNote = cleanText(verification.note, 1000);
+    if (decision === "approved" && acceptedTotalMinor !== Number(order.quote?.grandTotalMinor) && !verificationNote) {
+      throw new Error("Add a staff note explaining the price adjustment before approving.");
+    }
     const patch = {
       status: decision,
       quoteStatus: "staff_verified",
       staffVerification: {
-        acceptedTotalMinor: decision === "approved" ? toMinor(verification.acceptedTotal) : null,
-        note: cleanText(verification.note, 1000),
+        acceptedTotalMinor,
+        note: verificationNote,
         verifiedBy: auth.currentUser.uid,
         verifiedAt: serverTimestamp()
       },
