@@ -86,7 +86,7 @@ async function initialize(id) {
   try {
     await setDoc(doc(db, "inventoryBalances", id), {
       productId: row.product.id, sellingOptionId: row.option.id, locationId: LOCATION_ID,
-      quantityOnHand: quantity, reorderLevel: 0, sku: "", createdAt: serverTimestamp(),
+      quantityOnHand: 0, reorderLevel: 0, sku: "", createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid
     });
     if (quantity > 0) await recordInventoryMovement({ balanceId: id, quantityDelta: quantity, movementType: "opening_balance", reason: "Initial stock setup" });
