@@ -295,10 +295,11 @@ function fromLegacyProduct(product) {
 export async function getProducts() {
   return (await listPublicCatalogue()).map(legacyProductView);
 }
-export async function watchProducts(callback) {
-  const rows = await listAdminCatalogue();
-  callback(rows.map(legacyProductView));
-  return () => {};
+export function watchProducts(callback) {
+  let active = true;
+  listAdminCatalogue().then(rows => { if (active) callback(rows.map(legacyProductView)); })
+    .catch(error => console.error("Could not load catalogue products:", error));
+  return () => { active = false; };
 }
 export async function addProduct(product) {
   const id = await saveCatalogueProduct(fromLegacyProduct(product));
@@ -307,7 +308,8 @@ export async function addProduct(product) {
 export async function updateProduct(id, updates) {
   const existing = (await listAdminCatalogue()).find(item => item.id === id);
   if (!existing) throw new Error("Product not found.");
-  const merged = { ...legacyProductView(existing), ...updates };\n  await saveCatalogueProduct(fromLegacyProduct(merged), id);
+  const merged = { ...legacyProductView(existing), ...updates };
+  await saveCatalogueProduct(fromLegacyProduct(merged), id);
   return { id };
 }
 export async function deleteProduct(id) {
