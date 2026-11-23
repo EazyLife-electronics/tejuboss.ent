@@ -9,9 +9,9 @@ import {
   onAuthStateChanged, signInWithEmailAndPassword, signOut
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
-  watchHeroes, watchReviews, watchRequests, watchOrders
+  watchHeroes, watchReviews, watchRequests
 } from '../../js/store.mjs';
-import { watchProducts } from '../../js/commerce-store.mjs';
+import { watchProducts, watchOrders } from '../../js/commerce-store.mjs';
 
 import { initTabs, initImagePicker } from './admin-shared.mjs';
 import { initProducts, renderProducts } from './admin-products.mjs';
