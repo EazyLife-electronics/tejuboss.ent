@@ -119,6 +119,10 @@ test("guest order validation rejects forged status, extra private fields and mal
     ...validOrder("guest-order-0000000005", "1".repeat(32)),
     customer: { name: "", phone: "1" }
   }));
+  await assertFails(setDoc(doc(db, "orders", "guest-order-0000000006"), {
+    ...validOrder("guest-order-0000000006", "2".repeat(32)),
+    quote: { currency: "NGN", subtotalMinor: 250000, deliveryFeeMinor: 5000, grandTotalMinor: 250000 }
+  }));
 });
 
 test("guests cannot read, enumerate, update or delete private orders", async () => {
