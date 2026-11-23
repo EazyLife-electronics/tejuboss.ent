@@ -34,6 +34,16 @@ jobs:
           node --check js/commerce-store.mjs
           node --check admin/js/admin-orders.mjs
           node --check admin/js/inventory.mjs
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path("shop.html").read_text(encoding="utf-8")
+          match = re.search(r'<script type="module">([\\s\\S]*?)</script>', html)
+          if not match:
+              raise SystemExit("shop.html module script not found")
+          Path("/tmp/tejuboss-shop.mjs").write_text(match.group(1), encoding="utf-8")
+          PY
+          node --check /tmp/tejuboss-shop.mjs
       - name: Run clean commerce rules emulator suite
         working-directory: functions
         run: npm run test:commerce-rules
