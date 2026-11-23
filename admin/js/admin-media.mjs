@@ -5,7 +5,7 @@
 import { initFirebase } from '../../js/firebase.mjs';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const WORKER_URL = 'https://eazylife-media.damzyeazy.workers.dev';
+const WORKER_URL = 'https://tejuboss-media.damzyeazy.workers.dev';
 const UPLOAD_URL = 'https://upload.imagekit.io/api/v1/files/upload';
 const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
 
@@ -51,11 +51,11 @@ function normalizeAssets(payload) {
 }
 
 const MEDIA_FOLDERS = [
-  { value: "/eazylife/products", label: "Products" },
-  { value: "/eazylife/projects", label: "Projects" },
-  { value: "/eazylife/reviews", label: "Reviews" },
-  { value: "/eazylife/website", label: "Website" },
-  { value: "/eazylife/general", label: "General" }
+  { value: "/tejuboss/products", label: "Products" },
+  { value: "/tejuboss/heroes", label: "Hero banners" },
+  { value: "/tejuboss/branding", label: "Branding" },
+  { value: "/tejuboss/categories", label: "Categories" },
+  { value: "/tejuboss/general", label: "General" }
 ];
 let mediaAssets = [];
 let selectedMediaIds = new Set();
@@ -415,11 +415,11 @@ function ensureMediaPicker() {
         <button type="button" id="mediaPickerClose" class="text-gray-500 text-2xl px-2" aria-label="Close">&times;</button>
       </div>
       <select id="mediaPickerFolder" class="w-full p-3 mb-3 rounded-lg border border-gray-200 bg-gray-50 text-sm">
-        <option value="/eazylife/projects">Projects</option>
-        <option value="/eazylife/products">Products</option>
-        <option value="/eazylife/reviews">Reviews</option>
-        <option value="/eazylife/website">Website</option>
-        <option value="/eazylife/general">General</option>
+        <option value="/tejuboss/heroes">Hero banners</option>
+        <option value="/tejuboss/products">Products</option>
+        <option value="/tejuboss/branding">Branding</option>
+        <option value="/tejuboss/categories">Categories</option>
+        <option value="/tejuboss/general">General</option>
       </select>
       <div id="mediaPickerGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 overflow-y-auto min-h-0" style="flex:1"></div>
       <div class="flex gap-2 pt-3">
@@ -555,7 +555,7 @@ function openMediaPicker(targetId, multiple = false, folderOverride = '') {
   $('mediaPickerApply').classList.toggle('hidden', !multiple);
   $('mediaPickerApply').disabled = true;
   $('mediaPickerApply').textContent = 'Add selected images';
-  $('mediaPickerFolder').value = folderOverride || (targetId.startsWith('v') ? '/eazylife/products' : targetId.startsWith('rv') ? '/eazylife/reviews' : '/eazylife/projects');
+  $('mediaPickerFolder').value = folderOverride || (targetId.startsWith('v') ? '/tejuboss/products' : targetId.startsWith('rv') ? '/tejuboss/general' : targetId === 'hImage' ? '/tejuboss/heroes' : '/tejuboss/general');
   modal.classList.remove('hidden');
   loadPickerFolder();
 }
