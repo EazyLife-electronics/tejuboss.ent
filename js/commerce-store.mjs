@@ -70,14 +70,18 @@ export async function saveCatalogueProduct(product, productId = null) {
     const rawMinor = option.priceMinor != null ? Number(option.priceMinor) : Math.round(Number(option.price || 0) * 100);
     if (!Number.isSafeInteger(rawMinor) || rawMinor < 0 || rawMinor > 10000000000) throw new Error("A product option price is invalid.");
     const priceMinor = rawMinor;
+    const promoPriceMinor = option.promoPriceMinor != null
+      ? Number(option.promoPriceMinor)
+      : (Number(option.promoPrice || 0) > 0 ? Math.round(Number(option.promoPrice) * 100) : null);
+    if (promoPriceMinor != null && (!Number.isSafeInteger(promoPriceMinor) || promoPriceMinor < 0 || promoPriceMinor > 10000000000)) {
+      throw new Error("A promotional option price is invalid.");
+    }
     return {
       id,
       label: cleanText(option.label || `Option ${index + 1}`, 100),
       sku: cleanText(option.sku, 80),
       priceMinor,
-      promoPriceMinor: option.promoPriceMinor != null
-        ? Number(option.promoPriceMinor)
-        : (Number(option.promoPrice || 0) > 0 ? Math.round(Number(option.promoPrice) * 100) : null),
+      promoPriceMinor,
       currency: "NGN",
       enabled: option.enabled !== false
     };
