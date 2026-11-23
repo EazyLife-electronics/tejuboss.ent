@@ -45,6 +45,7 @@ export function renderOrderList(orders) {
           <ul>${lines}</ul>
           <div class="border-t border-gray-200 mt-2 pt-2 text-xs space-y-1">
             <div class="flex justify-between"><span>Customer's displayed subtotal</span><b>${money(quote.subtotalMinor)}</b></div>
+            ${Number(quote.discountMinor || 0) > 0 ? `<div class="flex justify-between text-green-700"><span>Displayed discount</span><b>−${money(quote.discountMinor)}</b></div>` : ''}
             <div class="flex justify-between"><span>Displayed delivery fee</span><b>${money(quote.deliveryFeeMinor)}</b></div>
             <div class="flex justify-between text-sm"><span class="font-black">Unverified total</span><b class="text-red-700">${money(quote.grandTotalMinor)}</b></div>
           </div>
