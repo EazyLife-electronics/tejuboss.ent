@@ -2,7 +2,7 @@
 // Products tab: add/edit form (with variants + upgrades), product list,
 // and Excel export/import. Split out of admin-app.mjs.
 
-import { addProduct, updateProduct, deleteProduct } from '../../js/store.mjs';
+import { addProduct, updateProduct, deleteProduct } from '../../js/commerce-store.mjs';
 import { escapeHtml, updateImagePreview } from './admin-shared.mjs';
 
 let allProducts = [];
