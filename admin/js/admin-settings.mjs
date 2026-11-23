@@ -8,12 +8,10 @@ export async function loadSettingsForm() {
   const settings = await getSettings();
   document.getElementById('s_whatsapp').value = settings.whatsapp || '';
   document.getElementById('s_tagline').value = settings.tagline || '';
-  document.getElementById('s_about').value = Number(settings.aboutTextVersion || 0) >= 2
-    ? (settings.aboutText || '')
-    : 'At Eazylife Robotics and Electronics Solutions, we work with individuals, schools and businesses on practical engineering projects, electronics and hands-on learning.';
-  document.getElementById('s_referralMode').checked = settings.referralMode !== false; // defaults to true
+  document.getElementById('s_about').value = settings.aboutText || '';
   document.getElementById('s_deliveryFee').value = settings.deliveryFeePerItem ?? 750;
   document.getElementById('s_deliveryDiscount').value = settings.deliveryDiscountPercent ?? 10;
+  document.getElementById('s_minOrder').value = settings.minOrderValue ?? 0;
   document.getElementById('s_bulkSavingsPercent').value = settings.bulkSavingsPercent ?? '';
   document.getElementById('s_bulkSavingsMinQty').value = settings.bulkSavingsMinQty ?? '';
 }
@@ -25,10 +23,9 @@ export function initSettings() {
       whatsapp: document.getElementById('s_whatsapp').value.trim(),
       tagline: document.getElementById('s_tagline').value.trim(),
       aboutText: document.getElementById('s_about').value.trim(),
-      aboutTextVersion: 2,
-      referralMode: document.getElementById('s_referralMode').checked,
       deliveryFeePerItem: parseInt(document.getElementById('s_deliveryFee').value, 10) || 0,
       deliveryDiscountPercent: parseFloat(document.getElementById('s_deliveryDiscount').value) || 0,
+      minOrderValue: parseInt(document.getElementById('s_minOrder').value, 10) || 0,
       bulkSavingsPercent: parseFloat(document.getElementById('s_bulkSavingsPercent').value) || 0,
       bulkSavingsMinQty: parseInt(document.getElementById('s_bulkSavingsMinQty').value, 10) || 0
     });
