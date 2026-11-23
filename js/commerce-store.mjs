@@ -86,6 +86,25 @@ export async function saveCatalogueProduct(product, productId = null) {
       enabled: option.enabled !== false
     };
   });
+  const optionIds = normalizedOptions.map(option => option.id);
+  if (new Set(optionIds).size !== optionIds.length) throw new Error("Each selling option must have a unique ID.");
+  if (normalizedOptions.some(option => !option.label)) throw new Error("Every selling option needs a label.");
+  if (normalizedOptions.some(option => option.promoPriceMinor != null && option.promoPriceMinor >= option.priceMinor)) {
+    throw new Error("A promotional price must be lower than its regular selling price.");
+  }
+  if (product.published === true && !normalizedOptions.some(option => option.enabled)) {
+    throw new Error("Enable at least one selling option before publishing this product.");
+  }
+  const normalizedAddOns = (Array.isArray(product.addOns) ? product.addOns : []).slice(0, 20).map(item => {
+    const priceMinor = item.priceMinor != null ? Number(item.priceMinor) : Math.round(Number(item.price || 0) * 100);
+    if (!Number.isSafeInteger(priceMinor) || priceMinor < 0 || priceMinor > 10000000000) throw new Error("An add-on price is invalid.");
+    const name = cleanText(item.name, 100);
+    if (!name) throw new Error("Every add-on needs a name.");
+    return { id: cleanText(item.id || randomHex(8), 80), name, priceMinor, enabled: item.enabled !== false };
+  });
+  const addOnIds = normalizedAddOns.map(item => item.id);
+  if (new Set(addOnIds).size !== addOnIds.length) throw new Error("Each add-on must have a unique ID.");
+
   const payload = {
     schemaVersion: 1,
     name,
@@ -99,11 +118,7 @@ export async function saveCatalogueProduct(product, productId = null) {
       sortOrder: index
     })).filter(image => image.url),
     sellingOptions: normalizedOptions,
-    addOns: (Array.isArray(product.addOns) ? product.addOns : []).slice(0, 20).map((item, index) => {
-      const priceMinor = item.priceMinor != null ? Number(item.priceMinor) : Math.round(Number(item.price || 0) * 100);
-      if (!Number.isSafeInteger(priceMinor) || priceMinor < 0 || priceMinor > 10000000000) throw new Error("An add-on price is invalid.");
-      return { id: cleanText(item.id || randomHex(8), 80), name: cleanText(item.name, 100), priceMinor, enabled: item.enabled !== false };
-    }).filter(item => item.name),
+    addOns: normalizedAddOns,
     published: product.published === true,
     availability: product.availability === "unavailable" ? "unavailable" : "available",
     updatedAt: serverTimestamp()
