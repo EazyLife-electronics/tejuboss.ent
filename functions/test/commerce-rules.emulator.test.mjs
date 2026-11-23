@@ -73,7 +73,7 @@ function validOrder(orderId, token = "b".repeat(32)) {
       requestedName: "Rice", requestedOption: "5kg bag", quantity: 2,
       displayedUnitPriceMinor: 125000
     }],
-    quote: { currency: "NGN", subtotalMinor: 250000, deliveryFeeMinor: 0, grandTotalMinor: 250000 },
+    quote: { currency: "NGN", subtotalMinor: 250000, discountMinor: 0, deliveryFeeMinor: 0, grandTotalMinor: 250000 },
     quoteStatus: "unverified",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
