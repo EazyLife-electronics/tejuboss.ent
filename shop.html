@@ -461,7 +461,21 @@
     }
 
     let products = [];
-    let cart = JSON.parse(localStorage.getItem(CKEY)) || [];
+    function readStoredCart() {
+        try {
+            const value = JSON.parse(localStorage.getItem(CKEY) || "[]");
+            return Array.isArray(value) ? value.filter(item =>
+                item && typeof item === "object" &&
+                typeof item.productId === "string" &&
+                typeof item.variantId === "string" &&
+                Number.isSafeInteger(Number(item.quantity)) &&
+                Number(item.quantity) >= 1 && Number(item.quantity) <= 1000
+            ) : [];
+        } catch (_) {
+            return [];
+        }
+    }
+    let cart = readStoredCart();
     let currentCategory = 'All';
     let currentSort = 'default';
 
@@ -859,7 +873,23 @@
         return items.filter(item => {
             const product = products.find(p => p.id === item.productId);
             const option = product && (product.variants || []).find(v => v.id === item.variantId);
-            return !product || product.inStock === false || !option || option.inStock === false;
+            if (!product || product.inStock === false || !option || option.inStock === false) return true;
+
+            // Cart prices and add-on labels are snapshots. Never submit a saved
+            // add-on if the current catalogue no longer offers that add-on.
+            const savedIds = Array.isArray(item.upgradeIds)
+                ? item.upgradeIds
+                : String(item.lineId || "").split("::")[2]?.split(",").filter(Boolean) || [];
+            const savedNames = Array.isArray(item.upgradeNames) ? item.upgradeNames : [];
+            const currentAddons = (product.upgrades || []).filter(addon => addon.enabled !== false);
+            if (savedIds.length) {
+                const currentIds = new Set(currentAddons.map(addon => String(addon.id)));
+                if (savedIds.some(id => !currentIds.has(String(id)))) return true;
+            } else if (savedNames.length) {
+                const currentNames = new Set(currentAddons.map(addon => String(addon.name)));
+                if (savedNames.some(name => !currentNames.has(String(name)))) return true;
+            }
+            return false;
         });
     }
 
@@ -1150,8 +1180,9 @@
                 variantId: v.id,
                 productName: pmProduct.name,
                 variantLabel: variantLabel(v),
+                upgradeIds: upgrades.map(u => String(u.id)),
                 upgradeNames: upgrades.map(u => u.name),
-                upgradeItems: upgrades.map(u => ({ name: u.name, price: u.price || 0 })),
+                upgradeItems: upgrades.map(u => ({ id: String(u.id), name: u.name, price: u.price || 0 })),
                 unitBasePrice,
                 originalUnitBasePrice,
                 unitPrice,
@@ -1210,6 +1241,7 @@
                 variantId: defaultVariant.id,
                 productName: p.name,
                 variantLabel: variantLabel(defaultVariant),
+                upgradeIds: [],
                 upgradeNames: [],
                 upgradeItems: [],
                 unitBasePrice: variantUnitPrice(defaultVariant),
