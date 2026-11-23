@@ -31,7 +31,7 @@ export function renderOrderList(orders) {
       </li>`).join('');
     const isPending = order.status === 'awaiting_review';
     return `
-      <article class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm mb-3" data-order-card="${escapeHtml(order.id)}">
+      <article class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm mb-3" data-order-card="${escapeHtml(order.id)}" data-displayed-total-minor="${Number(quote.grandTotalMinor || 0)}">
         <div class="flex justify-between items-start gap-3 mb-3">
           <div>
             <p class="font-bold text-sm text-gray-900">${escapeHtml(customer.name || 'Customer')}</p>
@@ -85,7 +85,11 @@ async function decide(orderId, decision, button) {
   if (decision === 'approved') {
     acceptedTotal = Number(amountEl?.value);
     if (!Number.isFinite(acceptedTotal) || acceptedTotal < 0) return alert('Enter a valid verified total.');
-    if (!confirm('Confirm that you have checked current prices and availability, and approve this request?')) return;
+    const displayedTotal = Number(document.querySelector(`[data-order-card="${CSS.escape(orderId)}"]`)?.dataset?.displayedTotalMinor);
+    if (Number.isFinite(displayedTotal) && Math.round(acceptedTotal * 100) !== displayedTotal && !note) {
+      return alert('Add a staff note explaining why the verified total differs from the customer\u2019s displayed total.');
+    }
+    if (!confirm('Confirm that you checked current prices and availability? Approval records the verified total only; it does not reserve or deduct stock.')) return;
   } else if (!confirm('Reject this order request?')) return;
   button.disabled = true;
   button.textContent = decision === 'approved' ? 'Approving…' : 'Rejecting…';
