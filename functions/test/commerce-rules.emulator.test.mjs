@@ -104,6 +104,30 @@ test("guest can atomically create a valid order request and its minimal tracking
   await assertFails(getDoc(doc(db, "orders", orderId)));
 });
 
+test("guest order quote supports an explicit discount and checks the final arithmetic", async () => {
+  const db = env.unauthenticatedContext().firestore();
+  const orderId = "guest-order-discount-0001";
+  const token = "3".repeat(32);
+  const discounted = validOrder(orderId, token);
+  discounted.quote = {
+    currency: "NGN", subtotalMinor: 250000, discountMinor: 20000,
+    deliveryFeeMinor: 5000, grandTotalMinor: 235000
+  };
+  const batch = writeBatch(db);
+  batch.set(doc(db, "orders", orderId), discounted);
+  batch.set(doc(db, "orderTracking", token), {
+    orderId, status: "submitted", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  });
+  await assertSucceeds(batch.commit());
+  const badOrderId = "guest-order-discount-0002";
+  const bad = validOrder(badOrderId, "4".repeat(32));
+  bad.quote = {
+    currency: "NGN", subtotalMinor: 250000, discountMinor: 20000,
+    deliveryFeeMinor: 5000, grandTotalMinor: 255000
+  };
+  await assertFails(setDoc(doc(db, "orders", badOrderId), bad));
+});
+
 test("guest order validation rejects forged status, extra private fields and malformed values", async () => {
   const db = env.unauthenticatedContext().firestore();
   const base = validOrder("guest-order-0000000002", "d".repeat(32));
@@ -113,7 +137,7 @@ test("guest order validation rejects forged status, extra private fields and mal
   }));
   await assertFails(setDoc(doc(db, "orders", "guest-order-0000000004"), {
     ...validOrder("guest-order-0000000004", "f".repeat(32)),
-    quote: { currency: "NGN", subtotalMinor: -1, deliveryFeeMinor: 0, grandTotalMinor: -1 }
+    quote: { currency: "NGN", subtotalMinor: -1, discountMinor: 0, deliveryFeeMinor: 0, grandTotalMinor: -1 }
   }));
   await assertFails(setDoc(doc(db, "orders", "guest-order-0000000005"), {
     ...validOrder("guest-order-0000000005", "1".repeat(32)),
@@ -121,7 +145,7 @@ test("guest order validation rejects forged status, extra private fields and mal
   }));
   await assertFails(setDoc(doc(db, "orders", "guest-order-0000000006"), {
     ...validOrder("guest-order-0000000006", "2".repeat(32)),
-    quote: { currency: "NGN", subtotalMinor: 250000, deliveryFeeMinor: 5000, grandTotalMinor: 250000 }
+    quote: { currency: "NGN", subtotalMinor: 250000, discountMinor: 0, deliveryFeeMinor: 5000, grandTotalMinor: 250000 }
   }));
 });
 
