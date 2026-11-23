@@ -498,7 +498,8 @@
 </div>
 
 <script type="module">
-    import { getProducts, placeOrder, placeRequest, getSettings } from './js/store.mjs';
+    import { getProducts, placeOrder } from './js/commerce-store.mjs';
+    import { placeRequest, getSettings } from './js/store.mjs';
     import { optimizedImageUrl, responsiveImageAttrs } from './js/image-delivery.mjs';
     import { calcGroupedDeliveryFee, buildDeliveryFeeSummary, resolveDeliveryFee, variantUnitPrice, productPriceRange, productOriginalPriceRange, hasPromo, variantDiscountPercent, productHasPromo, buildPriceSavingsSummary, variantLabel, resolveBulkSavings, calcBulkSavingsForLine, buildBulkSavingsSummary } from './js/pricing.mjs';
 
