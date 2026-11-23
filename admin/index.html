@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EazyLife Admin</title>
+    <title>Teju Boss Admin</title>
     <link rel="icon" type="image/png" href="../assets/pictures/icon_dark.png" />
     <link rel="apple-touch-icon" href="../assets/pictures/icon_dark.png" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,53 +11,43 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root { --teal: #00B09B; --lime: #8DC63F; }
+        :root { --teal: #DC2626; --lime: #111827; }
         body { font-family: 'DM Sans', sans-serif; }
         h1, h2, .font-syne { font-family: 'Poppins', sans-serif; }
-        .bg-eazylife { background: linear-gradient(135deg, #00B09B, #8DC63F); }
+        .bg-tejuboss { background: linear-gradient(135deg, #DC2626, #111827); }
         .tab-active { background: #111827 !important; color: white !important; }
     </style>
-<script>(function(){var t=null;try{t=localStorage.getItem('eazylife-theme')}catch(e){}t=t||(matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);document.documentElement.classList.toggle('dark',t==='dark')})();</script>
-<link rel="stylesheet" href="../assets/css/site-theme.css">
 </head>
 <body class="bg-gray-50 min-h-screen">
 <div id="loginScreen" class="min-h-screen flex items-center justify-center p-6">
     <div class="bg-white w-full max-w-sm rounded-[24px] shadow-xl p-8">
-        <img data-theme-logo data-theme-logo-light="../assets/pictures/logo_black_transparent.png" data-theme-logo-dark="../assets/pictures/logo_white_transparent.png" src="../assets/pictures/logo_black_transparent.png" alt="EazyLife" style="height:42px;width:auto;display:block;margin:0 auto 12px">
+        <h1 class="font-syne font-extrabold text-2xl text-center mb-1">Teju Boss</h1>
         <p class="text-center text-gray-400 text-sm mb-6">Admin Dashboard</p>
-        <input id="loginEmail" type="email" placeholder="Admin email" class="w-full p-3 mb-3 rounded-xl bg-gray-50 border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#00B09B]">
-        <input id="loginPassword" type="password" placeholder="Password" class="w-full p-3 mb-4 rounded-xl bg-gray-50 border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#00B09B]">
-        <button id="loginBtn" class="bg-eazylife text-white w-full py-3 rounded-xl font-bold text-sm shadow-lg">Log In</button>
+        <input id="loginEmail" type="email" placeholder="Admin email" class="w-full p-3 mb-3 rounded-xl bg-gray-50 border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#DC2626]">
+        <input id="loginPassword" type="password" placeholder="Password" class="w-full p-3 mb-4 rounded-xl bg-gray-50 border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#DC2626]">
+        <button id="loginBtn" class="bg-tejuboss text-white w-full py-3 rounded-xl font-bold text-sm shadow-lg">Log In</button>
         <p id="loginError" class="text-red-500 text-xs text-center mt-3 hidden"></p>
     </div>
 </div>
 <div id="dashboard" class="hidden">
     <header class="bg-white border-b sticky top-0 z-40 p-4 shadow-sm flex justify-between items-center">
-        <div class="flex items-center gap-3"><img data-theme-logo data-theme-logo-light="../assets/pictures/logo_black_transparent.png" data-theme-logo-dark="../assets/pictures/logo_white_transparent.png" src="../assets/pictures/logo_black_transparent.png" alt="EazyLife" style="height:30px;width:auto"><h1 class="font-syne font-extrabold text-lg"><span class="text-[#00B09B]">Admin</span></h1><span id="mediaServiceStatus" class="text-[10px] px-2 py-1 rounded-full bg-gray-100 text-gray-500">Media service not checked</span></div>
+        <h1 class="font-syne font-extrabold text-lg">Teju Boss <span class="text-[#DC2626]">Admin</span></h1>
         <button id="logoutBtn" class="text-gray-400 text-xs font-bold hover:text-gray-700"><i class="fas fa-sign-out-alt"></i> Log out</button>
     </header>
     <div class="max-w-4xl mx-auto p-4">
-        <section id="adminAttentionPanel" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4" aria-live="polite">
-            <div class="flex items-center justify-between gap-2 mb-3"><div><h2 class="font-black text-sm text-amber-900">Needs your attention</h2><p class="text-[11px] text-amber-800">These items stay here until you take action.</p></div><span id="adminAttentionTotal" class="bg-amber-200 text-amber-900 text-xs font-black px-2.5 py-1 rounded-full">0</span></div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <button type="button" data-notification-tab="orders" class="flex items-center justify-between gap-2 bg-white rounded-xl px-3 py-2 text-left"><span class="text-xs font-bold text-gray-700">New orders</span><span id="attentionOrdersCount" class="text-xs font-black text-red-600">0</span></button>
-                <button type="button" data-notification-tab="requests" class="flex items-center justify-between gap-2 bg-white rounded-xl px-3 py-2 text-left"><span class="text-xs font-bold text-gray-700">New requests</span><span id="attentionRequestsCount" class="text-xs font-black text-red-600">0</span></button>
-                <button type="button" data-notification-tab="reviews" class="flex items-center justify-between gap-2 bg-white rounded-xl px-3 py-2 text-left"><span class="text-xs font-bold text-gray-700">Reviews to handle</span><span id="attentionReviewsCount" class="text-xs font-black text-red-600">0</span></button>
-                <button type="button" data-notification-tab="school-stem" id="attentionSchoolStem" class="hidden sm:col-span-3 flex flex-col gap-1 bg-white rounded-xl px-3 py-2 text-left"><span class="text-xs font-bold text-gray-700">Closest School STEM meeting</span><span id="attentionSchoolStemText" class="text-[11px] text-teal-700"></span></button>
-            </div>
-        </section>
         <div class="flex gap-2 mb-6 overflow-x-auto no-scrollbar">
             <button data-tab="products" class="tab-btn tab-active px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Products</button>
-            <button data-tab="orders" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Orders<span id="ordersNotificationBadge" class="hidden ml-1.5 min-w-4 h-4 px-1 rounded-full bg-red-600 text-white text-[9px] inline-flex items-center justify-center align-middle">0</span></button>
+            <button data-tab="catalogue" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Catalogue Builder</button>
+            <button data-tab="pricing" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Bulk Pricing</button>
+            <button data-tab="stocksetup" id="stockSetupTabBtn" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Stock Setup</button>
             <button data-tab="inventory" id="inventoryTabBtn" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Inventory</button>
-            <button data-tab="delivery" id="deliveryTabBtn" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Delivery</button>
             <button data-tab="reports" id="reportsTabBtn" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Reports</button>
-            <button data-tab="requests" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Requests<span id="requestsNotificationBadge" class="hidden ml-1.5 min-w-4 h-4 px-1 rounded-full bg-red-600 text-white text-[9px] inline-flex items-center justify-center align-middle">0</span></button>
-            <button data-tab="projects" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Projects</button>
-            <button data-tab="media" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Media</button>
             <button data-tab="heroes" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Heroes</button>
-            <button data-tab="reviews" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Reviews<span id="reviewsNotificationBadge" class="hidden ml-1.5 min-w-4 h-4 px-1 rounded-full bg-red-600 text-white text-[9px] inline-flex items-center justify-center align-middle">0</span></button>
-            <button data-tab="school-stem" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">School STEM<span id="schoolStemNotificationBadge" class="hidden ml-1.5 min-w-4 h-4 px-1 rounded-full bg-teal-600 text-white text-[9px] inline-flex items-center justify-center align-middle">0</span></button>
+            <button data-tab="media" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Media</button>
+            <button data-tab="reviews" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Reviews</button>
+            <button data-tab="requests" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Requests</button>
+            <button data-tab="orders" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Orders</button>
+            <button data-tab="delivery" id="deliveryTabBtn" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Delivery</button>
             <button data-tab="settings" class="tab-btn px-5 py-2 rounded-full text-xs font-bold bg-gray-100">Settings</button>
         </div>
         <div id="panel-products" class="tab-panel">
@@ -65,97 +55,52 @@
                 <h2 id="formTitle" class="font-black text-lg mb-4">Add Product</h2>
                 <form id="productForm" class="space-y-3">
                     <input type="hidden" id="editId">
-                    <input id="pName" placeholder="Product name (e.g. HP EliteBook 840 G5)" required class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#00B09B]">
-                    <div class="grid grid-cols-2 gap-3"><input id="pBrand" placeholder="Brand (e.g. HP)" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><input id="pCategory" placeholder="Category (e.g. Laptops)" required class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"></div>
+                    <input id="pName" placeholder="Product name (e.g. Golden Penny Spaghetti)" required class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#DC2626]">
+                    <div class="grid grid-cols-2 gap-3"><input id="pBrand" placeholder="Brand (e.g. Golden Penny, Robb, Joy)" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><input id="pCategory" placeholder="Category (e.g. Groceries, Personal Care)" required class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"></div>
                     <textarea id="pDesc" placeholder="Short description (applies to all variants)" rows="2" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"></textarea>
                     <label class="flex items-center gap-2 text-xs font-bold text-gray-500 px-1"><input type="checkbox" id="pInStock" checked> Product visible in shop</label>
-                    <div class="bg-gray-50 rounded-xl p-3 mt-2"><div class="flex justify-between items-center mb-2"><h3 class="text-xs font-black uppercase text-gray-500">Variants (color / RAM / storage / price)</h3><button type="button" id="addVariantBtn" class="text-[11px] bg-gray-900 text-white px-3 py-1 rounded-lg font-bold">+ Add Variant</button></div><p class="text-[10px] text-gray-400 mb-2 px-1">Every product needs at least one variant — this is what customers actually pick and pay for.</p><div id="variantRows" class="space-y-2"></div></div>
-                    <div class="bg-gray-50 rounded-xl p-3"><div class="flex justify-between items-center mb-2"><h3 class="text-xs font-black uppercase text-gray-500">Optional Upgrades (RAM/ROM add-ons)</h3><button type="button" id="addUpgradeBtn" class="text-[11px] bg-gray-900 text-white px-3 py-1 rounded-lg font-bold">+ Add Upgrade</button></div><p class="text-[10px] text-gray-400 mb-2 px-1">Optional — only add these if this specific device can be upgraded for an extra fee.</p><div id="upgradeRows" class="space-y-2"></div></div>
+                    <div class="bg-gray-50 rounded-xl p-3 mt-2"><div class="flex justify-between items-center mb-2"><h3 class="text-xs font-black uppercase text-gray-500">Variants (flavour / size / pack / price)</h3><button type="button" id="addVariantBtn" class="text-[11px] bg-gray-900 text-white px-3 py-1 rounded-lg font-bold">+ Add Variant</button></div><p class="text-[10px] text-gray-400 mb-2 px-1">Every product needs at least one variant — this is what customers actually pick and pay for.</p><div id="variantRows" class="space-y-2"></div></div>
+                    <div id="upgradeSection" class="bg-gray-50 rounded-xl p-3 hidden"><div class="flex justify-between items-center mb-2"><h3 class="text-xs font-black uppercase text-gray-500">Optional Add-ons</h3><button type="button" id="addUpgradeBtn" class="text-[11px] bg-gray-900 text-white px-3 py-1 rounded-lg font-bold">+ Add Add-on</button></div><p class="text-[10px] text-gray-400 mb-2 px-1">Optional — only add these if this product has an optional extra (e.g. gift wrap) for a fee.</p><div id="upgradeRows" class="space-y-2"></div></div>
                     <div class="flex gap-2 pt-1"><button type="submit" class="flex-1 bg-gray-900 text-white py-3 rounded-xl font-bold text-sm">Save Product</button><button type="button" id="resetFormBtn" class="bg-gray-100 text-gray-500 px-4 rounded-xl font-bold text-sm">Reset</button></div>
                 </form>
             </div>
             <div class="flex gap-2 mb-3"><button type="button" id="exportExcelBtn" class="flex-1 bg-white border border-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-xs"><i class="fas fa-file-export"></i> Export to Excel</button><label class="flex-1 bg-white border border-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-xs text-center cursor-pointer"><i class="fas fa-file-import"></i> Import from Excel<input type="file" id="importExcelInput" accept=".xlsx,.xls" class="hidden"></label></div>
-            <p id="importStatus" class="text-[11px] font-bold text-teal-600 mb-2 px-1 hidden"></p><p class="text-[10px] text-gray-400 mb-3 px-1">Export gives you an Excel file with your current catalog. Edit it (or add new rows with the Product ID left blank), then import it back — matching IDs update existing products, blank IDs create new ones.</p>
-            <div class="space-y-2 mb-3">
-              <div class="flex flex-wrap items-center gap-2">
-                <input id="productSearch" placeholder="Search name, brand or category..." class="flex-1 min-w-[180px] p-3 bg-white rounded-xl border border-gray-200 text-sm outline-none">
-                <span class="text-xs text-gray-400 font-bold whitespace-nowrap" id="productCount">0 items</span>
-              </div>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <select id="productSort" aria-label="Sort products" class="min-w-0 p-2.5 bg-white rounded-xl border border-gray-200 text-xs outline-none">
-                  <option value="name-asc">Name: A–Z</option>
-                  <option value="name-desc">Name: Z–A</option>
-                  <option value="price-asc">Price: Low–High</option>
-                  <option value="price-desc">Price: High–Low</option>
-                  <option value="variants-asc">Fewest variants</option>
-                  <option value="variants-desc">Most variants</option>
-                </select>
-                <select id="productCategoryFilter" aria-label="Filter by category" class="min-w-0 p-2.5 bg-white rounded-xl border border-gray-200 text-xs outline-none">
-                  <option value="">All categories</option>
-                </select>
-                <select id="productVisibilityFilter" aria-label="Filter by shop visibility" class="min-w-0 p-2.5 bg-white rounded-xl border border-gray-200 text-xs outline-none">
-                  <option value="">All visibility</option>
-                  <option value="visible">Visible in shop</option>
-                  <option value="hidden">Hidden from shop</option>
-                </select>
-                <select id="productAvailabilityFilter" aria-label="Filter by availability" class="min-w-0 p-2.5 bg-white rounded-xl border border-gray-200 text-xs outline-none">
-                  <option value="">All availability</option>
-                  <option value="available">Available variants</option>
-                  <option value="unavailable">No available variants</option>
-                </select>
-              </div>
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="text-[11px] text-gray-500 font-bold">Price (₦)</span>
-                <input id="productMinPrice" type="number" min="0" inputmode="numeric" placeholder="Minimum" aria-label="Minimum product price" class="w-28 flex-1 p-2.5 bg-white rounded-xl border border-gray-200 text-xs outline-none">
-                <input id="productMaxPrice" type="number" min="0" inputmode="numeric" placeholder="Maximum" aria-label="Maximum product price" class="w-28 flex-1 p-2.5 bg-white rounded-xl border border-gray-200 text-xs outline-none">
-                <button type="button" id="clearProductFilters" class="px-3 py-2.5 rounded-xl bg-gray-100 text-gray-600 text-xs font-bold whitespace-nowrap">Clear filters</button>
-              </div>
-            </div>
-            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3 space-y-2">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <label class="flex items-center gap-2 text-xs font-bold text-amber-900"><input type="checkbox" id="selectAllVisibleProducts"> Select all visible products</label>
-                <span id="selectedProductCount" class="text-xs font-black text-amber-900">0 selected</span>
-              </div>
-              <div class="flex flex-wrap items-center gap-2">
-                <button type="button" id="clearProductSelection" class="px-3 py-2 rounded-lg bg-white border border-amber-200 text-amber-900 text-xs font-bold">Clear selection</button>
-                <button type="button" id="bulkDeleteProducts" disabled class="px-3 py-2 rounded-lg bg-red-600 text-white text-xs font-black disabled:opacity-40 disabled:cursor-not-allowed">Delete selected products</button>
-              </div>
-              <p class="text-[10px] leading-relaxed text-amber-800">Warning: deletion is permanent and removes selected products from the catalogue. Use search and filters first to narrow the list. Existing order records are not deleted.</p>
+            <p id="importStatus" class="text-[11px] font-bold text-red-600 mb-2 px-1 hidden"></p><p class="text-[10px] text-gray-400 mb-3 px-1">Export gives you an Excel file with your current catalog. Edit it (or add new rows with the Product ID left blank), then import it back — matching IDs update existing products, blank IDs create new ones.</p>
+            <div class="bg-white rounded-2xl border border-gray-100 p-4 mb-3 space-y-3">
+                <div class="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+                    <input id="productSearch" placeholder="Search name, brand, category or description..." class="w-full sm:max-w-md p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none">
+                    <span class="text-xs text-gray-500 font-bold" id="productCount">0 items</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <select id="productCategoryFilter" class="w-full p-2.5 bg-gray-50 rounded-lg border border-gray-200 text-xs"><option value="">All categories</option></select>
+                    <select id="productVisibilityFilter" class="w-full p-2.5 bg-gray-50 rounded-lg border border-gray-200 text-xs"><option value="">All visibility</option><option value="visible">Visible in shop</option><option value="hidden">Hidden</option></select>
+                    <select id="productAvailabilityFilter" class="w-full p-2.5 bg-gray-50 rounded-lg border border-gray-200 text-xs"><option value="">All availability</option><option value="available">Available variants</option><option value="unavailable">Unavailable variants</option></select>
+                    <select id="productSort" class="w-full p-2.5 bg-gray-50 rounded-lg border border-gray-200 text-xs"><option value="name-asc">Name: A to Z</option><option value="name-desc">Name: Z to A</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="variants-asc">Fewest variants</option><option value="variants-desc">Most variants</option></select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input id="productMinPrice" type="number" min="0" placeholder="Minimum price (₦)" class="w-full p-2.5 bg-gray-50 rounded-lg border border-gray-200 text-xs">
+                    <input id="productMaxPrice" type="number" min="0" placeholder="Maximum price (₦)" class="w-full p-2.5 bg-gray-50 rounded-lg border border-gray-200 text-xs">
+                </div>
+                <div class="flex flex-wrap items-center gap-2 pt-1">
+                    <button type="button" id="clearProductFilters" class="text-xs font-bold text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">Clear filters</button>
+                    <span class="text-xs text-gray-500 font-bold sm:ml-auto" id="selectedProductCount">0 selected</span>
+                    <button type="button" id="clearProductSelection" class="text-xs font-bold text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">Clear selection</button>
+                </div>
+                <div class="flex flex-wrap gap-2 border-t border-gray-100 pt-3">
+                    <label class="flex items-center gap-2 text-xs font-bold text-gray-600 mr-auto"><input type="checkbox" id="selectAllVisibleProducts" class="w-4 h-4 accent-red-600"> Select all visible</label>
+                    <button type="button" id="bulkShowProducts" disabled class="text-xs font-bold text-green-700 bg-green-50 px-3 py-2 rounded-lg disabled:opacity-40">Show selected</button>
+                    <button type="button" id="bulkHideProducts" disabled class="text-xs font-bold text-amber-700 bg-amber-50 px-3 py-2 rounded-lg disabled:opacity-40">Hide selected</button>
+                    <button type="button" id="bulkDeleteProducts" disabled class="text-xs font-bold text-red-700 bg-red-50 px-3 py-2 rounded-lg disabled:opacity-40">Delete selected</button>
+                </div>
             </div>
             <div id="productList" class="grid gap-3"></div>
         </div>
+        <div id="panel-catalogue" class="tab-panel hidden"><div id="catalogueBuilderContent"></div></div>
+        <div id="panel-pricing" class="tab-panel hidden"><div id="quantityPricingContent"></div></div>
         <div id="panel-inventory" class="tab-panel hidden"><div id="inventoryContent"></div></div>
+        <div id="panel-stocksetup" class="tab-panel hidden"><div id="structuredInventoryContent"></div></div>
         <div id="panel-reports" class="tab-panel hidden"><div id="reportsContent"></div></div>
-        <div id="panel-projects" class="tab-panel hidden">
-          <div class="flex flex-wrap items-center justify-between gap-3 mb-4"><div><h2 class="font-black text-sm">Portfolio tools</h2><p class="text-xs text-gray-500">Add projects individually or import the prepared portfolio in bulk.</p></div><a href="./portfolio-import.html" class="inline-flex items-center gap-2 rounded-xl bg-teal-700 text-white px-4 py-2.5 text-xs font-bold"><i class="fas fa-file-import"></i> Bulk import portfolio</a></div>
-          <div class="bg-white p-6 rounded-[24px] shadow-sm mb-6">
-            <h2 id="projectFormTitle" class="font-black text-lg mb-1">Add Engineering Project</h2>
-            <p class="text-xs text-gray-400 mb-4">Create a project story using your own build photos and details. Drafts stay private.</p>
-            <form id="projectForm" class="space-y-3">
-              <input type="hidden" id="projectEditId">
-              <input id="projectTitle" required placeholder="Project title" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
-              <input id="projectCategory" placeholder="Category (e.g. Robotics, Automation, STEM)" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
-              <textarea id="projectSummary" required rows="2" placeholder="Short summary for the gallery" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"></textarea>
-              <textarea id="projectDescription" rows="3" placeholder="Full project description" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"></textarea>
-              <input id="projectMaterials" placeholder="Materials and components, separated by commas" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
-              <textarea id="projectProcess" rows="3" placeholder="How it was designed, built and tested" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"></textarea>
-              <textarea id="projectOutcome" rows="2" placeholder="What it achieved or demonstrated" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"></textarea>
-              <div class="space-y-2"><div class="flex gap-2"><input id="projectCover" placeholder="Cover image URL or repository image path" class="flex-1 min-w-0 p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"><button type="button" data-media-pick="projectCover" data-media-multiple="false" class="shrink-0 bg-teal-50 text-teal-700 px-3 rounded-xl text-xs font-bold">Choose from Media</button></div><img id="projectCoverPreview" class="hidden h-24 w-24 rounded-xl object-cover border border-gray-200" alt="Project cover preview"></div>
-              <div class="space-y-2"><textarea id="projectImages" rows="2" placeholder="Additional image URLs or paths, one per line" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"></textarea><button type="button" data-media-pick="projectImages" data-media-multiple="true" class="bg-teal-50 text-teal-700 px-3 py-2 rounded-lg text-xs font-bold">Add images from Media</button><p class="text-[10px] text-gray-400">Select multiple images. They will be added as separate lines without removing existing entries.</p></div>
-              <input id="projectVideo" placeholder="Optional video URL (YouTube or hosted video)" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
-              <section class="rounded-xl border border-teal-100 bg-teal-50/50 p-3 space-y-3">
-                <div><h3 class="font-black text-sm text-gray-800">Project Components & Kit</h3><p class="text-[11px] text-gray-500">Link components to products in your store. Unlinked items can be listed as extra requirements but won't enter the kit order.</p></div>
-                <div id="projectKitRows" class="space-y-2"></div>
-                <button type="button" id="projectKitAddBtn" class="w-full bg-white border border-teal-200 text-teal-700 py-2.5 rounded-lg text-xs font-bold">+ Add component</button>
-              </section>
-              <select id="projectStatus" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"><option value="draft">Save as draft</option><option value="published">Publish now</option><option value="scheduled">Schedule publication</option></select>
-              <div id="projectScheduleWrap" class="hidden"><label class="block text-xs font-bold text-gray-500 mb-1">Publish date and time</label><input id="projectPublishAt" type="datetime-local" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"></div>
-              <div class="flex gap-2"><button id="projectSaveBtn" type="submit" class="flex-1 bg-gray-900 text-white py-3 rounded-xl font-bold text-sm">Save Project</button><button id="projectResetBtn" type="button" class="bg-gray-100 text-gray-500 px-4 rounded-xl font-bold text-sm">Reset</button></div>
-            </form>
-          </div>
-          <div class="flex flex-wrap justify-between items-center gap-2 mb-3"><p class="text-xs text-gray-500">Manage drafts, published projects and scheduled posts. Due posts publish automatically while an admin is logged in.</p><button type="button" id="projectStarterBtn" class="bg-teal-50 text-teal-700 px-4 py-2 rounded-lg text-xs font-bold">Create 3 starter drafts</button></div><p id="projectPublishNotice" class="text-xs text-amber-700 mb-3" role="status" aria-live="polite"></p><div id="projectList" class="grid gap-3"></div>
-        </div>
-        <div id="panel-heroes" class="tab-panel hidden"><div class="bg-white p-6 rounded-[24px] shadow-sm mb-6"><h2 id="heroFormTitle" class="font-black text-lg mb-1">Add Hero Slide</h2><p class="text-xs text-gray-400 mb-4">These show as a carousel on the homepage. Each slide links straight into the shop.</p><form id="heroForm" class="space-y-3"><input type="hidden" id="heroEditId"><input id="hTitle" placeholder="Title (e.g. HP EliteBook Deals)" required class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><input id="hSubtitle" placeholder="Subtitle (short, one line)" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><div class="space-y-2"><div class="flex gap-2"><input id="hImage" placeholder="Image URL (or choose from Media)" class="flex-1 min-w-0 p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><button type="button" data-media-pick="hImage" data-media-multiple="false" data-media-folder="/tejuboss/heroes" class="shrink-0 bg-teal-50 text-teal-700 px-3 rounded-xl text-xs font-bold">Choose from Media</button><button type="button" onclick="openImagePicker('heroes','hImage')" class="bg-gray-100 text-gray-700 px-3 rounded-xl font-bold text-xs whitespace-nowrap">Browse</button></div><img id="hImagePreview" class="hidden mt-2 h-20 rounded-lg object-cover border border-gray-200" alt="Hero banner preview"></div><input id="hCtaText" placeholder="Button text (e.g. Shop Laptops)" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><div class="grid grid-cols-2 gap-3"><select id="hLinkType" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><option value="category">Links to Category</option><option value="product">Links to Product</option><option value="url">Custom URL</option><option value="section">Website Page / Section</option><option value="whatsapp">WhatsApp Chat</option></select><input id="hOrder" type="number" placeholder="Order (0 = first)" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"></div><div id="hLinkValueWrap"><select id="hLinkValueCategory" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"></select><select id="hLinkValueProduct" class="hidden w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"></select><input id="hLinkValueUrl" placeholder="https://..." class="hidden w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><p class="text-[10px] text-gray-400 mt-1 px-1">Choose a product/category, enter a page URL or section anchor (for example #services), or write the WhatsApp message to prefill.</p></div><div class="flex gap-2 pt-1"><button type="submit" class="flex-1 bg-gray-900 text-white py-3 rounded-xl font-bold text-sm">Save Hero</button><button type="button" id="heroResetBtn" class="bg-gray-100 text-gray-500 px-4 rounded-xl font-bold text-sm">Reset</button></div></form></div><div id="heroList" class="grid gap-3"></div></div>
+        <div id="panel-heroes" class="tab-panel hidden"><div class="bg-white p-6 rounded-[24px] shadow-sm mb-6"><h2 id="heroFormTitle" class="font-black text-lg mb-1">Add Hero Slide</h2><p class="text-xs text-gray-400 mb-4">These show as a carousel on the homepage. Each slide links straight into the shop.</p><form id="heroForm" class="space-y-3"><input type="hidden" id="heroEditId"><input id="hTitle" placeholder="Title (e.g. HP EliteBook Deals)" required class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><input id="hSubtitle" placeholder="Subtitle (short, one line)" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><div><div class="flex gap-2"><input id="hImage" placeholder="Image URL (or browse below)" class="flex-1 p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><button type="button" onclick="openImagePicker('heroes','hImage')" class="bg-gray-100 text-gray-700 px-4 rounded-xl font-bold text-xs whitespace-nowrap">Browse</button></div><img id="hImagePreview" class="hidden mt-2 h-16 rounded-lg object-cover border border-gray-200"></div><input id="hCtaText" placeholder="Button text (e.g. Shop Laptops)" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><div class="grid grid-cols-2 gap-3"><select id="hLinkType" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><option value="category">Links to Category</option><option value="product">Links to Product</option><option value="url">Custom Link</option></select><input id="hOrder" type="number" placeholder="Order (0 = first)" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"></div><div id="hLinkValueWrap"><select id="hLinkValueCategory" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"></select><select id="hLinkValueProduct" class="hidden w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"></select><input id="hLinkValueUrl" placeholder="https://..." class="hidden w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><p class="text-[10px] text-gray-400 mt-1 px-1">Pulled straight from your real products/categories — no typing or copying IDs needed.</p></div><div class="flex gap-2 pt-1"><button type="submit" class="flex-1 bg-gray-900 text-white py-3 rounded-xl font-bold text-sm">Save Hero</button><button type="button" id="heroResetBtn" class="bg-gray-100 text-gray-500 px-4 rounded-xl font-bold text-sm">Reset</button></div></form></div><div id="heroList" class="grid gap-3"></div></div>
         <div id="panel-media" class="tab-panel hidden">
           <div class="bg-white p-5 rounded-[24px] shadow-sm mb-5">
             <h2 class="font-black text-lg mb-1">TejuBoss Media Library</h2>
@@ -187,71 +132,29 @@
             <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
           </div>
         </div>
-        <div id="panel-reviews" class="tab-panel hidden"><div class="bg-white p-6 rounded-[24px] shadow-sm mb-6"><h2 class="font-black text-lg mb-1">Add Review</h2><p class="text-xs text-gray-400 mb-4">Paste in a review you received by email (Formspree). New reviews are unapproved until you toggle them live.</p><form id="reviewAddForm" class="space-y-3"><input id="rvName" placeholder="Customer name" required class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><input id="rvTitle" placeholder="Title" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><select id="rvStars" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><option value="5">★★★★★ (5)</option><option value="4">★★★★☆ (4)</option><option value="3">★★★☆☆ (3)</option><option value="2">★★☆☆☆ (2)</option><option value="1">★☆☆☆☆ (1)</option></select><textarea id="rvText" placeholder="Original review text (keep the reviewer’s words unchanged)" required rows="3" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"></textarea>
-<div class="border-t pt-4 mt-2 space-y-3"><p class="text-xs font-black uppercase text-gray-500">Review story presentation (admin only)</p>
-<input id="rvSummary" placeholder="Short summary for homepage and archive (optional)" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
-<input id="rvCategory" placeholder="Categories, separated by commas (e.g. STEM Education, Robotics)" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
-<div class="space-y-2"><div class="flex gap-2"><input id="rvCoverImage" placeholder="Cover photograph URL or repository image path" class="flex-1 min-w-0 p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"><button type="button" data-media-pick="rvCoverImage" data-media-multiple="false" class="shrink-0 bg-teal-50 text-teal-700 px-3 rounded-xl text-xs font-bold">Choose from Media</button></div><img id="rvCoverImage_preview" class="hidden h-24 w-24 rounded-xl object-cover border border-gray-200" alt="Review cover preview"></div>
-<div class="space-y-2"><textarea id="rvImages" placeholder="Additional project photograph URLs, one per line" rows="2" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"></textarea><button type="button" data-media-pick="rvImages" data-media-multiple="true" class="bg-teal-50 text-teal-700 px-3 py-2 rounded-lg text-xs font-bold">Add photographs from Media</button><p class="text-[10px] text-gray-400">Select multiple photographs. They will be added as separate lines without removing existing entries.</p></div>
-<p class="text-[11px] text-gray-400">Photographs are attached by EazyLife, not uploaded by the reviewer. Confirm permission before publishing identifiable people, especially minors.</p>
-<div class="bg-gray-50 rounded-xl p-3 space-y-2"><p class="text-xs font-bold text-gray-600">Optional project details</p>
-<input id="rvProjectTitle" placeholder="Project title (optional)" class="w-full p-3 bg-white rounded-lg border border-gray-200 text-sm">
-<textarea id="rvProjectDescription" placeholder="Project description" rows="2" class="w-full p-3 bg-white rounded-lg border border-gray-200 text-sm"></textarea>
-<input id="rvProjectMaterials" placeholder="Materials / components, separated by commas" class="w-full p-3 bg-white rounded-lg border border-gray-200 text-sm">
-<textarea id="rvProjectProcess" placeholder="Process / how it was built" rows="2" class="w-full p-3 bg-white rounded-lg border border-gray-200 text-sm"></textarea>
-<textarea id="rvProjectOutcome" placeholder="Outcome / what it demonstrated" rows="2" class="w-full p-3 bg-white rounded-lg border border-gray-200 text-sm"></textarea>
-</div>
-<label class="flex items-center gap-2 text-xs text-gray-600 font-bold"><input type="checkbox" id="rvFeatured"> Feature on homepage (maximum three displayed)</label>
-</div>
-<label class="flex items-center gap-2 text-xs text-gray-500 font-bold px-1"><input type="checkbox" id="rvApproved"> Publish immediately (approved)</label>
-<input type="hidden" id="rvEditId">
-<div class="flex gap-2"><button type="submit" id="rvSaveBtn" class="bg-gray-900 text-white flex-1 py-3 rounded-xl font-bold text-sm">Save Review</button><button type="button" id="rvCancelEdit" class="hidden bg-gray-100 text-gray-600 px-4 rounded-xl text-sm font-bold">Cancel edit</button></div></form></div><div id="reviewList" class="grid gap-3"></div></div>
+        <div id="panel-reviews" class="tab-panel hidden"><div class="bg-white p-6 rounded-[24px] shadow-sm mb-6"><h2 class="font-black text-lg mb-1">Add Review</h2><p class="text-xs text-gray-400 mb-4">Paste in a review you received by email (Formspree). New reviews are unapproved until you toggle them live.</p><form id="reviewAddForm" class="space-y-3"><input id="rvName" placeholder="Customer name" required class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><input id="rvTitle" placeholder="Title" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><select id="rvStars" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"><option value="5">★★★★★ (5)</option><option value="4">★★★★☆ (4)</option><option value="3">★★★☆☆ (3)</option><option value="2">★★☆☆☆ (2)</option><option value="1">★☆☆☆☆ (1)</option></select><textarea id="rvText" placeholder="Review text" required rows="3" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm outline-none"></textarea><label class="flex items-center gap-2 text-xs text-gray-500 font-bold px-1"><input type="checkbox" id="rvApproved" checked> Publish immediately (approved)</label><button type="submit" class="bg-gray-900 text-white w-full py-3 rounded-xl font-bold text-sm">Save Review</button></form></div><div id="reviewList" class="grid gap-3"></div></div>
         <div id="panel-requests" class="tab-panel hidden"><p class="text-xs text-gray-400 mb-4 px-1">"Can't find what you want" and budget-based sourcing requests from the shop. Move each through New → Contacted → Fulfilled.</p><div id="requestList" class="grid gap-3"></div></div>
-        <div id="panel-orders" class="tab-panel hidden"><div id="orderList" class="grid gap-3"></div></div>
-        <div id="panel-delivery" class="tab-panel hidden"><div id="deliveryContent"></div></div>
-        <div id="panel-school-stem" class="tab-panel hidden"><div id="schoolStemContent"></div></div>
+        <div id="panel-orders" class="tab-panel hidden"><div id="commerceOrderQueue" class="mb-5"></div><div id="commerceOrderArchive" class="mb-5"></div><div class="mt-6"><h3 class="font-black text-sm mb-3">Legacy orders</h3><div id="orderList" class="grid gap-3"></div></div></div>
+        <div id="panel-delivery" class="tab-panel hidden"><div id="deliveryPolicyConfig" class="mb-5"></div><div id="deliveryContent"></div></div>
         <div id="panel-settings" class="tab-panel hidden"><div id="settingsContent"></div></div>
     </div>
 </div>
 <div id="imagePickerModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-end md:items-center justify-center"><div class="bg-white w-full max-w-lg rounded-t-[28px] md:rounded-[24px] shadow-2xl p-5 max-h-[85vh] flex flex-col"><div class="flex justify-between items-center mb-3"><h3 class="font-black text-base text-gray-800">Choose an Image</h3><button onclick="closeImagePicker()" class="text-gray-400 text-2xl p-1">&times;</button></div><p id="pickerHint" class="text-xs text-gray-400 mb-3"></p><div id="pickerGrid" class="grid grid-cols-3 gap-2 overflow-y-auto pr-1" style="flex:1;"><p class="col-span-3 text-center text-gray-400 text-sm py-10">Loading images...</p></div></div></div>
-<script>
-(function(){
-  function report(message, source=''){
-    const detail=source ? message+' ['+source+']' : message;
-    const box=document.getElementById('loginError');
-    if(box){box.textContent='Admin startup error: '+detail;box.classList.remove('hidden');}
-    console.error('[EazyLife Admin startup]',detail);
-  }
-  window.addEventListener('error',e=>{
-    const source=e.filename ? e.filename+':'+e.lineno+':'+e.colno : '';
-    report(e.message||'A script failed to load.',source);
-  });
-  window.addEventListener('unhandledrejection',e=>report(e.reason?.message||String(e.reason||'An asynchronous module failed.')));
-  window.addEventListener('DOMContentLoaded',()=>{
-    const btn=document.getElementById('loginBtn');
-    if(btn)btn.addEventListener('click',()=>{
-      const box=document.getElementById('loginError');
-      if(box){box.textContent='Connecting to Firebase…';box.classList.remove('hidden');box.style.color='#087f70';}
-      setTimeout(()=>{
-        if(btn.dataset.authHandlerReady!=='yes'&&box){
-          box.textContent='Admin login module did not initialise. Reload the page and check the browser console for the first red error.';
-          box.style.color='#c22';
-        }
-      },1200);
-    },{capture:true});
-  });
-})();
-</script>
-<script type="module" src="js/settings-ui.mjs?v=88ff21e"></script>
+<script type="module" src="js/settings-ui.mjs"></script>
 <script type="module" src="js/admin-app.mjs"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script type="module" src="js/admin-quotations.mjs"></script>
 <script type="module" src="js/admin-media.mjs"></script>
+<script type="module" src="js/catalogue-builder.mjs"></script>
+<script type="module" src="js/quantity-pricing.mjs"></script>
 <script type="module" src="js/purchases.mjs"></script>
 <script type="module" src="js/order-delivery-bridge.mjs"></script>
 <script type="module">
 import { initInventory } from "./js/inventory.mjs";
+import "./js/structured-inventory.mjs";
+import "./js/inventory-overview.mjs";
+import "./js/inventory-adjustments-ui.mjs";
+import "./js/delivery-policy-admin.mjs";
+import "./js/commerce-order-queue.mjs";
+import "./js/commerce-order-archive.mjs";
 import { initInventoryReports } from "./js/inventory-reports.mjs";
 import { initDelivery } from "./js/delivery.mjs";
 let stopInventory=null;
@@ -260,11 +163,12 @@ let stopDelivery=null;
 const inventoryBtn=document.getElementById("inventoryTabBtn");
 const reportsBtn=document.getElementById("reportsTabBtn");
 const deliveryBtn=document.getElementById("deliveryTabBtn");
+const stockSetupBtn=document.getElementById("stockSetupTabBtn");
 function showPanel(tab){document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("tab-active"));document.querySelector(`[data-tab="${tab}"]`).classList.add("tab-active");document.querySelectorAll(".tab-panel").forEach(p=>p.classList.add("hidden"));document.getElementById(`panel-${tab}`).classList.remove("hidden");}
 inventoryBtn.addEventListener("click",()=>{showPanel("inventory");if(stopReports){stopReports();stopReports=null;}if(!stopInventory)stopInventory=initInventory();});
+stockSetupBtn.addEventListener("click",()=>showPanel("stocksetup"));
 reportsBtn.addEventListener("click",()=>{showPanel("reports");if(stopInventory){stopInventory();stopInventory=null;}if(!stopReports)stopReports=initInventoryReports();});
 deliveryBtn.addEventListener("click",()=>{showPanel("delivery");if(!stopDelivery)stopDelivery=initDelivery();});
 </script>
-<script src="../js/site-theme.js"></script>
 </body>
 </html>
