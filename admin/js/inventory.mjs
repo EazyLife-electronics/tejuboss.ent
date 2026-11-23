@@ -1,7 +1,7 @@
 // Clean Spark-compatible inventory console for catalogueProducts + inventoryBalances.
 import { initFirebase } from "../../js/firebase.mjs";
 import { collection, doc, getDocs, setDoc, updateDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { recordInventoryMovement } from "../../js/commerce-store.mjs";
+import { recordInventoryMovement, initializeInventoryBalance } from "../../js/commerce-store.mjs";
 import { escapeHtml } from "./admin-shared.mjs";
 
 const { db, auth } = initFirebase();
@@ -82,14 +82,15 @@ async function initialize(id) {
   if (!row) return;
   const quantity = Number(document.querySelector(`[data-opening="${CSS.escape(id)}"]`)?.value);
   if (!Number.isSafeInteger(quantity) || quantity < 0) return alert("Enter a valid opening quantity.");
-  if (!confirm("Create an inventory balance with this opening quantity?")) return;
+  if (!confirm("Create this stock balance and record its opening quantity in one transaction?")) return;
   try {
-    await setDoc(doc(db, "inventoryBalances", id), {
-      productId: row.product.id, sellingOptionId: row.option.id, locationId: LOCATION_ID,
-      quantityOnHand: 0, reorderLevel: 0, sku: "", createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid
+    await initializeInventoryBalance({
+      balanceId: id,
+      productId: row.product.id,
+      sellingOptionId: row.option.id,
+      locationId: LOCATION_ID,
+      quantityOnHand: quantity
     });
-    if (quantity > 0) await recordInventoryMovement({ balanceId: id, quantityDelta: quantity, movementType: "opening_balance", reason: "Initial stock setup" });
     await loadInventory();
   } catch (error) { showError(error); }
 }
