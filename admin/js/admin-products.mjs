@@ -32,7 +32,7 @@ function variantRowHTML(rowId, v = {}) {
       </div>
       <div class="flex gap-2 mb-2">
         <input id="v${rowId}_image" placeholder="Image URL" value="${escapeHtml(v.image || '')}" class="flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
-        <button type="button" onclick="openImagePicker('products','v${rowId}_image')" class="bg-gray-100 text-gray-700 px-3 rounded-lg font-bold text-[10px] whitespace-nowrap">Browse</button>
+        <button type="button" data-media-pick="v${rowId}_image" data-media-multiple="false" class="bg-teal-50 text-teal-700 px-3 rounded-lg font-bold text-[10px] whitespace-nowrap">Choose from Media</button>
       </div>
       <img id="v${rowId}_preview" class="${v.image ? '' : 'hidden'} mb-2 h-12 rounded-lg object-cover border border-gray-200" src="${v.image ? escapeHtml(v.image.startsWith('http') ? v.image : '../' + v.image) : ''}">
       <div class="mb-2">
