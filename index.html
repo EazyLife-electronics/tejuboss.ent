@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script>
     (function () {
-      var saved = localStorage.getItem('eazylife-theme');
+      var saved = localStorage.getItem('tejuboss-theme');
       var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
       document.documentElement.setAttribute('data-theme', theme);
     })();
@@ -762,12 +762,12 @@
       var current = document.documentElement.getAttribute('data-theme');
       var next = current === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('eazylife-theme', next);
+      localStorage.setItem('tejuboss-theme', next);
       applyThemeVisuals();
     });
 
     // If the person hasn't manually chosen a theme, keep following the system preference live
-    if (window.matchMedia && !localStorage.getItem('eazylife-theme')) {
+    if (window.matchMedia && !localStorage.getItem('tejuboss-theme')) {
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
         document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
         applyThemeVisuals();
