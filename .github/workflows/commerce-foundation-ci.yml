@@ -29,6 +29,11 @@ jobs:
       - name: Install test dependencies
         working-directory: functions
         run: npm install
+      - name: Check commerce application module syntax
+        run: |
+          node --check js/commerce-store.mjs
+          node --check admin/js/admin-orders.mjs
+          node --check admin/js/inventory.mjs
       - name: Run clean commerce rules emulator suite
         working-directory: functions
         run: npm run test:commerce-rules
