@@ -152,8 +152,20 @@ export async function submitGuestOrderRequest(input) {
   const subtotalMinor = toMinor(input.subtotal);
   const deliveryFeeMinor = toMinor(input.deliveryFee);
   const grandTotalMinor = toMinor(input.total);
-  const orderRef = doc(collection(db, "orders"));
-  const trackingToken = randomHex(16);
+  // Reuse a caller-persisted 128-bit key so a retry after a lost network
+  // response resolves to the original request instead of creating a duplicate.
+  const idempotencyKey = cleanText(input.idempotencyKey, 32).toLowerCase();
+  if (!/^[a-f0-9]{32}$/.test(idempotencyKey)) {
+    throw new Error("Checkout session expired. Return to checkout and try again.");
+  }
+  const orderRef = doc(db, "orders", idempotencyKey);
+  const trackingToken = idempotencyKey;
+  const trackingRef = doc(db, "orderTracking", trackingToken);
+  const existingTracking = await getDoc(trackingRef);
+  if (existingTracking.exists()) {
+    if (existingTracking.data().orderId === orderRef.id) return trackingToken;
+    throw new Error("This checkout reference is already in use. Start checkout again.");
+  }
   const now = serverTimestamp();
   const fulfilment = {
     method: cleanText(input.fulfilmentMethod || "delivery", 20) === "pickup" ? "pickup" : "delivery",
@@ -191,7 +203,14 @@ export async function submitGuestOrderRequest(input) {
     createdAt: now,
     updatedAt: now
   });
-  await batch.commit();
+  try {
+    await batch.commit();
+  } catch (error) {
+    // Two tabs may submit the same key concurrently. If the first batch
+    // committed, the second tab can safely recover its tracking token.
+    const committed = await getDoc(trackingRef).catch(() => null);
+    if (!committed?.exists() || committed.data().orderId !== orderRef.id) throw error;
+  }
   return trackingToken;
 }
 
