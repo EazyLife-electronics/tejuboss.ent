@@ -851,6 +851,7 @@
     // pick from the modal: the first in-stock variant, else just the first.
     function getDefaultVariant(p) {
         const variants = p.variants || [];
+        if (p.inStock === false) return null;
         return variants.find(v => v.inStock !== false) || null;
     }
 
@@ -1565,6 +1566,7 @@
             phone,
             address: addr,
             subtotal: totals.subtotal,
+            discount: totals.bulkSavings,
             deliveryFee: totals.deliveryFee,
             total: totals.total
         };
