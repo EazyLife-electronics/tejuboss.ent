@@ -92,6 +92,11 @@ export async function saveCatalogueProduct(product, productId = null) {
       sortOrder: index
     })).filter(image => image.url),
     sellingOptions: normalizedOptions,
+    addOns: (Array.isArray(product.addOns) ? product.addOns : []).slice(0, 20).map((item, index) => {
+      const priceMinor = item.priceMinor != null ? Number(item.priceMinor) : Math.round(Number(item.price || 0) * 100);
+      if (!Number.isSafeInteger(priceMinor) || priceMinor < 0 || priceMinor > 10000000000) throw new Error("An add-on price is invalid.");
+      return { id: cleanText(item.id || randomHex(8), 80), name: cleanText(item.name, 100), priceMinor, enabled: item.enabled !== false };
+    }).filter(item => item.name),
     published: product.published === true,
     availability: product.availability === "unavailable" ? "unavailable" : "available",
     updatedAt: serverTimestamp()
@@ -290,7 +295,9 @@ function legacyProductView(product) {
       image: (typeof product.images?.[0] === "string" ? product.images[0] : product.images?.[0]?.url) || "",
       inStock: option.enabled !== false
     })),
-    upgrades: []
+    upgrades: (Array.isArray(product.addOns) ? product.addOns : []).map(item => ({
+      id: item.id, name: item.name, price: Number(item.priceMinor || 0) / 100
+    }))
   };
 }
 function fromLegacyProduct(product) {
@@ -309,6 +316,9 @@ function fromLegacyProduct(product) {
       sku: option.sku || "",
       priceMinor: Math.round(Number(option.promoPrice > 0 ? option.promoPrice : option.price || 0) * 100),
       enabled: option.inStock !== false
+    })),
+    addOns: (Array.isArray(product.upgrades) ? product.upgrades : []).map(item => ({
+      id: item.id || randomHex(8), name: item.name, price: Number(item.price || 0), enabled: true
     }))
   };
 }
