@@ -24,6 +24,13 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
 });
 document.getElementById("logoutBtn").addEventListener("click", () => signOut(auth));
 onAuthStateChanged(auth, user => {
+  if (user && user.email?.toLowerCase() !== "damzyeazy@gmail.com") {
+    const error = document.getElementById("loginError");
+    error.textContent = "This account is not authorized for the Tejuboss administrator dashboard.";
+    error.classList.remove("hidden");
+    signOut(auth);
+    return;
+  }
   if (user) {
     document.getElementById("loginScreen").classList.add("hidden");
     document.getElementById("dashboard").classList.remove("hidden");
