@@ -5,7 +5,7 @@
 import { initFirebase } from "./firebase.mjs";
 import {
   collection, doc, getDoc, getDocs, query, where, orderBy, limit,
-  setDoc, updateDoc, deleteDoc, serverTimestamp, runTransaction, writeBatch
+  setDoc, updateDoc, deleteDoc, serverTimestamp, runTransaction, writeBatch, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const { db, auth } = initFirebase();
@@ -29,6 +29,19 @@ function toMinor(value) {
     throw new Error("A displayed price is invalid. Refresh the catalogue and try again.");
   }
   return Math.round(number * 100);
+}
+
+export async function getPublicSiteSettings() {
+  const snap = await getDoc(doc(db, "siteSettings", "public"));
+  if (!snap.exists()) return {};
+  const value = snap.data();
+  return {
+    whatsapp: cleanText(value.whatsapp, 20),
+    tagline: cleanText(value.tagline, 180),
+    aboutText: cleanText(value.aboutText, 3000),
+    deliveryFeePerItem: Number.isSafeInteger(value.deliveryFeeMinor) && value.deliveryFeeMinor >= 0
+      ? value.deliveryFeeMinor / 100 : null
+  };
 }
 
 export async function listPublicCatalogue() {
@@ -303,10 +316,10 @@ export async function getProducts() {
   return (await listPublicCatalogue()).map(legacyProductView);
 }
 export function watchProducts(callback) {
-  let active = true;
-  listAdminCatalogue().then(rows => { if (active) callback(rows.map(legacyProductView)); })
-    .catch(error => console.error("Could not load catalogue products:", error));
-  return () => { active = false; };
+  requireAdmin();
+  return onSnapshot(query(collection(db, "catalogueProducts"), limit(500)), snapshot => {
+    callback(snapshot.docs.map(item => legacyProductView({ id: item.id, ...item.data() })));
+  }, error => console.error("Could not watch catalogue products:", error));
 }
 export async function addProduct(product) {
   const id = await saveCatalogueProduct(fromLegacyProduct(product));
@@ -330,8 +343,8 @@ export async function placeOrder(order) {
 }
 
 export function watchOrders(callback) {
-  let active = true;
-  listOrdersForAdmin().then(rows => { if (active) callback(rows, { readOnlyFallback: false }); })
-    .catch(error => console.error("Could not load order requests:", error));
-  return () => { active = false; };
+  requireAdmin();
+  return onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc"), limit(100)), snapshot => {
+    callback(snapshot.docs.map(item => ({ id: item.id, ...item.data() })), { readOnlyFallback: false });
+  }, error => console.error("Could not watch order requests:", error));
 }
