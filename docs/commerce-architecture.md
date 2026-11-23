@@ -39,14 +39,14 @@ Created by guests with a high-entropy random ID. Readable and mutable only by th
 - `schemaVersion: 1`, `orderId`, `status: "awaiting_review"`
 - Customer contact and fulfilment details needed to process the request
 - Requested line identifiers and quantities, plus clearly labelled client display snapshots
-- Client quote snapshot in minor currency units, marked `quoteStatus: "unverified"`
+- Client quote snapshot in minor currency units: `subtotalMinor`, `discountMinor`, `deliveryFeeMinor`, and `grandTotalMinor`; the expected arithmetic is subtotal minus discount plus delivery, marked `quoteStatus: "unverified"`
 - `createdAt`, `updatedAt`
 - Staff-only verification fields added later: verified line prices, accepted total, decision actor/time, internal notes
 
 Never let a public client update an order after creation. Keep the schema allowlist narrow and bound string/list sizes in rules. Do not store payment credentials or sensitive identity documents.
 
 ### `orderTracking/{token}`
-A separate, minimal, public-safe status projection keyed by an independently generated high-entropy bearer token (at least 128 bits of cryptographic randomness). It contains no customer name, phone, address, line items, or payment details. Guest creation is limited to an initial `submitted` state; only the administrator can update it. Public clients may perform a single-document `get` when they possess the exact token; list access is denied. Do not use sequential order numbers or short human-readable codes as bearer credentials.
+A separate, minimal, public-safe status projection keyed by the same cryptographically random 128-bit checkout idempotency token used as the private order document ID. The token is persisted before submission so retries resolve to the same request. It contains no customer name, phone, address, line items, or payment details. Guest creation is limited to an initial `submitted` state; only the administrator can update it. Public clients may perform a single-document `get` when they possess the exact token; list access is denied. Do not use sequential order numbers or short human-readable codes as bearer credentials.
 
 If implementing secure token generation or atomic paired creation is not feasible in the browser, defer public tracking rather than exposing the private `orders` collection.
 
