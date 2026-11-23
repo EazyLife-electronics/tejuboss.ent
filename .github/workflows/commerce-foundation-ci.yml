@@ -33,6 +33,8 @@ jobs:
         run: |
           node --check js/commerce-store.mjs
           node --check admin/js/admin-orders.mjs
+          node --check admin/js/admin-products.mjs
+          node --check admin/js/admin-settings.mjs
           node --check admin/js/inventory.mjs
           python - <<'PY'
           import re
