@@ -1,11 +1,9 @@
-# robots.txt — Teju Boss Enterprise
-# https://tejuboss.ent
+# robots.txt for Tejuboss Enterprise
+# https://tejuboss.ng
 
 User-agent: *
 Allow: /
-
-# Block admin folder from crawlers
 Disallow: /admin/
+Disallow: /track.html
 
-# Sitemap location
-Sitemap: https://tejuboss.ent/sitemap.xml
+Sitemap: https://tejuboss.ng/sitemap.xml

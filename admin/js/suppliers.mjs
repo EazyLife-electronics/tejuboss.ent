@@ -1,13 +1,9 @@
 // Supplier master records for the Purchases tab.
 import { initFirebase } from '../../js/firebase.mjs';
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+import { collection, getDocs, addDoc, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const { app, auth } = initFirebase();
-const functions = getFunctions(app, "europe-west1");
-const listSuppliersCall = httpsCallable(functions, "listLegacySuppliers");
-const saveSupplierCall = httpsCallable(functions, "saveLegacySupplier");
-const syncSupplierLinksCall = httpsCallable(functions, "syncLegacyPurchaseSupplierLinks");
+const { db, auth } = initFirebase();
 let suppliers = [];
 let purchases = [];
 let currentUser = null;
@@ -45,9 +41,8 @@ function purchaseMetrics() {
     m.purchases += 1;
     m.units += Number(p.quantity || 0);
     m.value += Number(p.totalCost || 0);
-    const t = p.createdAt instanceof Date ? p.createdAt.getTime() : (p.createdAt?.toMillis?.() || 0);
-    const previous = m.lastPurchase instanceof Date ? m.lastPurchase.getTime() : (m.lastPurchase?.toMillis?.() || 0);
-    if (t > previous) m.lastPurchase = p.createdAt;
+    const t = p.createdAt?.toMillis?.() || 0;
+    if (t > (m.lastPurchase?.toMillis?.() || 0)) m.lastPurchase = p.createdAt;
     map.set(key, m);
   }
   return map;
@@ -60,11 +55,35 @@ function metricsFor(supplier, map) {
 export async function ensureSupplierRecord(name) {
   const clean = cleanName(name);
   if (!clean) throw new Error('Supplier name is required.');
+
   const local = findSupplierByName(clean);
   if (local) return { ...local, created: false };
-  const result = await saveSupplierCall({ name: clean });
-  await loadSuppliers();
-  return { ...(suppliers.find(s => s.id === result.data.supplierId) || { id: result.data.supplierId, name: clean }), created: Boolean(result.data.created) };
+
+  const snap = await getDocs(collection(db, 'suppliers'));
+  const found = snap.docs.find(d => normalizeName(d.data()?.name) === normalizeName(clean));
+  if (found) {
+    const record = { id: found.id, ...found.data() };
+    if (!suppliers.some(s => s.id === record.id)) suppliers.push(record);
+    return { ...record, created: false };
+  }
+
+  const now = serverTimestamp();
+  const ref = await addDoc(collection(db, 'suppliers'), {
+    name: clean,
+    normalizedName: normalizeName(clean),
+    business: '', contactPerson: '', phone: '', whatsapp: '', email: '', address: '',
+    notes: 'Automatically created from a received purchase. Add contact details in Supplier Records.',
+    source: 'purchase', createdAt: now, updatedAt: now, createdBy: currentUser?.uid || null
+  });
+  const record = {
+    id: ref.id, name: clean, normalizedName: normalizeName(clean), business: '', contactPerson: '',
+    phone: '', whatsapp: '', email: '', address: '',
+    notes: 'Automatically created from a received purchase. Add contact details in Supplier Records.',
+    source: 'purchase', created: true
+  };
+  suppliers.push(record);
+  renderSupplierOptions();
+  return record;
 }
 
 function install() {
@@ -250,7 +269,7 @@ function render() {
   const filtered = suppliers.filter(s => !query || [s.name, s.business, s.contactPerson, s.phone, s.whatsapp, s.email, s.address, s.notes].some(v => normalizeName(v).includes(query)));
   const contactCount = suppliers.filter(s => [s.contactPerson, s.phone, s.whatsapp, s.email].some(v => String(v || '').trim())).length;
   const linkedIds = new Set(purchases.filter(p => p.status !== 'voided' && p.supplierId).map(p => p.supplierId));
-  const latest = suppliers.reduce((n, s) => Math.max(n, s.updatedAt instanceof Date ? s.updatedAt.getTime() : (s.updatedAt?.toMillis?.() || (s.createdAt instanceof Date ? s.createdAt.getTime() : (s.createdAt?.toMillis?.() || 0)))), 0);
+  const latest = suppliers.reduce((n, s) => Math.max(n, s.updatedAt?.toMillis?.() || s.createdAt?.toMillis?.() || 0), 0);
   document.getElementById('supplierCount').textContent = suppliers.length.toLocaleString();
   document.getElementById('supplierContactCount').textContent = contactCount.toLocaleString();
   document.getElementById('supplierLinkedCount').textContent = linkedIds.size.toLocaleString();
@@ -296,10 +315,20 @@ async function syncPurchaseLinks() {
   const button = document.getElementById('syncSupplierRecords');
   if (button) { button.disabled = true; button.textContent = 'Syncing...'; }
   try {
-    const result = await syncSupplierLinksCall({});
+    const snap = await getDocs(collection(db, 'purchases'));
+    let linked = 0, created = 0, skipped = 0;
+    for (const purchaseDoc of snap.docs) {
+      const p = purchaseDoc.data();
+      if (p.status === 'voided' || p.supplierId) { skipped += 1; continue; }
+      const name = cleanName(p.supplier);
+      if (!name) { skipped += 1; continue; }
+      const record = await ensureSupplierRecord(name);
+      await updateDoc(doc(db, 'purchases', purchaseDoc.id), { supplier: record.name, supplierId: record.id, supplierSyncedAt: serverTimestamp() });
+      linked += 1;
+      if (record.created) created += 1;
+    }
     await loadSuppliers();
-    const d = result.data || {};
-    showSyncMessage(`Sync complete: ${d.linked || 0} purchases linked, ${d.created || 0} supplier records created${d.skipped ? `, ${d.skipped} skipped` : ''}${d.limited ? '. Some older records remain; run Sync Purchases again.' : '.'}`);
+    showSyncMessage(`Sync complete: ${linked} purchase${linked === 1 ? '' : 's'} linked, ${created} supplier master record${created === 1 ? '' : 's'} created${skipped ? `, ${skipped} skipped` : ''}.`);
   } catch (err) {
     console.error('Supplier purchase sync failed:', err);
     showSyncMessage(err?.message || 'Supplier sync failed.', true);
@@ -336,12 +365,13 @@ function openSupplierEditor(existing = null) {
     if (save) { save.disabled = true; save.textContent = 'Saving...'; }
     const form = new FormData(e.currentTarget);
     const name = cleanName(form.get('name'));
-    const data = { name, business: String(form.get('business') || '').trim(), contactPerson: String(form.get('contactPerson') || '').trim(), phone: String(form.get('phone') || '').trim(), whatsapp: String(form.get('whatsapp') || '').trim(), email: String(form.get('email') || '').trim(), address: String(form.get('address') || '').trim(), notes: String(form.get('notes') || '').trim(), ...(existing?.id ? { supplierId: existing.id } : {}) };
+    const data = { name, normalizedName: normalizeName(name), business: String(form.get('business') || '').trim(), contactPerson: String(form.get('contactPerson') || '').trim(), phone: String(form.get('phone') || '').trim(), whatsapp: String(form.get('whatsapp') || '').trim(), email: String(form.get('email') || '').trim(), address: String(form.get('address') || '').trim(), notes: String(form.get('notes') || '').trim(), updatedAt: serverTimestamp() };
     try {
       if (!name) throw new Error('Supplier name is required.');
       const duplicate = suppliers.find(s => s.id !== existing?.id && normalizeName(s.name) === normalizeName(name));
       if (duplicate) throw new Error(`A supplier named “${duplicate.name}” already exists. Edit that record instead.`);
-      await saveSupplierCall(data);
+      if (existing?.id) await updateDoc(doc(db, 'suppliers', existing.id), data);
+      else await addDoc(collection(db, 'suppliers'), { ...data, source: 'manual', createdAt: serverTimestamp(), createdBy: currentUser?.uid || null });
       close();
       await loadSuppliers();
     } catch (err) {
@@ -356,12 +386,10 @@ async function loadSuppliers() {
   loading = true;
   render();
   try {
-    const result = await listSuppliersCall({});
-    const d = result.data || {};
-    suppliers = (d.suppliers || []).map(s => ({ ...s, createdAt: s.createdAtMillis ? new Date(s.createdAtMillis) : null, updatedAt: s.updatedAtMillis ? new Date(s.updatedAtMillis) : null })).sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
-    purchases = (d.purchases || []).map(p => ({ ...p, createdAt: p.createdAtMillis ? new Date(p.createdAtMillis) : null }));
+    const [supplierSnap, purchaseSnap] = await Promise.all([getDocs(collection(db, 'suppliers')), getDocs(collection(db, 'purchases'))]);
+    suppliers = supplierSnap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+    purchases = purchaseSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderSupplierOptions();
-    if (d.truncated) showSyncMessage('Supplier history is limited to the latest 1,000 purchases. Older purchase records remain preserved.', true);
   } catch (err) {
     console.error('Supplier records load failed:', err);
     suppliers = []; purchases = [];

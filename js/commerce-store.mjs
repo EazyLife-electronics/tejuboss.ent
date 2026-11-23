@@ -1,0 +1,459 @@
+// Spark-compatible commerce data layer for the clean TejuBoss schema.
+// Browser-submitted quotes are unverified. This module never deducts stock
+// during guest checkout and never treats client prices as authoritative.
+
+import { initFirebase } from "./firebase.mjs";
+import {
+  collection, doc, getDoc, getDocs, query, where, orderBy, limit,
+  setDoc, updateDoc, deleteDoc, serverTimestamp, runTransaction, writeBatch, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const { db, auth } = initFirebase();
+const ADMIN_EMAIL = "damzyeazy@gmail.com";
+const isAdmin = () => auth.currentUser?.email?.toLowerCase() === ADMIN_EMAIL;
+
+function requireAdmin() {
+  if (!isAdmin()) throw new Error("Administrator sign-in is required.");
+}
+function randomHex(bytes = 16) {
+  const data = new Uint8Array(bytes);
+  crypto.getRandomValues(data);
+  return [...data].map(value => value.toString(16).padStart(2, "0")).join("");
+}
+function cleanText(value, max = 500) {
+  return String(value ?? "").trim().slice(0, max);
+}
+function toMinor(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < 0 || number > 100000000) {
+    throw new Error("A displayed price is invalid. Refresh the catalogue and try again.");
+  }
+  return Math.round(number * 100);
+}
+
+export async function getPublicSiteSettings() {
+  const snap = await getDoc(doc(db, "siteSettings", "public"));
+  if (!snap.exists()) return {};
+  const value = snap.data();
+  return {
+    whatsapp: cleanText(value.whatsapp, 20),
+    tagline: cleanText(value.tagline, 180),
+    aboutText: cleanText(value.aboutText, 3000),
+    deliveryFeePerItem: Number.isSafeInteger(value.deliveryFeeMinor) && value.deliveryFeeMinor >= 0
+      ? value.deliveryFeeMinor / 100 : null
+  };
+}
+
+export async function listPublicCatalogue() {
+  const snap = await getDocs(query(
+    collection(db, "catalogueProducts"),
+    where("published", "==", true),
+    limit(200)
+  ));
+  return snap.docs.map(item => ({ id: item.id, ...item.data() }));
+}
+
+export async function listAdminCatalogue() {
+  requireAdmin();
+  const snap = await getDocs(query(collection(db, "catalogueProducts"), limit(500)));
+  return snap.docs.map(item => ({ id: item.id, ...item.data() }));
+}
+
+export async function saveCatalogueProduct(product, productId = null) {
+  requireAdmin();
+  const name = cleanText(product?.name, 160);
+  if (!name) throw new Error("Product name is required.");
+  const options = Array.isArray(product.sellingOptions) ? product.sellingOptions : [];
+  if (!options.length || options.length > 50) throw new Error("Add between 1 and 50 selling options.");
+  const normalizedOptions = options.map((option, index) => {
+    const id = cleanText(option.id || randomHex(8), 80);
+    const rawMinor = option.priceMinor != null ? Number(option.priceMinor) : Math.round(Number(option.price || 0) * 100);
+    if (!Number.isSafeInteger(rawMinor) || rawMinor < 0 || rawMinor > 10000000000) throw new Error("A product option price is invalid.");
+    const priceMinor = rawMinor;
+    const promoPriceMinor = option.promoPriceMinor != null
+      ? Number(option.promoPriceMinor)
+      : (Number(option.promoPrice || 0) > 0 ? Math.round(Number(option.promoPrice) * 100) : null);
+    if (promoPriceMinor != null && (!Number.isSafeInteger(promoPriceMinor) || promoPriceMinor < 0 || promoPriceMinor > 10000000000)) {
+      throw new Error("A promotional option price is invalid.");
+    }
+    return {
+      id,
+      label: cleanText(option.label || `Option ${index + 1}`, 100),
+      sku: cleanText(option.sku, 80),
+      priceMinor,
+      promoPriceMinor,
+      currency: "NGN",
+      enabled: option.enabled !== false
+    };
+  });
+  const optionIds = normalizedOptions.map(option => option.id);
+  if (new Set(optionIds).size !== optionIds.length) throw new Error("Each selling option must have a unique ID.");
+  if (normalizedOptions.some(option => !option.label)) throw new Error("Every selling option needs a label.");
+  if (normalizedOptions.some(option => option.promoPriceMinor != null && option.promoPriceMinor >= option.priceMinor)) {
+    throw new Error("A promotional price must be lower than its regular selling price.");
+  }
+  if (product.published === true && !normalizedOptions.some(option => option.enabled)) {
+    throw new Error("Enable at least one selling option before publishing this product.");
+  }
+  const normalizedAddOns = (Array.isArray(product.addOns) ? product.addOns : []).slice(0, 20).map(item => {
+    const priceMinor = item.priceMinor != null ? Number(item.priceMinor) : Math.round(Number(item.price || 0) * 100);
+    if (!Number.isSafeInteger(priceMinor) || priceMinor < 0 || priceMinor > 10000000000) throw new Error("An add-on price is invalid.");
+    const name = cleanText(item.name, 100);
+    if (!name) throw new Error("Every add-on needs a name.");
+    return { id: cleanText(item.id || randomHex(8), 80), name, priceMinor, enabled: item.enabled !== false };
+  });
+  const addOnIds = normalizedAddOns.map(item => item.id);
+  if (new Set(addOnIds).size !== addOnIds.length) throw new Error("Each add-on must have a unique ID.");
+
+  const payload = {
+    schemaVersion: 1,
+    name,
+    slug: cleanText(product.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""), 180),
+    description: cleanText(product.description, 3000),
+    brand: cleanText(product.brand, 100),
+    categoryId: cleanText(product.categoryId || product.category, 100),
+    images: (Array.isArray(product.images) ? product.images : []).slice(0, 12).map((image, index) => ({
+      url: cleanText(typeof image === "string" ? image : image.url, 1500),
+      alt: cleanText(typeof image === "string" ? name : image.alt || name, 180),
+      sortOrder: index
+    })).filter(image => image.url),
+    sellingOptions: normalizedOptions,
+    addOns: normalizedAddOns,
+    published: product.published === true,
+    availability: product.availability === "unavailable" ? "unavailable" : "available",
+    updatedAt: serverTimestamp()
+  };
+  if (productId) {
+    await updateDoc(doc(db, "catalogueProducts", productId), payload);
+    return productId;
+  }
+  const ref = doc(collection(db, "catalogueProducts"));
+  await setDoc(ref, { ...payload, createdAt: serverTimestamp() });
+  return ref.id;
+}
+
+export async function deleteCatalogueProduct(productId) {
+  requireAdmin();
+  await deleteDoc(doc(db, "catalogueProducts", productId));
+}
+
+export async function submitGuestOrderRequest(input) {
+  const name = cleanText(input.customerName, 100);
+  const phone = cleanText(input.phone, 20);
+  const address = cleanText(input.address, 500);
+  if (name.length < 1 || phone.length < 7) throw new Error("Enter your name and a valid phone number.");
+  const sourceItems = Array.isArray(input.items) ? input.items : [];
+  if (!sourceItems.length || sourceItems.length > 30) throw new Error("Your order must contain between 1 and 30 items.");
+
+  const lines = sourceItems.map(item => {
+    const quantity = Number(item.quantity);
+    if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > 1000) {
+      throw new Error("One or more item quantities are invalid.");
+    }
+    return {
+      productId: cleanText(item.productId, 128),
+      sellingOptionId: cleanText(item.variantId, 128),
+      requestedName: cleanText(item.name, 160),
+      requestedOption: cleanText(item.variant, 120),
+      requestedAddons: Array.isArray(item.upgrades) ? item.upgrades.slice(0, 10).map(value => cleanText(value, 100)) : [],
+      quantity,
+      displayedUnitPriceMinor: toMinor(item.price)
+    };
+  });
+  if (lines.some(line => !line.productId || !line.sellingOptionId)) {
+    throw new Error("A selected item is missing its catalogue reference. Refresh the shop and try again.");
+  }
+
+  const subtotalMinor = toMinor(input.subtotal);
+  const discountMinor = toMinor(input.discount || 0);
+  const deliveryFeeMinor = toMinor(input.deliveryFee);
+  const grandTotalMinor = toMinor(input.total);
+  if (discountMinor > subtotalMinor || grandTotalMinor !== subtotalMinor - discountMinor + deliveryFeeMinor) {
+    throw new Error("Checkout totals do not balance. Refresh your cart and try again.");
+  }
+  // Reuse a caller-persisted 128-bit key so a retry after a lost network
+  // response resolves to the original request instead of creating a duplicate.
+  const idempotencyKey = cleanText(input.idempotencyKey, 32).toLowerCase();
+  if (!/^[a-f0-9]{32}$/.test(idempotencyKey)) {
+    throw new Error("Checkout session expired. Return to checkout and try again.");
+  }
+  const orderRef = doc(db, "orders", idempotencyKey);
+  const trackingToken = idempotencyKey;
+  const trackingRef = doc(db, "orderTracking", trackingToken);
+  const existingTracking = await getDoc(trackingRef);
+  if (existingTracking.exists()) {
+    if (existingTracking.data().orderId === orderRef.id) return trackingToken;
+    throw new Error("This checkout reference is already in use. Start checkout again.");
+  }
+  const now = serverTimestamp();
+  const fulfilment = {
+    method: cleanText(input.fulfilmentMethod || "delivery", 20) === "pickup" ? "pickup" : "delivery",
+    address,
+    city: cleanText(input.city, 100),
+    state: cleanText(input.state, 100),
+    note: cleanText(input.deliveryNote, 500)
+  };
+  const batch = writeBatch(db);
+  batch.set(orderRef, {
+      schemaVersion: 1,
+      orderId: orderRef.id,
+      trackingToken,
+      status: "awaiting_review",
+      customer: {
+        name,
+        phone,
+        email: cleanText(input.email, 254) || null
+      },
+      fulfilment,
+      lines,
+      quote: {
+        currency: "NGN",
+        subtotalMinor,
+        discountMinor,
+        deliveryFeeMinor,
+        grandTotalMinor
+      },
+      quoteStatus: "unverified",
+      createdAt: now,
+      updatedAt: now
+    });
+  batch.set(doc(db, "orderTracking", trackingToken), {
+    orderId: orderRef.id,
+    status: "submitted",
+    createdAt: now,
+    updatedAt: now
+  });
+  try {
+    await batch.commit();
+  } catch (error) {
+    // Two tabs may submit the same key concurrently. If the first batch
+    // committed, the second tab can safely recover its tracking token.
+    const committed = await getDoc(trackingRef).catch(() => null);
+    if (!committed?.exists() || committed.data().orderId !== orderRef.id) throw error;
+  }
+  return trackingToken;
+}
+
+export async function getPublicOrderTracking(token) {
+  const safeToken = String(token || "").trim().toLowerCase();
+  if (!/^[a-f0-9]{32}$/.test(safeToken)) throw new Error("Enter a valid tracking token.");
+  const snap = await getDoc(doc(db, "orderTracking", safeToken));
+  if (!snap.exists()) return null;
+  const data = snap.data();
+  return { status: data.status, createdAt: data.createdAt, updatedAt: data.updatedAt };
+}
+
+export async function listOrdersForAdmin() {
+  requireAdmin();
+  const snap = await getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc"), limit(100)));
+  return snap.docs.map(item => ({ id: item.id, ...item.data() }));
+}
+
+export async function setOrderReviewDecision(orderId, decision, verification = {}) {
+  requireAdmin();
+  if (!["approved", "rejected"].includes(decision)) throw new Error("Invalid order decision.");
+  const orderRef = doc(db, "orders", orderId);
+  return runTransaction(db, async transaction => {
+    const orderSnap = await transaction.get(orderRef);
+    if (!orderSnap.exists()) throw new Error("Order not found.");
+    const order = orderSnap.data();
+    if (order.status !== "awaiting_review") throw new Error("Only orders awaiting review can be decided.");
+    const trackingToken = cleanText(order.trackingToken, 64);
+    const trackingRef = /^[a-f0-9]{32}$/.test(trackingToken)
+      ? doc(db, "orderTracking", trackingToken)
+      : null;
+    const trackingSnap = trackingRef ? await transaction.get(trackingRef) : null;
+    if (!trackingSnap?.exists()) throw new Error("The public tracking record is missing; no decision was saved.");
+    const acceptedTotalMinor = decision === "approved" ? toMinor(verification.acceptedTotal) : null;
+    const verificationNote = cleanText(verification.note, 1000);
+    if (decision === "approved" && acceptedTotalMinor !== Number(order.quote?.grandTotalMinor) && !verificationNote) {
+      throw new Error("Add a staff note explaining the price adjustment before approving.");
+    }
+    const patch = {
+      status: decision,
+      quoteStatus: "staff_verified",
+      staffVerification: {
+        acceptedTotalMinor,
+        note: verificationNote,
+        verifiedBy: auth.currentUser.uid,
+        verifiedAt: serverTimestamp()
+      },
+      updatedAt: serverTimestamp()
+    };
+    transaction.update(orderRef, patch);
+    transaction.update(trackingRef, {
+      status: decision,
+      updatedAt: serverTimestamp()
+    });
+    return { id: orderId, status: decision };
+  });
+}
+
+// Create a stock balance and its opening ledger entry atomically. A repeated
+// initialization cannot overwrite an existing balance or erase its stock.
+export async function initializeInventoryBalance({ balanceId, productId, sellingOptionId, locationId = "main", quantityOnHand = 0, sku = "", reorderLevel = 0 }) {
+  requireAdmin();
+  const id = cleanText(balanceId, 180);
+  const quantity = Number(quantityOnHand);
+  const reorder = Number(reorderLevel);
+  if (!id || !cleanText(productId, 128) || !cleanText(sellingOptionId, 128)) throw new Error("A product and selling option are required.");
+  if (!Number.isSafeInteger(quantity) || quantity < 0 || !Number.isSafeInteger(reorder) || reorder < 0) throw new Error("Opening quantity and reorder level must be non-negative whole numbers.");
+  const balanceRef = doc(db, "inventoryBalances", id);
+  const movementRef = doc(collection(db, "inventoryMovements"));
+  await runTransaction(db, async transaction => {
+    const existing = await transaction.get(balanceRef);
+    if (existing.exists()) throw new Error("This inventory balance already exists. Refresh the inventory list.");
+    transaction.set(balanceRef, {
+      productId: cleanText(productId, 128),
+      sellingOptionId: cleanText(sellingOptionId, 128),
+      locationId: cleanText(locationId, 128),
+      quantityOnHand: quantity,
+      reorderLevel: reorder,
+      sku: cleanText(sku, 80),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      updatedBy: auth.currentUser.uid
+    });
+    if (quantity > 0) transaction.set(movementRef, {
+      productId: cleanText(productId, 128),
+      sellingOptionId: cleanText(sellingOptionId, 128),
+      locationId: cleanText(locationId, 128),
+      quantityDelta: quantity,
+      movementType: "opening_balance",
+      reason: "Initial stock setup",
+      referenceId: "",
+      actorUid: auth.currentUser.uid,
+      createdAt: serverTimestamp()
+    });
+  });
+  return id;
+}
+
+// Explicitly separate staff stock movements from order submission/review.
+// This transaction prevents negative balances and writes the balance and
+// corresponding immutable movement together.
+export async function recordInventoryMovement({ balanceId, quantityDelta, movementType, reason, referenceId = "" }) {
+  requireAdmin();
+  if (!Number.isSafeInteger(quantityDelta) || quantityDelta === 0) throw new Error("Enter a non-zero whole-number stock change.");
+  const balanceKey = cleanText(balanceId, 180);
+  const reasonText = cleanText(reason, 500);
+  const type = cleanText(movementType, 40);
+  if (!balanceKey) throw new Error("Select an inventory balance.");
+  if (!reasonText) throw new Error("A reason is required for every stock movement.");
+  if (!["receipt", "issue", "adjustment"].includes(type)) throw new Error("Invalid stock movement type.");
+  if ((type === "receipt" && quantityDelta < 0) || (type === "issue" && quantityDelta > 0)) throw new Error("The movement quantity does not match its type.");
+  const balanceRef = doc(db, "inventoryBalances", balanceKey);
+  const movementRef = doc(collection(db, "inventoryMovements"));
+  await runTransaction(db, async transaction => {
+    const snapshot = await transaction.get(balanceRef);
+    if (!snapshot.exists()) throw new Error("Inventory balance has not been initialized.");
+    const current = Number(snapshot.data().quantityOnHand);
+    const next = current + quantityDelta;
+    if (!Number.isSafeInteger(current) || !Number.isSafeInteger(next) || next < 0) throw new Error("This movement would make stock invalid or negative.");
+    transaction.update(balanceRef, {
+      quantityOnHand: next,
+      updatedAt: serverTimestamp(),
+      updatedBy: auth.currentUser.uid
+    });
+    transaction.set(movementRef, {
+      productId: cleanText(snapshot.data().productId, 128),
+      sellingOptionId: cleanText(snapshot.data().sellingOptionId, 128),
+      locationId: cleanText(snapshot.data().locationId, 128),
+      quantityDelta,
+      movementType: type,
+      reason: reasonText,
+      referenceId: cleanText(referenceId, 128),
+      actorUid: auth.currentUser.uid,
+      createdAt: serverTimestamp()
+    });
+  });
+  return movementRef.id;
+}
+
+
+// Compatibility adapters for the existing product editor and shop markup.
+// The persisted schema remains catalogueProducts/sellingOptions.
+function legacyProductView(product) {
+  const options = Array.isArray(product.sellingOptions) ? product.sellingOptions : [];
+  return {
+    id: product.id,
+    name: product.name || "",
+    brand: product.brand || "",
+    category: product.categoryId || "",
+    desc: product.description || "",
+    inStock: product.published === true && product.availability !== "unavailable",
+    variants: options.map(option => ({
+      id: option.id,
+      color: option.label || "",
+      processor: "",
+      ram: "",
+      rom: "",
+      price: Number(option.priceMinor || 0) / 100,
+      promoPrice: Number(option.promoPriceMinor || 0) / 100,
+      image: (typeof product.images?.[0] === "string" ? product.images[0] : product.images?.[0]?.url) || "",
+      inStock: option.enabled !== false
+    })),
+    upgrades: (Array.isArray(product.addOns) ? product.addOns : [])
+      .filter(item => item.enabled !== false)
+      .map(item => ({ id: item.id, name: item.name, price: Number(item.priceMinor || 0) / 100 }))
+  };
+}
+function fromLegacyProduct(product) {
+  const variants = Array.isArray(product.variants) ? product.variants : [];
+  return {
+    name: product.name,
+    brand: product.brand,
+    categoryId: product.category,
+    description: product.desc,
+    published: product.inStock !== false,
+    availability: variants.some(option => option.inStock !== false) ? "available" : "unavailable",
+    images: variants.map(option => option.image).filter(Boolean).slice(0, 12),
+    sellingOptions: variants.map((option, index) => ({
+      id: option.id || randomHex(8),
+      label: [option.color, option.processor, option.ram, option.rom].filter(Boolean).join(" / ") || `Option ${index + 1}`,
+      sku: option.sku || "",
+      priceMinor: Math.round(Number(option.price || 0) * 100),
+      promoPriceMinor: option.promoPrice > 0 ? Math.round(Number(option.promoPrice) * 100) : null,
+      enabled: option.inStock !== false
+    })),
+    addOns: (Array.isArray(product.upgrades) ? product.upgrades : []).map(item => ({
+      id: item.id || randomHex(8), name: item.name, price: Number(item.price || 0), enabled: true
+    }))
+  };
+}
+export async function getProducts() {
+  return (await listPublicCatalogue()).map(legacyProductView);
+}
+export function watchProducts(callback) {
+  requireAdmin();
+  return onSnapshot(query(collection(db, "catalogueProducts"), limit(500)), snapshot => {
+    callback(snapshot.docs.map(item => legacyProductView({ id: item.id, ...item.data() })));
+  }, error => console.error("Could not watch catalogue products:", error));
+}
+export async function addProduct(product) {
+  const id = await saveCatalogueProduct(fromLegacyProduct(product));
+  return { id };
+}
+export async function updateProduct(id, updates) {
+  const existing = (await listAdminCatalogue()).find(item => item.id === id);
+  if (!existing) throw new Error("Product not found.");
+  const merged = { ...legacyProductView(existing), ...updates };
+  await saveCatalogueProduct(fromLegacyProduct(merged), id);
+  return { id };
+}
+export async function deleteProduct(id) {
+  return deleteCatalogueProduct(id);
+}
+export async function placeOrder(order) {
+  return submitGuestOrderRequest({
+    ...order,
+    fulfilmentMethod: "delivery"
+  });
+}
+
+export function watchOrders(callback) {
+  requireAdmin();
+  return onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc"), limit(100)), snapshot => {
+    callback(snapshot.docs.map(item => ({ id: item.id, ...item.data() })), { readOnlyFallback: false });
+  }, error => console.error("Could not watch order requests:", error));
+}

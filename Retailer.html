@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <meta name="robots" content="noindex, follow">
+  <title>Retailer Price Finder | EazyLife.ng</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      padding-bottom: 30px;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    .store-button {
+      min-height: 58px;
+    }
+  </style>
+<script>(function(){var t=null;try{t=localStorage.getItem('eazylife-theme')}catch(e){}t=t||(matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);document.documentElement.classList.toggle('dark',t==='dark')})();</script>
+<link rel="stylesheet" href="assets/css/site-theme.css">
+</head>
+
+<body class="bg-gray-100 text-gray-800 font-sans">
+
+  <!-- HEADER -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-xl mx-auto px-4 py-4">
+
+      <div class="flex items-center justify-between">
+
+        <div class="flex items-center gap-3 min-w-0">
+          <a href="index.html" aria-label="Return to EazyLife home"><img data-theme-logo data-theme-logo-light="assets/pictures/logo_black_transparent.png" data-theme-logo-dark="assets/pictures/logo_white_transparent.png" src="assets/pictures/logo_black_transparent.png" alt="EazyLife" style="width:112px;height:auto;object-fit:contain"></a>
+          <div><h1 class="text-base font-extrabold text-gray-900">Reseller Price Finder</h1><p class="text-xs text-gray-500 mt-1">Retailer Tool</p></div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="text-right">
+          <div class="text-xs text-gray-400">
+            Compare
+          </div>
+
+          <div class="font-bold text-[#008a78]">
+            Jumia + Jiji
+          </div>
+          </div>
+          <button class="el-theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">
+            <i class="fas fa-moon" aria-hidden="true"></i>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </header>
+
+
+  <main class="max-w-xl mx-auto px-4 py-5">
+
+
+    <!-- SEARCH -->
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-5">
+
+      <h2 class="font-bold text-gray-900 text-lg mb-1">
+        What is the customer asking for?
+      </h2>
+
+      <p class="text-sm text-gray-500 mb-4">
+        Search the product on both stores.
+      </p>
+
+
+      <div class="flex gap-2">
+
+        <input
+          id="productInput"
+          type="text"
+          placeholder="e.g. iPhone 12 128GB"
+          autocomplete="off"
+          class="flex-1 min-w-0 px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-[#00B09B]"
+        >
+
+        <button
+          id="searchButton"
+          type="button"
+          class="bg-[#00B09B] hover:bg-[#008a78] text-white font-bold px-5 rounded-xl"
+        >
+          Search
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- SEARCH BUTTONS -->
+    <section
+      id="storeSection"
+      class="hidden bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-5"
+    >
+
+      <div class="flex items-center justify-between mb-4">
+
+        <div>
+          <h2 class="font-bold text-gray-900">
+            Search Stores
+          </h2>
+
+          <p
+            id="searchTermDisplay"
+            class="text-sm text-gray-500 mt-1"
+          ></p>
+        </div>
+
+      </div>
+
+
+      <div class="grid grid-cols-2 gap-3">
+
+        <!-- JUMIA -->
+        <button
+          id="jumiaButton"
+          type="button"
+          class="store-button bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold shadow-sm px-3"
+        >
+          🛒 Search Jumia
+        </button>
+
+
+        <!-- JIJI -->
+        <button
+          id="jijiButton"
+          type="button"
+          class="store-button bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-sm px-3"
+        >
+          🏷️ Search Jiji
+        </button>
+
+      </div>
+
+
+      <div class="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-3">
+
+        <p class="text-xs text-blue-800 leading-relaxed">
+          <strong>Tip:</strong>
+          Your Jumia/Jiji login stays with those websites.
+          EazyLife.ng does not ask for or store your passwords.
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- PRICE COMPARISON -->
+    <section
+      id="priceSection"
+      class="hidden bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-5"
+    >
+
+      <div class="mb-4">
+
+        <h2 class="font-bold text-gray-900 text-lg">
+          Record Prices
+        </h2>
+
+        <p class="text-sm text-gray-500 mt-1">
+          Enter the best prices you find on each store.
+        </p>
+
+      </div>
+
+
+      <!-- JUMIA PRICE -->
+      <div class="mb-4">
+
+        <label
+          for="jumiaPrice"
+          class="block text-sm font-semibold text-gray-700 mb-2"
+        >
+          🛒 Jumia Best Price
+        </label>
+
+        <div class="relative">
+
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
+            ₦
+          </span>
+
+          <input
+            id="jumiaPrice"
+            type="number"
+            inputmode="numeric"
+            placeholder="0"
+            class="w-full pl-9 pr-4 py-3 rounded-xl border border-gray-300 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500"
+          >
+
+        </div>
+
+      </div>
+
+
+      <!-- JIJI PRICE -->
+      <div class="mb-5">
+
+        <label
+          for="jijiPrice"
+          class="block text-sm font-semibold text-gray-700 mb-2"
+        >
+          🏷️ Jiji Best Price
+        </label>
+
+        <div class="relative">
+
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
+            ₦
+          </span>
+
+          <input
+            id="jijiPrice"
+            type="number"
+            inputmode="numeric"
+            placeholder="0"
+            class="w-full pl-9 pr-4 py-3 rounded-xl border border-gray-300 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-green-600"
+          >
+
+        </div>
+
+      </div>
+
+
+      <!-- LOWEST PRICE -->
+      <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+
+        <div class="text-sm text-yellow-800 font-semibold">
+          Lowest available price
+        </div>
+
+        <div
+          id="lowestPrice"
+          class="text-2xl font-extrabold text-gray-900 mt-1"
+        >
+          —
+        </div>
+
+        <div
+          id="lowestSource"
+          class="text-xs text-gray-500 mt-1"
+        >
+          Enter a price above
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- SELLING PRICE CALCULATOR -->
+    <section
+      id="calculatorSection"
+      class="hidden bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-5"
+    >
+
+      <div class="mb-4">
+
+        <h2 class="font-bold text-gray-900 text-lg">
+          💰 Resale Calculator
+        </h2>
+
+        <p class="text-sm text-gray-500 mt-1">
+          Work out what to charge your customer.
+        </p>
+
+      </div>
+
+
+      <!-- COST -->
+      <div class="mb-4">
+
+        <label
+          for="costPrice"
+          class="block text-sm font-semibold text-gray-700 mb-2"
+        >
+          Buying Cost
+        </label>
+
+        <div class="relative">
+
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
+            ₦
+          </span>
+
+          <input
+            id="costPrice"
+            type="number"
+            inputmode="numeric"
+            placeholder="0"
+            class="w-full pl-9 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+
+        </div>
+
+      </div>
+
+
+      <!-- EXTRA COST -->
+      <div class="mb-4">
+
+        <label
+          for="extraCost"
+          class="block text-sm font-semibold text-gray-700 mb-2"
+        >
+          Delivery / Other Cost
+        </label>
+
+        <div class="relative">
+
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
+            ₦
+          </span>
+
+          <input
+            id="extraCost"
+            type="number"
+            inputmode="numeric"
+            value="0"
+            class="w-full pl-9 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+
+        </div>
+
+      </div>
+
+
+      <!-- PROFIT -->
+      <div class="mb-5">
+
+        <label
+          for="profit"
+          class="block text-sm font-semibold text-gray-700 mb-2"
+        >
+          Desired Profit
+        </label>
+
+        <div class="relative">
+
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
+            ₦
+          </span>
+
+          <input
+            id="profit"
+            type="number"
+            inputmode="numeric"
+            placeholder="0"
+            class="w-full pl-9 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+
+        </div>
+
+      </div>
+
+
+      <!-- CUSTOMER PRICE -->
+      <div class="bg-blue-600 text-white rounded-xl p-5">
+
+        <div class="text-sm opacity-90">
+          Suggested Customer Price
+        </div>
+
+        <div
+          id="sellingPrice"
+          class="text-3xl font-extrabold mt-1"
+        >
+          ₦ 0
+        </div>
+
+        <div
+          id="profitDisplay"
+          class="text-sm mt-2 opacity-90"
+        >
+          Profit: ₦ 0
+        </div>
+
+      </div>
+
+
+      <!-- QUICK PROFIT BUTTONS -->
+      <div class="mt-5">
+
+        <p class="text-xs text-gray-500 mb-2">
+          Quick profit
+        </p>
+
+        <div class="grid grid-cols-4 gap-2">
+
+          <button
+            type="button"
+            class="profitButton bg-gray-100 hover:bg-gray-200 rounded-lg py-2 text-sm font-semibold"
+            data-profit="1000"
+          >
+            +₦1k
+          </button>
+
+          <button
+            type="button"
+            class="profitButton bg-gray-100 hover:bg-gray-200 rounded-lg py-2 text-sm font-semibold"
+            data-profit="2000"
+          >
+            +₦2k
+          </button>
+
+          <button
+            type="button"
+            class="profitButton bg-gray-100 hover:bg-gray-200 rounded-lg py-2 text-sm font-semibold"
+            data-profit="5000"
+          >
+            +₦5k
+          </button>
+
+          <button
+            type="button"
+            class="profitButton bg-gray-100 hover:bg-gray-200 rounded-lg py-2 text-sm font-semibold"
+            data-profit="10000"
+          >
+            +₦10k
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- CUSTOMER QUOTE -->
+    <section
+      id="quoteSection"
+      class="hidden bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-5"
+    >
+
+      <h2 class="font-bold text-gray-900 mb-3">
+        📋 Customer Quote
+      </h2>
+
+      <div class="bg-gray-50 rounded-xl p-4">
+
+        <div
+          id="quoteText"
+          class="text-gray-800 leading-relaxed"
+        ></div>
+
+      </div>
+
+
+      <button
+        id="copyQuoteButton"
+        type="button"
+        class="w-full mt-3 bg-gray-900 hover:bg-black text-white rounded-xl py-3 font-bold"
+      >
+        📋 Copy Quote
+      </button>
+
+    </section>
+
+
+    <!-- RESET -->
+    <button
+      id="resetButton"
+      type="button"
+      class="hidden w-full py-3 text-sm text-gray-500 hover:text-red-600"
+    >
+      Clear Search
+    </button>
+
+
+  </main>
+
+
+  <script>
+
+    'use strict';
+
+
+    /* ==============================
+       ELEMENTS
+    ============================== */
+
+    const productInput = document.getElementById('productInput');
+
+    const searchButton = document.getElementById('searchButton');
+
+    const storeSection = document.getElementById('storeSection');
+
+    const priceSection = document.getElementById('priceSection');
+
+    const calculatorSection =
+      document.getElementById('calculatorSection');
+
+    const quoteSection =
+      document.getElementById('quoteSection');
+
+    const searchTermDisplay =
+      document.getElementById('searchTermDisplay');
+
+    const jumiaButton =
+      document.getElementById('jumiaButton');
+
+    const jijiButton =
+      document.getElementById('jijiButton');
+
+    const jumiaPrice =
+      document.getElementById('jumiaPrice');
+
+    const jijiPrice =
+      document.getElementById('jijiPrice');
+
+    const lowestPrice =
+      document.getElementById('lowestPrice');
+
+    const lowestSource =
+      document.getElementById('lowestSource');
+
+    const costPrice =
+      document.getElementById('costPrice');
+
+    const extraCost =
+      document.getElementById('extraCost');
+
+    const profit =
+      document.getElementById('profit');
+
+    const sellingPrice =
+      document.getElementById('sellingPrice');
+
+    const profitDisplay =
+      document.getElementById('profitDisplay');
+
+    const quoteText =
+      document.getElementById('quoteText');
+
+    const copyQuoteButton =
+      document.getElementById('copyQuoteButton');
+
+    const resetButton =
+      document.getElementById('resetButton');
+
+
+    /* ==============================
+       HELPERS
+    ============================== */
+
+    /**
+     * @param {string|number} value
+     * @returns {number}
+     */
+    function numberValue(value) {
+
+      const number = Number(value);
+
+      if (!Number.isFinite(number)) {
+        return 0;
+      }
+
+      return Math.max(0, number);
+    }
+
+
+    /**
+     * @param {number} amount
+     * @returns {string}
+     */
+    function formatNaira(amount) {
+
+      return `₦ ${Math.round(amount).toLocaleString('en-NG')}`;
+
+    }
+
+
+    /**
+     * @param {string} query
+     * @returns {string}
+     */
+    function getJumiaUrl(query) {
+
+      return `https://www.jumia.com.ng/catalog/?q=${encodeURIComponent(query)}&sort=lowest_price`;
+
+    }
+
+
+    /**
+     * @param {string} query
+     * @returns {string}
+     */
+    function getJijiUrl(query) {
+
+      return `https://jiji.ng/search?query=${encodeURIComponent(query)}&sort=price_asc`;
+
+    }
+
+
+    /* ==============================
+       SEARCH
+    ============================== */
+
+    function performSearch() {
+
+      const query = productInput.value.trim();
+
+      if (!query) {
+
+        productInput.focus();
+
+        return;
+      }
+
+
+      searchTermDisplay.textContent =
+        `Searching for: "${query}"`;
+
+
+      storeSection.classList.remove('hidden');
+
+      priceSection.classList.remove('hidden');
+
+      calculatorSection.classList.remove('hidden');
+
+      quoteSection.classList.remove('hidden');
+
+      resetButton.classList.remove('hidden');
+
+
+      // Clear previous prices
+      jumiaPrice.value = '';
+      jijiPrice.value = '';
+
+
+      // Reset results
+      lowestPrice.textContent = '—';
+
+      lowestSource.textContent =
+        'Enter a price above';
+
+
+      // Scroll to store buttons
+      storeSection.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+
+    }
+
+
+    /* ==============================
+       OPEN JUMIA
+    ============================== */
+
+    function openJumia() {
+
+      const query = productInput.value.trim();
+
+      if (!query) return;
+
+      window.open(
+        getJumiaUrl(query),
+        '_blank',
+        'noopener,noreferrer'
+      );
+
+    }
+
+
+    /* ==============================
+       OPEN JIJI
+    ============================== */
+
+    function openJiji() {
+
+      const query = productInput.value.trim();
+
+      if (!query) return;
+
+      window.open(
+        getJijiUrl(query),
+        '_blank',
+        'noopener,noreferrer'
+      );
+
+    }
+
+
+    /* ==============================
+       LOWEST PRICE
+    ============================== */
+
+    function updateLowestPrice() {
+
+      const jumia =
+        numberValue(jumiaPrice.value);
+
+      const jiji =
+        numberValue(jijiPrice.value);
+
+
+      if (jumia <= 0 && jiji <= 0) {
+
+        lowestPrice.textContent = '—';
+
+        lowestSource.textContent =
+          'Enter a price above';
+
+        return;
+      }
+
+
+      if (jumia > 0 && (jiji <= 0 || jumia < jiji)) {
+
+        lowestPrice.textContent =
+          formatNaira(jumia);
+
+        lowestSource.textContent =
+          'Lowest price found on Jumia';
+
+        // Automatically use lowest price as buying cost
+        costPrice.value = Math.round(jumia);
+
+      }
+
+      else if (jiji > 0 && (jumia <= 0 || jiji < jumia)) {
+
+        lowestPrice.textContent =
+          formatNaira(jiji);
+
+        lowestSource.textContent =
+          'Lowest price found on Jiji';
+
+        // Automatically use lowest price as buying cost
+        costPrice.value = Math.round(jiji);
+
+      }
+
+      else if (jumia === jiji && jumia > 0) {
+
+        lowestPrice.textContent =
+          formatNaira(jumia);
+
+        lowestSource.textContent =
+          'Same price on Jumia and Jiji';
+
+        costPrice.value = Math.round(jumia);
+
+      }
+
+
+      calculateSellingPrice();
+
+    }
+
+
+    /* ==============================
+       CALCULATOR
+    ============================== */
+
+    function calculateSellingPrice() {
+
+      const cost =
+        numberValue(costPrice.value);
+
+      const extra =
+        numberValue(extraCost.value);
+
+      const desiredProfit =
+        numberValue(profit.value);
+
+
+      const totalCost =
+        cost + extra;
+
+      const selling =
+        totalCost + desiredProfit;
+
+
+      sellingPrice.textContent =
+        formatNaira(selling);
+
+
+      profitDisplay.textContent =
+        `Profit: ${formatNaira(desiredProfit)}`;
+
+
+      updateQuote(
+        selling,
+        desiredProfit
+      );
+
+    }
+
+
+    /* ==============================
+       CUSTOMER QUOTE
+    ============================== */
+
+    /**
+     * @param {number} selling
+     * @param {number} profitAmount
+     */
+    function updateQuote(selling, profitAmount) {
+
+      const product =
+        productInput.value.trim();
+
+
+      if (!product || selling <= 0) {
+
+        quoteSection.classList.add('hidden');
+
+        return;
+      }
+
+
+      quoteSection.classList.remove('hidden');
+
+
+      quoteText.textContent =
+        `Hello, the current price for ${product} is ${formatNaira(selling)}.`;
+
+    }
+
+
+    /* ==============================
+       QUICK PROFIT
+    ============================== */
+
+    const profitButtons =
+      document.querySelectorAll('.profitButton');
+
+
+    profitButtons.forEach((button) => {
+
+      button.addEventListener('click', () => {
+
+        const selectedProfit =
+          numberValue(button.dataset.profit);
+
+        profit.value =
+          selectedProfit;
+
+        calculateSellingPrice();
+
+      });
+
+    });
+
+
+    /* ==============================
+       COPY QUOTE
+    ============================== */
+
+    copyQuoteButton.addEventListener('click', async () => {
+
+      const text =
+        quoteText.textContent.trim();
+
+
+      if (!text) return;
+
+
+      try {
+
+        await navigator.clipboard.writeText(text);
+
+        copyQuoteButton.textContent =
+          '✅ Copied!';
+
+
+        setTimeout(() => {
+
+          copyQuoteButton.textContent =
+            '📋 Copy Quote';
+
+        }, 1500);
+
+      }
+
+      catch (error) {
+
+        // Fallback for browsers where clipboard API is unavailable
+
+        const temporary =
+          document.createElement('textarea');
+
+        temporary.value = text;
+
+        document.body.appendChild(temporary);
+
+        temporary.select();
+
+        document.execCommand('copy');
+
+        temporary.remove();
+
+
+        copyQuoteButton.textContent =
+          '✅ Copied!';
+
+
+        setTimeout(() => {
+
+          copyQuoteButton.textContent =
+            '📋 Copy Quote';
+
+        }, 1500);
+
+      }
+
+    });
+
+
+    /* ==============================
+       RESET
+    ============================== */
+
+    resetButton.addEventListener('click', () => {
+
+      productInput.value = '';
+
+      jumiaPrice.value = '';
+
+      jijiPrice.value = '';
+
+      costPrice.value = '';
+
+      extraCost.value = '0';
+
+      profit.value = '';
+
+      lowestPrice.textContent = '—';
+
+      lowestSource.textContent =
+        'Enter a price above';
+
+      sellingPrice.textContent =
+        '₦ 0';
+
+      profitDisplay.textContent =
+        'Profit: ₦ 0';
+
+      searchTermDisplay.textContent = '';
+
+      storeSection.classList.add('hidden');
+
+      priceSection.classList.add('hidden');
+
+      calculatorSection.classList.add('hidden');
+
+      quoteSection.classList.add('hidden');
+
+      resetButton.classList.add('hidden');
+
+      productInput.focus();
+
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+
+    });
+
+
+    /* ==============================
+       EVENTS
+    ============================== */
+
+    searchButton.addEventListener(
+      'click',
+      performSearch
+    );
+
+
+    jumiaButton.addEventListener(
+      'click',
+      openJumia
+    );
+
+
+    jijiButton.addEventListener(
+      'click',
+      openJiji
+    );
+
+
+    jumiaPrice.addEventListener(
+      'input',
+      updateLowestPrice
+    );
+
+
+    jijiPrice.addEventListener(
+      'input',
+      updateLowestPrice
+    );
+
+
+    costPrice.addEventListener(
+      'input',
+      calculateSellingPrice
+    );
+
+
+    extraCost.addEventListener(
+      'input',
+      calculateSellingPrice
+    );
+
+
+    profit.addEventListener(
+      'input',
+      calculateSellingPrice
+    );
+
+
+    productInput.addEventListener(
+      'keydown',
+      (event) => {
+
+        if (event.key === 'Enter') {
+
+          event.preventDefault();
+
+          performSearch();
+
+        }
+
+      }
+    );
+
+
+  </script>
+
+<script src="js/site-theme.js"></script>
+</body>
+</html>

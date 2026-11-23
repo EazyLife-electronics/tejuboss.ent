@@ -1,9 +1,10 @@
 // admin/js/delivery.mjs
+import { watchOrders } from '../../js/store.mjs';
 import {
   watchDeliveryPersonnel, addDeliveryPersonnel, updateDeliveryPersonnel, deleteDeliveryPersonnel,
   watchDeliveryTypes, addDeliveryType, updateDeliveryType, deleteDeliveryType,
   watchDeliveryCheckpoints, addDeliveryCheckpoint, updateDeliveryCheckpoint, deleteDeliveryCheckpoint,
-  watchDeliveries, updateDelivery, watchDeliveryOrders
+  watchDeliveries, updateDelivery
 } from './delivery-store.mjs';
 import { DELIVERY_STATE_LABELS, isOrderEligibleForDelivery } from './delivery-lifecycle.mjs';
 import { createDeliveryForOrder, transitionDelivery, deliveryContactUrl } from './delivery-operations.mjs';
@@ -395,7 +396,7 @@ export function initDelivery() {
     watchDeliveryPersonnel(v => { personnel = v; render(); }),
     watchDeliveryTypes(v => { types = v; render(); }),
     watchDeliveryCheckpoints(v => { checkpoints = v; render(); }),
-    watchDeliveryOrders(v => { orders = v; render(); }),
+    watchOrders(v => { orders = v; render(); }),
     watchDeliveries(v => { deliveries = v; render(); })
   ];
 

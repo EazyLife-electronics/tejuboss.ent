@@ -2,7 +2,7 @@
 // Products tab: add/edit form (with variants + upgrades), product list,
 // and Excel export/import. Split out of admin-app.mjs.
 
-import { addProduct, updateProduct, deleteProduct } from '../../js/store.mjs';
+import { addProduct, updateProduct, deleteProduct } from '../../js/commerce-store.mjs';
 import { escapeHtml, updateImagePreview } from './admin-shared.mjs';
 
 let allProducts = [];
@@ -19,56 +19,28 @@ function variantRowHTML(rowId, v = {}) {
     <div class="variant-row bg-white border border-gray-200 rounded-xl p-3" data-row-id="${rowId}">
       <input type="hidden" id="v${rowId}_stableId" value="${escapeHtml(v.id || '')}">
       <div class="grid grid-cols-2 gap-2 mb-2">
-        <input id="v${rowId}_color" placeholder="Variant / Flavour (e.g. Original, Blue)" value="${escapeHtml(v.color || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
-        <input id="v${rowId}_processor" placeholder="Unit / Type (e.g. Bottle, Sachet, Piece)" value="${escapeHtml(v.processor || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
+        <input id="v${rowId}_color" placeholder="Option label (e.g. 500g, 1 litre, Carton)" value="${escapeHtml(v.color || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs">
+        <input id="v${rowId}_processor" placeholder="Unit / pack details (optional)" value="${escapeHtml(v.processor || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs">
       </div>
       <div class="grid grid-cols-2 gap-2 mb-2">
-        <input id="v${rowId}_ram" placeholder="Size / Weight (e.g. 500g, 1L)" value="${escapeHtml(v.ram || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
-        <input id="v${rowId}_rom" placeholder="Pack / Carton (e.g. Pack of 6)" value="${escapeHtml(v.rom || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
+        <input id="v${rowId}_ram" placeholder="Size (optional)" value="${escapeHtml(v.ram || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs">
+        <input id="v${rowId}_rom" placeholder="Pack quantity (optional)" value="${escapeHtml(v.rom || '')}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs">
       </div>
       <div class="grid grid-cols-2 gap-2 mb-2">
-        <input id="v${rowId}_price" type="number" placeholder="Price (₦)" value="${v.price || ''}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
-        <input id="v${rowId}_promo" type="number" placeholder="Promo price" value="${v.promoPrice || ''}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
+        <input id="v${rowId}_price" type="number" min="0" step="0.01" placeholder="Selling price (₦)" value="${v.price || ''}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs">
+        <input id="v${rowId}_promo" type="number" min="0" step="0.01" placeholder="Promotional price (optional)" value="${v.promoPrice || ''}" class="p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs">
       </div>
       <div class="flex gap-2 mb-2">
-        <input id="v${rowId}_image" placeholder="Image URL" value="${escapeHtml(v.image || '')}" class="flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
-        <button type="button" onclick="openImagePicker('products','v${rowId}_image')" class="bg-gray-100 text-gray-700 px-3 rounded-lg font-bold text-[10px] whitespace-nowrap">Browse</button>
+        <input id="v${rowId}_image" placeholder="Image URL (optional)" value="${escapeHtml(v.image || '')}" class="flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs">
+        <button type="button" data-media-pick="v${rowId}_image" data-media-multiple="false" data-media-folder="/tejuboss/products" class="bg-red-50 text-red-700 px-3 rounded-lg font-bold text-[10px]">Choose image</button>
       </div>
-      <img id="v${rowId}_preview" class="${v.image ? '' : 'hidden'} mb-2 h-12 rounded-lg object-cover border border-gray-200" src="${v.image ? escapeHtml(v.image.startsWith('http') ? v.image : '../' + v.image) : ''}">
-      <div class="mb-2">
-        <input id="v${rowId}_deliveryFee" type="number" placeholder="Delivery fee for this variant (₦) — blank = use general" value="${v.deliveryFee != null ? v.deliveryFee : ''}" class="w-full p-2 bg-gray-50 rounded-lg border border-gray-200 text-xs outline-none">
-        <label class="flex items-center gap-2 text-[10px] font-bold text-gray-500 mt-1.5 px-1">
-          <input type="checkbox" id="v${rowId}_deliveryGeneral" ${v.deliveryRoute === 'separate' ? '' : 'checked'}>
-          Stack with general delivery route
-        </label>
-        <p class="text-[9px] text-gray-400 mt-1 px-1">Blank fee always uses the general route. With a custom fee set: checked = pools together with other general-route items for the discount; unchecked = this variant's own quantity discounts on its own, separately.</p>
-      </div>
-      <div class="mb-2 bg-gray-50 rounded-lg p-2 border border-gray-200">
-        <label class="flex items-center gap-2 text-[11px] font-bold text-gray-600 mb-1.5">
-          <input type="checkbox" id="v${rowId}_bulkEnabled" ${v.bulkSavingsEnabled ? 'checked' : ''}>
-          Bulk savings
-        </label>
-        <div id="v${rowId}_bulkFields" class="${v.bulkSavingsEnabled ? '' : 'hidden'} space-y-1.5">
-          <label class="flex items-center gap-3 text-[10px] font-bold text-gray-500">
-            <span class="flex items-center gap-1"><input type="radio" name="v${rowId}_bulkMode" value="general" ${v.bulkSavingsMode === 'own' ? '' : 'checked'}> Inherit general</span>
-            <span class="flex items-center gap-1"><input type="radio" name="v${rowId}_bulkMode" value="own" ${v.bulkSavingsMode === 'own' ? 'checked' : ''}> Own</span>
-          </label>
-          <div id="v${rowId}_bulkOwnFields" class="${v.bulkSavingsMode === 'own' ? '' : 'hidden'} grid grid-cols-2 gap-2">
-            <input id="v${rowId}_bulkPercent" type="number" step="0.1" placeholder="Discount (%)" value="${v.bulkSavingsPercent != null ? v.bulkSavingsPercent : ''}" class="p-2 bg-white rounded-lg border border-gray-200 text-xs outline-none">
-            <input id="v${rowId}_bulkMinQty" type="number" placeholder="Min quantity" value="${v.bulkSavingsMinQty != null ? v.bulkSavingsMinQty : ''}" class="p-2 bg-white rounded-lg border border-gray-200 text-xs outline-none">
-          </div>
-          <p class="text-[9px] text-gray-400 px-1">Flat % off this line's total once quantity hits the minimum — not tiered, not compounding. "Inherit general" uses the site-wide % and minimum quantity set in Settings.</p>
-        </div>
-      </div>
+      <img id="v${rowId}_preview" class="${v.image ? '' : 'hidden'} mb-2 h-12 rounded-lg object-cover border" src="${v.image ? escapeHtml(v.image) : ''}">
       <div class="flex justify-between items-center">
-        <label class="flex items-center gap-2 text-[11px] font-bold text-gray-500">
-          <input type="checkbox" id="v${rowId}_instock" ${v.inStock === false ? '' : 'checked'}> In stock
-        </label>
+        <label class="flex items-center gap-2 text-[11px] font-bold text-gray-500"><input type="checkbox" id="v${rowId}_instock" ${v.inStock === false ? '' : 'checked'}> Option available</label>
         <button type="button" class="remove-variant-btn text-red-500 text-[11px] font-bold" data-row-id="${rowId}">Remove</button>
       </div>
     </div>`;
 }
-
 function upgradeRowHTML(rowId, u = {}) {
   return `
     <div class="upgrade-row bg-white border border-gray-200 rounded-xl p-3 flex gap-2 items-center" data-row-id="${rowId}">
@@ -87,14 +59,6 @@ function addVariantRow(data) {
   document.querySelector(`.remove-variant-btn[data-row-id="${rowId}"]`).addEventListener('click', () => {
     document.querySelector(`.variant-row[data-row-id="${rowId}"]`).remove();
   });
-  document.getElementById(`v${rowId}_bulkEnabled`).addEventListener('change', (e) => {
-    document.getElementById(`v${rowId}_bulkFields`).classList.toggle('hidden', !e.target.checked);
-  });
-  document.querySelectorAll(`input[name="v${rowId}_bulkMode"]`).forEach(radio => {
-    radio.addEventListener('change', () => {
-      document.getElementById(`v${rowId}_bulkOwnFields`).classList.toggle('hidden', radio.value !== 'own' || !radio.checked);
-    });
-  });
 }
 
 function addUpgradeRow(data) {
@@ -109,11 +73,8 @@ function addUpgradeRow(data) {
 function collectVariants() {
   return [...document.querySelectorAll('.variant-row')].map(row => {
     const rowId = row.dataset.rowId;
-    const deliveryFeeRaw = document.getElementById(`v${rowId}_deliveryFee`).value.trim();
-    const bulkEnabled = document.getElementById(`v${rowId}_bulkEnabled`).checked;
-    const bulkModeOwn = document.querySelector(`input[name="v${rowId}_bulkMode"][value="own"]`).checked;
     const stableIdInput = document.getElementById(`v${rowId}_stableId`);
-    const stableId = stableIdInput.value.trim() || `variant_${crypto.randomUUID()}`;
+    const stableId = stableIdInput.value.trim() || `option_${crypto.randomUUID()}`;
     stableIdInput.value = stableId;
     return {
       id: stableId,
@@ -121,20 +82,13 @@ function collectVariants() {
       processor: document.getElementById(`v${rowId}_processor`).value.trim(),
       ram: document.getElementById(`v${rowId}_ram`).value.trim(),
       rom: document.getElementById(`v${rowId}_rom`).value.trim(),
-      price: parseInt(document.getElementById(`v${rowId}_price`).value, 10) || 0,
-      promoPrice: parseInt(document.getElementById(`v${rowId}_promo`).value, 10) || 0,
+      price: Number(document.getElementById(`v${rowId}_price`).value) || 0,
+      promoPrice: Number(document.getElementById(`v${rowId}_promo`).value) || 0,
       image: document.getElementById(`v${rowId}_image`).value.trim(),
-      deliveryFee: deliveryFeeRaw === '' ? null : parseInt(deliveryFeeRaw, 10),
-      deliveryRoute: document.getElementById(`v${rowId}_deliveryGeneral`).checked ? 'general' : 'separate',
-      bulkSavingsEnabled: bulkEnabled,
-      bulkSavingsMode: bulkModeOwn ? 'own' : 'general',
-      bulkSavingsPercent: parseFloat(document.getElementById(`v${rowId}_bulkPercent`).value) || 0,
-      bulkSavingsMinQty: parseInt(document.getElementById(`v${rowId}_bulkMinQty`).value, 10) || 0,
       inStock: document.getElementById(`v${rowId}_instock`).checked
     };
   });
 }
-
 function collectUpgrades() {
   return [...document.querySelectorAll('.upgrade-row')].map(row => {
     const rowId = row.dataset.rowId;

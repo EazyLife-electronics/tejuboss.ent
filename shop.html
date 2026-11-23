@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teju Boss | Official Catalog</title>
+    <title>Tejuboss Enterprise | Groceries &amp; Household Essentials</title>
+    <meta name="description" content="Browse groceries, toiletries, cleaning products and household essentials from Tejuboss Enterprise. Shop individual items or ask about bulk and wholesale pricing." />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://tejuboss.ng/shop.html" />
     <link rel="icon" type="image/png" href="assets/pictures/icon_dark.png" />
     <link rel="apple-touch-icon" href="assets/pictures/icon_dark.png" />
     <script>
@@ -50,7 +53,7 @@
 <header class="bg-white/90 dark:bg-[#121212]/90 backdrop-blur-md border-b dark:border-[#2e2e2e] sticky top-0 z-50 p-4 shadow-sm">
     <div class="max-w-6xl mx-auto flex justify-between items-center">
         <a href="index.html" class="flex items-center gap-2">
-            <img id="navLogo" src="assets/pictures/logo_black_transparent.png" class="h-9" alt="Teju Boss">
+            <img id="navLogo" src="assets/pictures/logo_black_transparent.png" class="h-9" alt="Tejuboss">
         </a>
         <div class="flex items-center gap-2">
             <button id="themeToggle" type="button" aria-label="Toggle dark mode" class="w-10 h-10 rounded-full border border-gray-200 dark:border-[#2e2e2e] dark:bg-[#1c1c1c] flex items-center justify-center text-gray-700 dark:text-gray-200">
@@ -112,8 +115,6 @@
         <h1 class="text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Shop <span class="text-teal">Catalog</span></h1>
         <p class="text-gray-500 dark:text-gray-400 text-sm">Groceries &amp; Household Essentials.</p>
     </div>
-    <aside class="mb-6 rounded-2xl border border-red-200 bg-red-50 dark:bg-[#2a1414] dark:border-[#5b2828] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div><p class="font-black text-sm text-gray-900 dark:text-gray-100">New structured shop experience</p><p class="text-xs text-gray-600 dark:text-gray-300 mt-1">Preview the new product units, basket and secure checkout flow. Development preview only, not accepting live orders.</p></div><a href="structured-shop.html" class="inline-flex justify-center rounded-xl bg-gray-900 text-white px-4 py-3 text-xs font-bold">Open checkout preview</a></aside>
-
     <div class="sticky top-[76px] z-40 bg-gray-50/95 dark:bg-[#121212]/95 pt-2 pb-4">
         <div class="relative mb-4">
             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
@@ -388,10 +389,10 @@
 
         <div id="confirmStep" class="hidden text-center py-6">
             <div class="text-5xl text-teal mb-4"><i class="fas fa-circle-check"></i></div>
-            <h2 class="font-syne font-extrabold text-2xl text-gray-900 dark:text-gray-100 mb-2">Order Received!</h2>
-            <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">We've got your order and will reach out shortly to confirm delivery. Thank you for choosing Teju Boss.</p>
+            <h2 class="font-syne font-extrabold text-2xl text-gray-900 dark:text-gray-100 mb-2">Request Received!</h2>
+            <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">We've received your request. Our team will verify current prices and availability, then contact you before the order is confirmed. Thank you for choosing Tejuboss Enterprise.</p>
             <div class="bg-gray-50 dark:bg-[#181818] rounded-2xl p-4 mb-5">
-                <p class="text-[10px] font-black uppercase text-gray-400 mb-1">Your Tracking Code</p>
+                <p class="text-[10px] font-black uppercase text-gray-400 mb-1">Your Secure Tracking Token</p>
                 <p id="trackingCodeDisplay" class="text-2xl font-black text-teal tracking-wider mb-2"></p>
                 <p class="text-[11px] text-gray-400">Save this — use it anytime on our <a id="trackLink" href="track.html" class="text-teal font-bold underline">Track Order</a> page to check status.</p>
             </div>
@@ -446,10 +447,10 @@
 </div>
 
 <script type="module">
-    import { getProducts, placeOrder, placeRequest, getSettings } from './js/store.mjs';
+    import { getProducts, placeOrder, getPublicSiteSettings } from './js/commerce-store.mjs';
     import { calcGroupedDeliveryFee, buildDeliveryFeeSummary, resolveDeliveryFee, variantUnitPrice, productPriceRange, productOriginalPriceRange, hasPromo, variantDiscountPercent, productHasPromo, buildPriceSavingsSummary, variantLabel, resolveBulkSavings, calcBulkSavingsForLine, buildBulkSavingsSummary } from './js/pricing.mjs';
 
-    const CKEY = "tejuboss_cart_v2";
+    const CKEY = "tejuboss_cart_v1";
     const UKEY = "tejuboss_user_v2";
 
     // Escapes text before it's inserted via innerHTML template strings.
@@ -458,7 +459,21 @@
     }
 
     let products = [];
-    let cart = JSON.parse(localStorage.getItem(CKEY)) || [];
+    function readStoredCart() {
+        try {
+            const value = JSON.parse(localStorage.getItem(CKEY) || "[]");
+            return Array.isArray(value) ? value.filter(item =>
+                item && typeof item === "object" &&
+                typeof item.productId === "string" &&
+                typeof item.variantId === "string" &&
+                Number.isSafeInteger(Number(item.quantity)) &&
+                Number(item.quantity) >= 1 && Number(item.quantity) <= 1000
+            ) : [];
+        } catch (_) {
+            return [];
+        }
+    }
+    let cart = readStoredCart();
     let currentCategory = 'All';
     let currentSort = 'default';
 
@@ -492,7 +507,8 @@
 
     async function init() {
         try {
-            const [prods, settings] = await Promise.all([getProducts(), getSettings()]);
+            const prods = await getProducts();
+            const settings = await getPublicSiteSettings().catch(error => { console.warn('Public settings unavailable; using shop defaults.', error); return {}; });
             products = prods;
             if (settings.whatsapp) whatsappNumber = settings.whatsapp;
             if (settings.deliveryFeePerItem != null) deliveryFeePerItem = settings.deliveryFeePerItem;
@@ -586,7 +602,7 @@
     // (price/RAM/storage) can match against — a product passes if ANY of its variants fits,
     // since that's the variant a shopper would actually pick.
     function productVariantsList(p) {
-        return p.variants || [];
+        return (p.variants || []).filter(v => v.inStock !== false);
     }
 
     function getFilteredSortedProducts() {
@@ -847,7 +863,32 @@
     // pick from the modal: the first in-stock variant, else just the first.
     function getDefaultVariant(p) {
         const variants = p.variants || [];
-        return variants.find(v => v.inStock !== false) || variants[0] || null;
+        if (p.inStock === false) return null;
+        return variants.find(v => v.inStock !== false) || null;
+    }
+
+    function findUnavailableCartItems(items) {
+        return items.filter(item => {
+            const product = products.find(p => p.id === item.productId);
+            const option = product && (product.variants || []).find(v => v.id === item.variantId);
+            if (!product || product.inStock === false || !option || option.inStock === false) return true;
+
+            // Cart prices and add-on labels are snapshots. Never submit a saved
+            // add-on if the current catalogue no longer offers that add-on.
+            const savedIds = Array.isArray(item.upgradeIds)
+                ? item.upgradeIds
+                : String(item.lineId || "").split("::")[2]?.split(",").filter(Boolean) || [];
+            const savedNames = Array.isArray(item.upgradeNames) ? item.upgradeNames : [];
+            const currentAddons = (product.upgrades || []).filter(addon => addon.enabled !== false);
+            if (savedIds.length) {
+                const currentIds = new Set(currentAddons.map(addon => String(addon.id)));
+                if (savedIds.some(id => !currentIds.has(String(id)))) return true;
+            } else if (savedNames.length) {
+                const currentNames = new Set(currentAddons.map(addon => String(addon.name)));
+                if (savedNames.some(name => !currentNames.has(String(name)))) return true;
+            }
+            return false;
+        });
     }
 
     // Most attractive bulk-savings offer across a product's variants, for the catalog
@@ -855,7 +896,7 @@
     // since this is just "here's an incentive to buy more", not a live quote.
     function bestBulkSavings(p) {
         let best = null;
-        (p.variants || []).forEach(v => {
+        productVariantsList(p).forEach(v => {
             const b = resolveBulkSavings(v, generalBulkSavingsPercent, generalBulkSavingsMinQty);
             if (b.percent > 0 && b.minQty > 0 && (!best || b.percent > best.percent)) best = b;
         });
@@ -886,7 +927,7 @@
             const promo = productHasPromo(p);
             const origRange = productOriginalPriceRange(p);
             const origPriceLabel = origRange.min === origRange.max ? `₦${origRange.min.toLocaleString()}` : `From ₦${origRange.min.toLocaleString()}`;
-            const maxDiscountPercent = promo ? Math.max(...(p.variants || []).map(variantDiscountPercent)) : 0;
+            const maxDiscountPercent = promo ? Math.max(...productVariantsList(p).map(variantDiscountPercent)) : 0;
             const thumb = (p.variants && p.variants[0] && p.variants[0].image) || '';
             const outOfStock = p.inStock === false || (p.variants || []).every(v => v.inStock === false);
 
@@ -941,6 +982,7 @@
     function openProductModal(productId) {
         const p = products.find(x => x.id === productId);
         if (!p) return;
+        if (!getDefaultVariant(p)) return alert('This product currently has no available options. Please contact us if you need help sourcing it.');
         pmProduct = p;
         pmQty = 1;
         document.getElementById('pmName').textContent = p.name;
@@ -1012,7 +1054,8 @@
     function getSelectedVariant() {
         if (!pmProduct) return null;
         const id = document.getElementById('pmVariant').value;
-        return (pmProduct.variants || []).find(v => v.id === id);
+        const option = (pmProduct.variants || []).find(v => v.id === id);
+        return option && option.inStock !== false ? option : null;
     }
 
     function getSelectedUpgrades() {
@@ -1110,7 +1153,7 @@
 
     function addPmToCart() {
         const v = getSelectedVariant();
-        if (!v) return alert('Please choose an option.');
+        if (!v) return alert('Please choose an available option.');
         const upgrades = getSelectedUpgrades();
         const upgradesTotal = upgrades.reduce((a, u) => a + (u.price || 0), 0);
         const unitBasePrice = variantUnitPrice(v);
@@ -1127,7 +1170,25 @@
         // qty edit here would double up on what's already in the cart.
         const existing = cart.find(i => i.lineId === lineId);
         if (existing) {
-            existing.quantity = pmQty;
+            // Refresh the saved line from the current catalogue whenever the
+            // customer reopens and confirms this option, not just its quantity.
+            Object.assign(existing, {
+                quantity: pmQty,
+                productName: pmProduct.name,
+                variantLabel: variantLabel(v),
+                upgradeIds: upgrades.map(u => String(u.id)),
+                upgradeNames: upgrades.map(u => u.name),
+                upgradeItems: upgrades.map(u => ({ id: String(u.id), name: u.name, price: u.price || 0 })),
+                unitBasePrice,
+                originalUnitBasePrice,
+                unitPrice,
+                originalUnitPrice,
+                unitDeliveryFee: (v.deliveryFee != null && v.deliveryFee !== '') ? v.deliveryFee : null,
+                deliveryRoute: v.deliveryRoute === 'separate' ? 'separate' : 'general',
+                bulkSavingsPercent: bulk.percent,
+                bulkSavingsMinQty: bulk.minQty,
+                image: v.image || ''
+            });
         } else {
             cart.push({
                 lineId,
@@ -1135,8 +1196,9 @@
                 variantId: v.id,
                 productName: pmProduct.name,
                 variantLabel: variantLabel(v),
+                upgradeIds: upgrades.map(u => String(u.id)),
                 upgradeNames: upgrades.map(u => u.name),
-                upgradeItems: upgrades.map(u => ({ name: u.name, price: u.price || 0 })),
+                upgradeItems: upgrades.map(u => ({ id: String(u.id), name: u.name, price: u.price || 0 })),
                 unitBasePrice,
                 originalUnitBasePrice,
                 unitPrice,
@@ -1195,6 +1257,7 @@
                 variantId: defaultVariant.id,
                 productName: p.name,
                 variantLabel: variantLabel(defaultVariant),
+                upgradeIds: [],
                 upgradeNames: [],
                 upgradeItems: [],
                 unitBasePrice: variantUnitPrice(defaultVariant),
@@ -1448,6 +1511,11 @@
     function goToCheckout() {
         const included = includedCartItems();
         if (included.length === 0) return;
+        if (findUnavailableCartItems(included).length) {
+            alert('One or more selected items or options are no longer available. Remove them or choose a currently available option before checkout.');
+            showCart();
+            return;
+        }
         const subtotalNow = cartTotals(included).subtotal;
         if (minOrderValue > 0 && subtotalNow < minOrderValue) {
             return alert(`A minimum order of ₦${minOrderValue.toLocaleString()} is required. Add ₦${(minOrderValue - subtotalNow).toLocaleString()} more to continue.`);
@@ -1516,6 +1584,11 @@
 
     async function submitOrder() {
         if (checkoutSnapshot.length === 0) return;
+        if (findUnavailableCartItems(checkoutSnapshot).length) {
+            alert('One or more selected items or options are no longer available. Please return to your cart and update your order.');
+            backToCart();
+            return;
+        }
 
         const user = JSON.parse(localStorage.getItem(UKEY)) || {};
         const name = user.name || "";
@@ -1527,24 +1600,48 @@
         submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Placing order...`;
 
         const totals = cartTotals(checkoutSnapshot);
-
+        const orderInput = {
+            items: checkoutSnapshot.map(i => ({
+                productId: i.productId,
+                variantId: i.variantId,
+                name: i.productName,
+                variant: i.variantLabel,
+                upgrades: i.upgradeNames,
+                price: i.unitPrice,
+                quantity: i.quantity
+            })),
+            customerName: name,
+            phone,
+            address: addr,
+            subtotal: totals.subtotal,
+            discount: totals.bulkSavings,
+            deliveryFee: totals.deliveryFee,
+            total: totals.total
+        };
         try {
+            const fingerprint = JSON.stringify(orderInput);
+            let pendingAttempt;
+            try {
+            pendingAttempt = JSON.parse(localStorage.getItem("tejuboss_pending_checkout") || "null");
+        } catch (_) { pendingAttempt = null; }
+        if (!pendingAttempt || pendingAttempt.fingerprint !== fingerprint || !/^[a-f0-9]{32}$/.test(pendingAttempt.key || "")) {
+            const bytes = new Uint8Array(16);
+            crypto.getRandomValues(bytes);
+            pendingAttempt = {
+                fingerprint,
+                key: [...bytes].map(value => value.toString(16).padStart(2, "0")).join("")
+            };
+            localStorage.setItem("tejuboss_pending_checkout", JSON.stringify(pendingAttempt));
+            }
+
             const trackingCode = await placeOrder({
-                items: checkoutSnapshot.map(i => ({
-                    productId: i.productId,
-                    name: i.productName,
-                    variant: i.variantLabel,
-                    upgrades: i.upgradeNames,
-                    price: i.unitPrice,
-                    quantity: i.quantity
-                })),
-                customerName: name,
-                phone,
-                address: addr,
-                subtotal: totals.subtotal,
-                deliveryFee: totals.deliveryFee,
-                total: totals.total
+                ...orderInput,
+                idempotencyKey: pendingAttempt.key
             });
+
+            // The tracking token is also the retry key. Clear it only after the
+            // original request is confirmed, so a network retry cannot duplicate an order.
+            localStorage.removeItem("tejuboss_pending_checkout");
 
             // Remember this order on this device — powers the "My Orders" list on track.html,
             // no login involved, purely local convenience.
@@ -1558,7 +1655,7 @@
             document.getElementById('trackLink').href = `track.html?code=${trackingCode}`;
 
             // Build an optional WhatsApp confirmation link (not required — order already saved)
-            let msg = `*TEJU BOSS - NEW ORDER*%0A%0A*Tracking Code:* ${trackingCode}%0A%0A`;
+            let msg = `*TEJUBOSS - NEW ORDER*%0A%0A*Secure Tracking Token:* ${trackingCode}%0A%0A`;
             checkoutSnapshot.forEach(i => {
                 msg += `• ${i.productName} (${i.variantLabel}${i.upgradeNames.length ? ', ' + i.upgradeNames.join(', ') : ''})%0A  Qty: ${i.quantity} | ₦${(i.unitPrice * i.quantity).toLocaleString()}%0A%0A`;
             });
@@ -1576,7 +1673,7 @@
             document.getElementById("confirmStep").classList.remove("hidden");
         } catch (e) {
             console.error(e);
-            alert("Something went wrong placing your order. Please try again or message us on WhatsApp.");
+            alert("We could not confirm the submission. Your checkout reference has been kept, so you can safely retry without creating a duplicate order.");
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = `<i class="fas fa-check-circle"></i> Place Order`;
@@ -1609,13 +1706,7 @@
         btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sending...`;
 
         try {
-            await placeRequest({
-                name, phone, need,
-                category: category || null,
-                budget: budget ? parseInt(budget, 10) : null
-            });
-
-            let msg = `*TEJU BOSS - CUSTOM REQUEST*%0A%0A*Looking for:* ${need}%0A`;
+            let msg = `*TEJUBOSS - CUSTOM REQUEST*%0A%0A*Looking for:* ${need}%0A`;
             if (category) msg += `*Category:* ${category}%0A`;
             if (budget) msg += `*Budget:* ₦${parseInt(budget, 10).toLocaleString()}%0A`;
             msg += `%0A*Name:* ${name}%0A*Phone:* ${phone}`;

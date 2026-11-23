@@ -145,21 +145,26 @@ export function variantDiscountPercent(variant) {
   return ((variant.price - variant.promoPrice) / variant.price) * 100;
 }
 
-/** Whether any variant of a product currently has an active promo — drives the "Sale" badge. */
-export function productHasPromo(product) {
-  return (product.variants || []).some(hasPromo);
+/** Only enabled selling options participate in public catalogue pricing and promotions. */
+function availableVariants(product) {
+  return (product?.variants || []).filter(variant => variant.inStock !== false);
 }
 
-/** Lowest and highest effective (post-promo) price across a product's variants, for "From ₦X" display. */
+/** Whether any available variant has an active promo — drives the "Sale" badge. */
+export function productHasPromo(product) {
+  return availableVariants(product).some(hasPromo);
+}
+
+/** Lowest and highest effective (post-promo) price across available variants. */
 export function productPriceRange(product) {
-  const prices = (product.variants || []).map(variantUnitPrice).filter(p => p > 0);
+  const prices = availableVariants(product).map(variantUnitPrice).filter(p => p > 0);
   if (prices.length === 0) return { min: 0, max: 0 };
   return { min: Math.min(...prices), max: Math.max(...prices) };
 }
 
-/** Lowest and highest *original* (pre-promo) price across a product's variants, for a struck-through reference range. */
+/** Lowest and highest original (pre-promo) price across available variants. */
 export function productOriginalPriceRange(product) {
-  const prices = (product.variants || []).map(v => v.price || 0).filter(p => p > 0);
+  const prices = availableVariants(product).map(v => v.price || 0).filter(p => p > 0);
   if (prices.length === 0) return { min: 0, max: 0 };
   return { min: Math.min(...prices), max: Math.max(...prices) };
 }

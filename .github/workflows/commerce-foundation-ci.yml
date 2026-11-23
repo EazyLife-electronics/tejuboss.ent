@@ -1,0 +1,62 @@
+name: Tejuboss clean commerce rules
+
+on:
+  push:
+    branches: [feature/eazylife-foundation-rebuild]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  commerce-rules-emulator:
+    name: Clean commerce Firestore rules tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Set up Java for Firebase Emulator
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Install test dependencies
+        working-directory: functions
+        run: npm install
+      - name: Check commerce application module syntax
+        run: |
+          node --check js/commerce-store.mjs
+          node --check js/pricing.mjs
+          node --check admin/js/admin-orders.mjs
+          node --check admin/js/admin-products.mjs
+          node --check admin/js/admin-settings.mjs
+          node --check admin/js/inventory.mjs
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path("shop.html").read_text(encoding="utf-8")
+          match = re.search(r'<script type="module">([\s\S]*?)</script>', html)
+          if not match:
+              raise SystemExit("shop.html module script not found")
+          Path("/tmp/tejuboss-shop.mjs").write_text(match.group(1), encoding="utf-8")
+          PY
+          node --check /tmp/tejuboss-shop.mjs
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path("track.html").read_text(encoding="utf-8")
+          matches = re.findall(r'<script type="module">([\s\S]*?)</script>', html)
+          if not matches:
+              raise SystemExit("track.html module script not found")
+          Path("/tmp/tejuboss-track.mjs").write_text(matches[-1], encoding="utf-8")
+          PY
+          node --check /tmp/tejuboss-track.mjs
+      - name: Run clean commerce rules emulator suite
+        working-directory: functions
+        run: npm run test:commerce-rules
