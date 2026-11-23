@@ -75,6 +75,9 @@ export async function saveCatalogueProduct(product, productId = null) {
       label: cleanText(option.label || `Option ${index + 1}`, 100),
       sku: cleanText(option.sku, 80),
       priceMinor,
+      promoPriceMinor: option.promoPriceMinor != null
+        ? Number(option.promoPriceMinor)
+        : (Number(option.promoPrice || 0) > 0 ? Math.round(Number(option.promoPrice) * 100) : null),
       currency: "NGN",
       enabled: option.enabled !== false
     };
@@ -291,7 +294,7 @@ function legacyProductView(product) {
       ram: "",
       rom: "",
       price: Number(option.priceMinor || 0) / 100,
-      promoPrice: 0,
+      promoPrice: Number(option.promoPriceMinor || 0) / 100,
       image: (typeof product.images?.[0] === "string" ? product.images[0] : product.images?.[0]?.url) || "",
       inStock: option.enabled !== false
     })),
@@ -314,7 +317,8 @@ function fromLegacyProduct(product) {
       id: option.id || randomHex(8),
       label: [option.color, option.processor, option.ram, option.rom].filter(Boolean).join(" / ") || `Option ${index + 1}`,
       sku: option.sku || "",
-      priceMinor: Math.round(Number(option.promoPrice > 0 ? option.promoPrice : option.price || 0) * 100),
+      priceMinor: Math.round(Number(option.price || 0) * 100),
+      promoPriceMinor: option.promoPrice > 0 ? Math.round(Number(option.promoPrice) * 100) : null,
       enabled: option.inStock !== false
     })),
     addOns: (Array.isArray(product.upgrades) ? product.upgrades : []).map(item => ({
