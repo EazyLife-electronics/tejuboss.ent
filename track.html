@@ -9,7 +9,7 @@
     <link rel="apple-touch-icon" href="assets/pictures/icon_dark.png" />
     <script>
         (function () {
-            var saved = localStorage.getItem('eazylife-theme');
+            var saved = localStorage.getItem('tejuboss-theme');
             var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             if (theme === 'dark') document.documentElement.classList.add('dark');
         })();
@@ -112,7 +112,7 @@
 
     document.getElementById('themeToggle').addEventListener('click', function () {
         var isDark = document.documentElement.classList.toggle('dark');
-        localStorage.setItem('eazylife-theme', isDark ? 'dark' : 'light');
+        localStorage.setItem('tejuboss-theme', isDark ? 'dark' : 'light');
         applyShopThemeVisuals();
     });
 
@@ -301,10 +301,10 @@
                 }
                 // Remember it locally too, in case they typed a code that wasn't already saved on this device
                 try {
-                    const myOrders = JSON.parse(localStorage.getItem('eazylife_my_orders')) || [];
+                    const myOrders = JSON.parse(localStorage.getItem('tejuboss_my_orders')) || [];
                     if (!myOrders.includes(order.trackingCode)) {
                         myOrders.unshift(order.trackingCode);
-                        localStorage.setItem('eazylife_my_orders', JSON.stringify(myOrders.slice(0, 50)));
+                        localStorage.setItem('tejuboss_my_orders', JSON.stringify(myOrders.slice(0, 50)));
                     }
                 } catch (e) { /* non-critical */ }
             }
@@ -319,7 +319,7 @@
 
     async function loadMyOrders() {
         let myOrders = [];
-        try { myOrders = JSON.parse(localStorage.getItem('eazylife_my_orders')) || []; } catch (e) {}
+        try { myOrders = JSON.parse(localStorage.getItem('tejuboss_my_orders')) || []; } catch (e) {}
         if (myOrders.length === 0) return;
 
         document.getElementById('myOrdersSection').classList.remove('hidden');
