@@ -7,7 +7,7 @@ export function optimizedImageUrl(value, width, quality = 80) {
   if (!source) return source;
   try {
     const url = new URL(source, window.location.href);
-    if (url.hostname !== IMAGEKIT_HOST || !url.pathname.startsWith('/eazylife/')) return source;
+    if (url.hostname !== IMAGEKIT_HOST || !url.pathname.startsWith('/tejuboss/')) return source;
     const transforms = [];
     if (Number.isFinite(Number(width)) && Number(width) > 0) transforms.push('w-' + Math.round(Number(width)));
     transforms.push('q-' + Math.max(1, Math.min(100, Math.round(Number(quality) || 80))));
@@ -24,7 +24,7 @@ export function responsiveImageAttrs(value, widths = [320, 640, 960, 1280], size
   if (!source) return '';
   try {
     const url = new URL(source, window.location.href);
-    if (url.hostname !== IMAGEKIT_HOST || !url.pathname.startsWith('/eazylife/')) return '';
+    if (url.hostname !== IMAGEKIT_HOST || !url.pathname.startsWith('/tejuboss/')) return '';
     const srcset = widths.map(width => optimizedImageUrl(source, width, quality) + ' ' + width + 'w').join(', ');
     return 'srcset="' + srcset.replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '" sizes="' + String(sizes).replace(/"/g, '&quot;') + '"';
   } catch (_) {
