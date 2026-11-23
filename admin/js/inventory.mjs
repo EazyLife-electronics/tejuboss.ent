@@ -1,6 +1,6 @@
 // Clean Spark-compatible inventory console for catalogueProducts + inventoryBalances.
 import { initFirebase } from "../../js/firebase.mjs";
-import { collection, doc, getDocs, setDoc, updateDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, doc, getDocs, updateDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { recordInventoryMovement, initializeInventoryBalance } from "../../js/commerce-store.mjs";
 import { escapeHtml } from "./admin-shared.mjs";
 
