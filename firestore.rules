@@ -62,15 +62,18 @@ service cloud.firestore {
         && data.lines.size() > 0
         && data.lines.size() <= 30
         && data.quote is map
-        && hasOnlyKeys(data.quote, ['currency', 'subtotalMinor', 'deliveryFeeMinor', 'grandTotalMinor'])
+        && hasOnlyKeys(data.quote, ['currency', 'subtotalMinor', 'discountMinor', 'deliveryFeeMinor', 'grandTotalMinor'])
         && data.quote.currency == 'NGN'
         && data.quote.subtotalMinor is int
         && data.quote.subtotalMinor >= 0
+        && data.quote.discountMinor is int
+        && data.quote.discountMinor >= 0
+        && data.quote.discountMinor <= data.quote.subtotalMinor
         && data.quote.deliveryFeeMinor is int
         && data.quote.deliveryFeeMinor >= 0
         && data.quote.grandTotalMinor is int
         && data.quote.grandTotalMinor >= 0
-        && data.quote.grandTotalMinor == data.quote.subtotalMinor + data.quote.deliveryFeeMinor
+        && data.quote.grandTotalMinor == data.quote.subtotalMinor - data.quote.discountMinor + data.quote.deliveryFeeMinor
         && data.createdAt == request.time
         && data.updatedAt == request.time;
     }
