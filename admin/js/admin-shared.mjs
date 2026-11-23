@@ -33,7 +33,7 @@ export function initTabs() {
 // manager can click a thumbnail instead of typing/copying an image URL.
 
 // GitHub Pages deploys this repository from the main branch.
-const GITHUB_REPO = 'EazyLife-electronics/eazylife.ng';
+const GITHUB_REPO = 'EazyLife-electronics/tejuboss.ent';
 const GITHUB_BRANCH = 'main';
 
 let pickerTargetInput = null;
