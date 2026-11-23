@@ -246,3 +246,76 @@ export async function recordInventoryMovement({ balanceId, quantityDelta, moveme
   });
   return movementRef.id;
 }
+
+
+// Compatibility adapters for the existing product editor and shop markup.
+// The persisted schema remains catalogueProducts/sellingOptions.
+function legacyProductView(product) {
+  const options = Array.isArray(product.sellingOptions) ? product.sellingOptions : [];
+  return {
+    id: product.id,
+    name: product.name || "",
+    brand: product.brand || "",
+    category: product.categoryId || "",
+    desc: product.description || "",
+    inStock: product.published === true && product.availability !== "unavailable",
+    variants: options.map(option => ({
+      id: option.id,
+      color: option.label || "",
+      processor: "",
+      ram: "",
+      rom: "",
+      price: Number(option.priceMinor || 0) / 100,
+      promoPrice: 0,
+      image: product.images?.[0]?.url || "",
+      inStock: option.enabled !== false
+    })),
+    upgrades: []
+  };
+}
+function fromLegacyProduct(product) {
+  const variants = Array.isArray(product.variants) ? product.variants : [];
+  return {
+    name: product.name,
+    brand: product.brand,
+    categoryId: product.category,
+    description: product.desc,
+    published: product.inStock !== false,
+    availability: variants.some(option => option.inStock !== false) ? "available" : "unavailable",
+    images: variants.map(option => option.image).filter(Boolean).slice(0, 12),
+    sellingOptions: variants.map((option, index) => ({
+      id: option.id || randomHex(8),
+      label: [option.color, option.processor, option.ram, option.rom].filter(Boolean).join(" / ") || `Option ${index + 1}`,
+      sku: option.sku || "",
+      priceMinor: Math.round(Number(option.promoPrice > 0 ? option.promoPrice : option.price || 0) * 100),
+      enabled: option.inStock !== false
+    }))
+  };
+}
+export async function getProducts() {
+  return (await listPublicCatalogue()).map(legacyProductView);
+}
+export async function watchProducts(callback) {
+  const rows = await listAdminCatalogue();
+  callback(rows.map(legacyProductView));
+  return () => {};
+}
+export async function addProduct(product) {
+  const id = await saveCatalogueProduct(fromLegacyProduct(product));
+  return { id };
+}
+export async function updateProduct(id, updates) {
+  const existing = (await listAdminCatalogue()).find(item => item.id === id);
+  if (!existing) throw new Error("Product not found.");
+  await saveCatalogueProduct({ ...legacyProductView(existing), ...updates, ...fromLegacyProduct({ ...legacyProductView(existing), ...updates }) }, id);
+  return { id };
+}
+export async function deleteProduct(id) {
+  return deleteCatalogueProduct(id);
+}
+export async function placeOrder(order) {
+  return submitGuestOrderRequest({
+    ...order,
+    fulfilmentMethod: "delivery"
+  });
+}
