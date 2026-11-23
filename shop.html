@@ -590,7 +590,7 @@
     // (price/RAM/storage) can match against — a product passes if ANY of its variants fits,
     // since that's the variant a shopper would actually pick.
     function productVariantsList(p) {
-        return p.variants || [];
+        return (p.variants || []).filter(v => v.inStock !== false);
     }
 
     function getFilteredSortedProducts() {
@@ -868,7 +868,7 @@
     // since this is just "here's an incentive to buy more", not a live quote.
     function bestBulkSavings(p) {
         let best = null;
-        (p.variants || []).forEach(v => {
+        productVariantsList(p).forEach(v => {
             const b = resolveBulkSavings(v, generalBulkSavingsPercent, generalBulkSavingsMinQty);
             if (b.percent > 0 && b.minQty > 0 && (!best || b.percent > best.percent)) best = b;
         });
@@ -899,7 +899,7 @@
             const promo = productHasPromo(p);
             const origRange = productOriginalPriceRange(p);
             const origPriceLabel = origRange.min === origRange.max ? `₦${origRange.min.toLocaleString()}` : `From ₦${origRange.min.toLocaleString()}`;
-            const maxDiscountPercent = promo ? Math.max(...(p.variants || []).map(variantDiscountPercent)) : 0;
+            const maxDiscountPercent = promo ? Math.max(...productVariantsList(p).map(variantDiscountPercent)) : 0;
             const thumb = (p.variants && p.variants[0] && p.variants[0].image) || '';
             const outOfStock = p.inStock === false || (p.variants || []).every(v => v.inStock === false);
 
