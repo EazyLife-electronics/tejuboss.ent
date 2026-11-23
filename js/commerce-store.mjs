@@ -250,20 +250,67 @@ export async function setOrderReviewDecision(orderId, decision, verification = {
   });
 }
 
+// Create a stock balance and its opening ledger entry atomically. A repeated
+// initialization cannot overwrite an existing balance or erase its stock.
+export async function initializeInventoryBalance({ balanceId, productId, sellingOptionId, locationId = "main", quantityOnHand = 0, sku = "", reorderLevel = 0 }) {
+  requireAdmin();
+  const id = cleanText(balanceId, 180);
+  const quantity = Number(quantityOnHand);
+  const reorder = Number(reorderLevel);
+  if (!id || !cleanText(productId, 128) || !cleanText(sellingOptionId, 128)) throw new Error("A product and selling option are required.");
+  if (!Number.isSafeInteger(quantity) || quantity < 0 || !Number.isSafeInteger(reorder) || reorder < 0) throw new Error("Opening quantity and reorder level must be non-negative whole numbers.");
+  const balanceRef = doc(db, "inventoryBalances", id);
+  const movementRef = doc(collection(db, "inventoryMovements"));
+  await runTransaction(db, async transaction => {
+    const existing = await transaction.get(balanceRef);
+    if (existing.exists()) throw new Error("This inventory balance already exists. Refresh the inventory list.");
+    transaction.set(balanceRef, {
+      productId: cleanText(productId, 128),
+      sellingOptionId: cleanText(sellingOptionId, 128),
+      locationId: cleanText(locationId, 128),
+      quantityOnHand: quantity,
+      reorderLevel: reorder,
+      sku: cleanText(sku, 80),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      updatedBy: auth.currentUser.uid
+    });
+    if (quantity > 0) transaction.set(movementRef, {
+      productId: cleanText(productId, 128),
+      sellingOptionId: cleanText(sellingOptionId, 128),
+      locationId: cleanText(locationId, 128),
+      quantityDelta: quantity,
+      movementType: "opening_balance",
+      reason: "Initial stock setup",
+      referenceId: "",
+      actorUid: auth.currentUser.uid,
+      createdAt: serverTimestamp()
+    });
+  });
+  return id;
+}
+
 // Explicitly separate staff stock movements from order submission/review.
 // This transaction prevents negative balances and writes the balance and
 // corresponding immutable movement together.
 export async function recordInventoryMovement({ balanceId, quantityDelta, movementType, reason, referenceId = "" }) {
   requireAdmin();
   if (!Number.isSafeInteger(quantityDelta) || quantityDelta === 0) throw new Error("Enter a non-zero whole-number stock change.");
-  const balanceRef = doc(db, "inventoryBalances", cleanText(balanceId, 128));
+  const balanceKey = cleanText(balanceId, 180);
+  const reasonText = cleanText(reason, 500);
+  const type = cleanText(movementType, 40);
+  if (!balanceKey) throw new Error("Select an inventory balance.");
+  if (!reasonText) throw new Error("A reason is required for every stock movement.");
+  if (!["receipt", "issue", "adjustment"].includes(type)) throw new Error("Invalid stock movement type.");
+  if ((type === "receipt" && quantityDelta < 0) || (type === "issue" && quantityDelta > 0)) throw new Error("The movement quantity does not match its type.");
+  const balanceRef = doc(db, "inventoryBalances", balanceKey);
   const movementRef = doc(collection(db, "inventoryMovements"));
   await runTransaction(db, async transaction => {
     const snapshot = await transaction.get(balanceRef);
     if (!snapshot.exists()) throw new Error("Inventory balance has not been initialized.");
     const current = Number(snapshot.data().quantityOnHand);
     const next = current + quantityDelta;
-    if (!Number.isSafeInteger(current) || next < 0) throw new Error("This movement would make stock negative.");
+    if (!Number.isSafeInteger(current) || !Number.isSafeInteger(next) || next < 0) throw new Error("This movement would make stock invalid or negative.");
     transaction.update(balanceRef, {
       quantityOnHand: next,
       updatedAt: serverTimestamp(),
@@ -274,8 +321,8 @@ export async function recordInventoryMovement({ balanceId, quantityDelta, moveme
       sellingOptionId: cleanText(snapshot.data().sellingOptionId, 128),
       locationId: cleanText(snapshot.data().locationId, 128),
       quantityDelta,
-      movementType: cleanText(movementType, 40) || "adjustment",
-      reason: cleanText(reason, 500),
+      movementType: type,
+      reason: reasonText,
       referenceId: cleanText(referenceId, 128),
       actorUid: auth.currentUser.uid,
       createdAt: serverTimestamp()
